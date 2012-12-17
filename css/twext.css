@@ -1,0 +1,10 @@
+#textInput {
+  font-family: monospace;
+  border: 1px solid gray;
+  white-space: nowrap;
+  overflow: auto;
+  padding: 2px;
+  width: 1100px;
+  height:500px;
+  color: black;
+}

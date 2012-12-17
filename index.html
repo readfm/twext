@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>twxtTEXT</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js" type="text/javascript"></script>
+    <script src="js/jstorage.js" type="text/javascript"></script>
+    <script src="js/main.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="css/twext.css">
+  </head>
+
+  <body>
+    <font id="title" face="liberation mono" color=silver size=-1><b>F2home F4text/twxt F9new</b></font>
+    <div id="textInput" contenteditable="true">
+    </div>
+    <script>
+			document.querySelector("div[contenteditable]").addEventListener("paste", function (e) {
+				e.preventDefault();
+				var text = e.clipboardData.getData("text/plain");
+        var html = convertTextToHtml(text);
+				document.execCommand("insertHTML", false, html);
+			});
+		</script>
+  </body>
+</html>
