@@ -8,9 +8,24 @@ var keys = {
 };
 
 /**
-  Text/Twext state.
+  The states available.
 */
-var state = 0;  // 0 = home, 1 = text, 2 = twext, 3 = new
+var states = {
+  'home': 0,
+  'text': 1,
+  'twext': 2,
+  'new': 3
+};
+
+/**
+  Current state.
+*/
+var state = states['home'];
+
+/**
+  Oneline object.
+*/
+var onelineObj = new OneLine("");
 
 /**
   On document load.
@@ -32,7 +47,7 @@ function handleInputKeyDownEvents(e) {
   } else if(e.keyCode == keys['f4']){  //F4 key pressed
     textTwextSwitch($('#textInput'));
   } else if(e.keyCode == keys['f9']) {  //F9 key is pressed
-    newText();
+    createNew();
   }
 }
 
@@ -71,12 +86,12 @@ function convertHtmlToText(html) {
   Display the onelines list saved in the local storage.
 */
 function displayOneLinesList(textEl) {
-  if(state == 2 && textEl.data("newLine")) {
-    var text = convertHtmlToText(textEl.html());
-    saveOneLine(text);
+  var oneLine = textEl.data("oneline");
+  if(oneLine) {
+    oneLine = updateOneLine(oneLine, textEl);
+    saveOneLine(oneLine, textEl.data("lineNumber"));
   }
-  state = 0;
-  textEl.removeData();
+  reset(textEl);  
   var text = loadOneLinesList();
   if(text != null) {
     textEl.html(convertTextToHtml(text));
@@ -86,28 +101,25 @@ function displayOneLinesList(textEl) {
 }
 
 /**
-  Save one line to the local storage.
+  Apply text/twext edits on oneline.
 */
-function saveOneLine(text) {
-  var oneLine = getOneLine(text);
-  var list = $.jStorage.get("onelineslist");
-  if(list) {
-    list.unshift(oneLine);
-  } else {
-    list = new Array(oneLine);
+function updateOneLine(oneLine, textEl) {
+  var text = convertHtmlToText(textEl.html());
+  if(state == states['text'] && text != oneLine.getText()) {  // Text has been edited  
+    oneLine.setText(text);
+  } else if(state == states['twext'] && text.replace(/\ +/g, ' ') != oneLine.getTextTwext()) { // TextTwext has been edited (spaces replace to remove alignment)
+    oneLine.setTextTwext(text.replace(/\ +/g, ' '));
   }
-  $.jStorage.set("onelineslist", list);
+  textEl.data("oneline", oneLine);
+  return oneLine;
 }
 
-function getOneLine(textVal) {
-  var i, text = "", twext = "";
-  var lines = textVal.split('\n');
-  for(i=0; i<lines.length; i=i+2) {
-    text += lines[i] + "  ";
-    twext += lines[i+1] + " " + "1:1" + "  ";
-  }
-  var oneLine = text.substring(0, text.length-2) + "        " + twext.substring(0, twext.length-2);
-  return oneLine;
+/**
+  Reset to home state.
+*/
+function reset(textEl) {
+  state = states['home'];
+  textEl.removeData();
 }
 
 /**
@@ -128,70 +140,124 @@ function loadOneLinesList() {
 }
 
 /**
+  Save one line to the local storage.
+*/
+function saveOneLine(oneLine, lineNumber) {
+  var list = $.jStorage.get("onelineslist");
+  if(list) {
+    if(oneLine.isNewLine()) {
+      list.unshift(oneLine.getValue());    // Add oneline at the top of the list
+    } else {
+      list[lineNumber] = oneLine.getValue();
+    }
+  } else {
+    list = new Array(oneLine.getValue());
+  }
+  $.jStorage.set("onelineslist", list);
+}
+
+/**
+  Save onelines list to the local storage.
+  Params: String of onelines list.
+*/
+function saveOnelinesList(text) {
+  var i, list;
+  $.jStorage.deleteKey("onelineslist");
+  list = text.split('\n');
+  $.jStorage.set("onelineslist", list);
+}
+
+/**
+  Construct initial oneline from text/twext.
+*/
+function constructOneLine(textVal) {
+  var i, text = "", twext = "";
+  var lines = textVal.split('\n');
+  for(i=0; i<lines.length; i=i+2) {
+    text += lines[i] + onelineObj.LINE_MARK;
+    twext += lines[i+1] + " " + "1:1" + onelineObj.LINE_MARK;
+  }
+  var oneLine = text.substring(0, text.length-2) + onelineObj.ROW_MARK + twext.substring(0, twext.length-2);
+  return oneLine;
+}
+
+/**
   Switch between text and twext.
 */
 function textTwextSwitch(textEl) {
-  var text = "", i;
-  if(state == 0) { // From home to text.
+  var displayedText = "", i, oneLine;
+  var text = convertHtmlToText(textEl.html());
+  if(state == states['home']) { // From home to text.
+    saveOnelinesList(text);
     var line = convertHtmlToText(window.getSelection().focusNode.textContent);
-    text = line.split('        ')[0];  // 8 spaces row marker.
-    text = text.replace(/\  /g, "\n");  // 2 spaces line marker.
-    textEl.data("oneline", line);
-    state = 1;
-  } else if(state == 1) { // From text to twext
-    var tmp = textEl.data("oneline").split('        ');
-    var textLines = tmp[0].split('  ');
-    var twextLines = tmp[1].split('  ');
-    for(i=0; i<textLines.length; i++) {
-      text += textLines[i] + "\n";
-      text += twextLines[i] + "\n";
-    }
-    text = text.substring(0, text.length-1);
-    text = alignText(text);
-    state = 2;
-  } else if(state == 2) { // From twext to text
-    var textValue = convertHtmlToText(textEl.html());
-    textEl.data("oneline", getOneLine(textValue));
-    var lines = textValue.split('\n');
-    for(i=0; i<lines.length; i=i+2) {
-      text += lines[i] + "\n";
-    }
-    text = text.substring(0, text.length-1);  // Remove the last \n
-    state = 1;
-  } else if(state == 3) { // From new to twext.
-    var lines = convertHtmlToText(textEl.html()).split('\n');
+    oneLine = new OneLine(line);
+    displayedText = oneLine.getText();
+    textEl.data("oneline", oneLine);
+    textEl.data("lineNumber", getLineNumber(text, line));
+    state = states['text'];
+  } else if(state == states['text']) { // From text to twext
+    oneLine = updateOneLine(textEl.data("oneline"), textEl);
+    displayedText = alignText(oneLine);
+    state = states['twext'];
+  } else if(state == states['twext']) { // From twext to text
+    oneLine = updateOneLine(textEl.data("oneline"), textEl)
+    displayedText = oneLine.getText();
+    state = states['text'];
+  } else if(state == states['new']) { // From new to twext.
+    var lines = text.split('\n');
     for(i=0; i<lines.length; i++) {
-      text += lines[i] + "\n" + "=" + "\n";
+      displayedText += lines[i] + "\n" + "=" + "\n";
     }
-    text = text.substring(0, text.length-1);  // Remove the last \n
-    state = 2;
-    textEl.data("newLine", true);
+    displayedText = displayedText.substring(0, displayedText.length-1);  // Remove the last \n
+    var onelineStr = constructOneLine(displayedText);
+    oneLine = new OneLine(onelineStr);
+    oneLine.setNewLine(true);
+    textEl.data("oneline", oneLine);
+    state = states['twext'];
   }
-  textEl.html(convertTextToHtml(text));
+  textEl.html(convertTextToHtml(displayedText));
 }
 
-function alignText(text) {
-  var alignedText = "", matchIndex = -1, textLine = "", twextLine = "", nN, i;
-  var re = /\d+\:\d+/;
+/**
+  Get the line number where the cursor points.
+*/
+function getLineNumber(text, line) {
+  var i;
   var lines = text.split('\n');
-  //theTwext = theTwext.substring(0, theTwext.search(re)-1);  
-  for(i=0; i<lines.length; i=i+2) {
-    matchIndex = lines[i+1].search(re);
+  for(i=0; i<lines.length; i++) {
+    if(lines[i] == line) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+  Align text/twext according to n:N notation.
+*/
+function alignText(oneline) {
+  var alignedText = "", matchIndex = -1, textLine = "", twextLine = "", nN, i, j;
+  var lines = oneline.getTextTwext().split('\n'); 
+  nN = oneline.getnN();
+  for(i=0, j=0; i<lines.length, j<nN.length; i=i+2, j++) {
     textLine = lines[i];
-    twextLine = lines[i+1].substring(0, matchIndex-1);  // -1 to remove the last space.
-    nN = lines[i+1].slice(matchIndex).split(' ');
-    alignedText += alignRows(textLine, twextLine, nN) + "\n";
+    twextLine = lines[i+1];
+    alignedText += alignRows(textLine, twextLine, nN[j]) + "\n";
   }
   return alignedText.substring(0, alignedText.length-1);  // Remove the last \n
 }
 
+/**
+  Align two rows of text/twext according to n:N notation
+*/
 function alignRows(textLine, twextLine, nN) {
-  var diff = 0, count = 0, spaces = "", wordNumbers, textSpacesCount = 0, twextSpacesCount = 0, index = 0;
+  var diff = 0, count = 0, spaces = "", wordNumbers, textSpacesCount = 0, twextSpacesCount = 0, index = 0, nNList;
   var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;  // Match url | words
   var theTextIndices = getMatchesIndices(textLine, re);
   var theTwextIndices = getMatchesIndices(twextLine, re);
-  for(i=0; i<nN.length; i++) {
-    wordNumbers = nN[i].split(':');
+  nNList = nN.split(' ');
+  for(i=0; i<nNList.length; i++) {
+    wordNumbers = nNList[i].split(':');
     spaces = "";
     diff = (theTextIndices[parseInt(wordNumbers[0])-1]+textSpacesCount) - (theTwextIndices[parseInt(wordNumbers[1])-1]+twextSpacesCount); // -1 to map word number 1 to word index 0
     count = diff;
@@ -219,10 +285,14 @@ function alignRows(textLine, twextLine, nN) {
 /**
   Empty the text area for the user to input new text.
 */
-function newText() {
+function createNew() {
+  if(state == states['home']) {
+    var text = convertHtmlToText($('#textInput').html());
+    saveOnelinesList(text);
+  }
   $('#textInput').html("");
   $('#textInput').removeData();
-  state = 3;
+  state = states['new'];
 }
 
 /**
