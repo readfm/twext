@@ -54,11 +54,11 @@ var OneLine = Class({
     Set text, and update oneline value.
   */
   setText: function(text) {
-    var textTwext = "";
+    var textTwext = "", i, j;
     var textLines = text.split('\n');
     var textTwextLines = this.textTwext.split('\n');
-    for(i=0; i<textLines.length; i++) {
-      textTwext += textLines[i] + '\n' + textTwextLines[i+1] + '\n';
+    for(i=0, j=1; i<textLines.length, j<textTwextLines.length; i++, j=j+2) {
+      textTwext += textLines[i] + '\n' + textTwextLines[j] + '\n';
     }
     textTwext = textTwext.substring(0, textTwext.length-1); // Remove last \n
     this.text = text;
@@ -78,17 +78,33 @@ var OneLine = Class({
     Set textTwext, and update oneline value
   */
   setTextTwext: function(textTwext) {
-    var i, j, text = "", twext = "", value = "", re;
+    var i, j, text = "", twext = "", value = "", re, txtTwxt = "";
     var lines = textTwext.split('\n');
-    for(i=0, j=0; i<lines.length, j<this.nN.length; i=i+2, j++) {
-      text += lines[i] + this.LINE_MARK;
-      twext += lines[i+1] +  " " + this.nN[j] + this.LINE_MARK;
+    for(i=0, j=0; (i<lines.length || j<this.nN.length); i=i+2, j++) {
+      if(lines[i] && lines[i+1]) {
+        if(!this.nN[j]) { // If new text/twext lines added
+          this.nN.push("1:1");
+        }
+        text += lines[i] + this.LINE_MARK;
+        twext += lines[i+1] +  " " + this.nN[j] + this.LINE_MARK;
+        txtTwxt += lines[i] + "\n" + lines[i+1] + "\n";
+      } else if(lines[i] && !lines[i+1]) {
+        if(!this.nN[j]) { // If new text/twext lines added
+          this.nN.push("1:1");
+        }
+        text += lines[i] + this.LINE_MARK;
+        twext += "=" +  " " + this.nN[j] + this.LINE_MARK;
+        txtTwxt += lines[i] + "\n" + "=" + "\n";
+      } else {
+        this.nN.splice(j, 1);
+      }
     }
     text = text.substring(0, text.length-2);  // -2 to remove last 2 spaces
     twext = twext.substring(0, twext.length-2); // -2 to remove last 2 spaces
+    txtTwxt = txtTwxt.substring(0, txtTwxt.length-1);
     re = new RegExp(this.LINE_MARK, 'g');
     this.text = text.replace(re, '\n');
-    this.textTwext = textTwext;
+    this.textTwext = txtTwxt;
     this.value = text + this.ROW_MARK + twext;
   },
 
