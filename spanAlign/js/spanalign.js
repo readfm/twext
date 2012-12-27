@@ -1,8 +1,8 @@
-var nN = ["3:2", "6:3", "7:5"];
+var nN = ["3:2", "4:3", "7:5", "9:7", "10:9", "11:11"];
 
-var textStr = "align chunks in any font face";
+var textStr = "wafaa is the boss of span align control for any font";
 
-var twextStr = "emp tmpty line to measure empties to insert";
+var twextStr = "resize me to see if i behave nice while resizing me";
 
 /**
   On document load.
