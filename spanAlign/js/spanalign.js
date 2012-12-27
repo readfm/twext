@@ -1,8 +1,8 @@
-var nN = ["3:2", "6:3", "7:5"];
+var nN = ["3:2", "4:3", "7:5"];
 
-var textStr = "align chunks in any font face";
+var textStr = "wafaa is the boss of span align";
 
-var twextStr = "emp tmpty line to measure empties to insert";
+var twextStr = "resize me to see if I behave nice";
 
 /**
   On document load.
@@ -12,6 +12,9 @@ $(document).ready(function() {
   textEl.focus();
   initHtml(textEl);
   alignChunks(textEl);
+  $(window).resize(function() {
+    alignChunks(textEl);
+  });
 });
 
 /**
@@ -42,7 +45,9 @@ function alignChunks(textEl) {
 function spanAlign(textEl, textLine, twextLine) {
   var i, n=0, N=0, textWordsIndices, twextWordsIndices, textWords, twextWords, tmp, Npos, npos, textSpacesCount = 0, twextSpacesCount = 0, parentEl, textNode, twextNode, data;
   textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
+  textNode.nodeValue = cleanText(textNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned text
   twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
+  twextNode.nodeValue = cleanText(twextNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned twext
   textWords = getWords(textNode.nodeValue);
   twextWords = getWords(twextNode.nodeValue);
   textWordsIndices = getWordsIndices(textNode.nodeValue);
@@ -191,4 +196,18 @@ function cleanHtml(html) {
   re = new RegExp(str.substring(0, str.length-1), 'g');
   html = html.replace(re, '');
   return html;
+}
+
+/**
+  Clean text from html characters
+*/
+function cleanText(text) {
+  var re, str = "", i;
+  var spaces = [String.fromCharCode(160), '&nbsp;'];
+  for (i = 0; i < spaces.length; i++) {
+    str += spaces[i] + "|";
+  }
+  re = new RegExp(str.substring(0, str.length-1), 'g');
+  text = text.replace(re, ' ');
+  return text;
 }
