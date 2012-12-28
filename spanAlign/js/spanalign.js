@@ -1,4 +1,4 @@
-var nN = ["3:2", "4:3", "7:5"];
+var nN = ["3:2", "4:3", "8:5"];
 
 var textStr = "wafaa is the boss of span align";
 
@@ -78,11 +78,25 @@ function spanAlign(textEl, textLine, twextLine) {
         textSpacesCount++;
       }
       // Take span value of text word before removing span tag
+      if(N == 0) { // first word
+        $('#textWord')[0].previousSibling.nodeValue = $('#textWord')[0].previousSibling.nodeValue == " " ? "" : $('#textWord')[0].previousSibling.nodeValue.slice(1);
+        $('#textWord')[0].nextSibling.nodeValue = " " + $('#textWord')[0].nextSibling.nodeValue;
+      } else if(N == textWord.length-1) { // Last word
+        $('#textWord')[0].previousSibling.nodeValue = " " + $('#textWord')[0].previousSibling.nodeValue;
+        $('#textWord')[0].nextSibling.nodeValue = ('#textWord')[0].nextSibling.nodeValue == " " ? "" : $('#textWord')[0].nextSibling.nodeValue.slice(1);
+      }
       data = $('#textWord')[0].previousSibling.nodeValue + $('#textWord')[0].childNodes[0].nodeValue + $('#textWord')[0].nextSibling.nodeValue;
       parentEl.childNodes[0].nodeValue = data;
       $(parentEl.childNodes[2]).remove();
       $('#textWord').remove();
       // Take span value of twext word before removing span tag
+      if(n == 0) { // first word
+        $('#twextWord')[0].previousSibling.nodeValue = $('#twextWord')[0].previousSibling.nodeValue == " " ? "" : $('#twextWord')[0].previousSibling.nodeValue.slice(1);
+        $('#twextWord')[0].nextSibling.nodeValue = " " + $('#twextWord')[0].nextSibling.nodeValue;
+      } else if(n == twextWord.length-1) { // Last word
+        $('#twextWord')[0].previousSibling.nodeValue = " " + $('#twextWord')[0].previousSibling.nodeValue;
+        $('#twextWord')[0].nextSibling.nodeValue = ('#twextWord')[0].nextSibling.nodeValue == " " ? "" : $('#twextWord')[0].nextSibling.nodeValue.slice(1);
+      }
       data = $('#twextWord')[0].previousSibling.nodeValue + $('#twextWord')[0].childNodes[0].nodeValue + $('#twextWord')[0].nextSibling.nodeValue;
       textEl[0].childNodes[twextLine].childNodes[0].nodeValue = data;
       $(textEl[0].childNodes[twextLine].childNodes[2]).remove();
@@ -96,6 +110,13 @@ function spanAlign(textEl, textLine, twextLine) {
         twextSpacesCount++;
       }
       // Take span value of text word before removing span tag
+      if(N == 0) { // first word
+        $('#textWord')[0].previousSibling.nodeValue = $('#textWord')[0].previousSibling.nodeValue == " " ? "" : $('#textWord')[0].previousSibling.nodeValue.slice(1);
+        $('#textWord')[0].nextSibling.nodeValue = " " + $('#textWord')[0].nextSibling.nodeValue;
+      } else if(N == textWord.length-1) { // Last word
+        $('#textWord')[0].previousSibling.nodeValue = " " + $('#textWord')[0].previousSibling.nodeValue;
+        $('#textWord')[0].nextSibling.nodeValue = ('#textWord')[0].nextSibling.nodeValue == " " ? "" : $('#textWord')[0].nextSibling.nodeValue.slice(1);
+      }
       var data = $('#textWord')[0].previousSibling.nodeValue + $('#textWord')[0].childNodes[0].nodeValue + $('#textWord')[0].nextSibling.nodeValue;
       if(textLine == 0) { // First node
         textEl[0].childNodes[0].nodeValue = data;
@@ -106,6 +127,13 @@ function spanAlign(textEl, textLine, twextLine) {
       }
       $('#textWord').remove();
       // Take span value of twext word before removing span tag
+      if(n == 0) { // first word
+        $('#twextWord')[0].previousSibling.nodeValue = $('#twextWord')[0].previousSibling.nodeValue == " " ? "" : $('#twextWord')[0].previousSibling.nodeValue.slice(1);
+        $('#twextWord')[0].nextSibling.nodeValue = " " + $('#twextWord')[0].nextSibling.nodeValue;
+      } else if(n == twextWord.length-1) { // Last word
+        $('#twextWord')[0].previousSibling.nodeValue = " " + $('#twextWord')[0].previousSibling.nodeValue;
+        $('#twextWord')[0].nextSibling.nodeValue = ('#twextWord')[0].nextSibling.nodeValue == " " ? "" : $('#twextWord')[0].nextSibling.nodeValue.slice(1);
+      }
       data = $('#twextWord')[0].previousSibling.nodeValue + $('#twextWord')[0].childNodes[0].nodeValue + $('#twextWord')[0].nextSibling.nodeValue;
       parentEl.childNodes[0].nodeValue = data;
       $(parentEl.childNodes[2]).remove();
@@ -115,6 +143,13 @@ function spanAlign(textEl, textLine, twextLine) {
       parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
       twextSpacesCount++;
       // Take span value of text word before removing span tag
+      if(N == 0) { // first word
+        $('#textWord')[0].previousSibling.nodeValue = $('#textWord')[0].previousSibling.nodeValue == " " ? "" : $('#textWord')[0].previousSibling.nodeValue.slice(1);
+        $('#textWord')[0].nextSibling.nodeValue = " " + $('#textWord')[0].nextSibling.nodeValue;
+      } else if(N == textWord.length-1) { // Last word
+        $('#textWord')[0].previousSibling.nodeValue = " " + $('#textWord')[0].previousSibling.nodeValue;
+        $('#textWord')[0].nextSibling.nodeValue = ('#textWord')[0].nextSibling.nodeValue == " " ? "" : $('#textWord')[0].nextSibling.nodeValue.slice(1);
+      }
       var data = $('#textWord')[0].previousSibling.nodeValue + $('#textWord')[0].childNodes[0].nodeValue + $('#textWord')[0].nextSibling.nodeValue;
       if(textLine == 0) { // First node
         textEl[0].childNodes[0].nodeValue = data;
@@ -125,6 +160,13 @@ function spanAlign(textEl, textLine, twextLine) {
       }
       $('#textWord').remove();
       // Take span value of twext word before removing span tag
+      if(n == 0) { // first word
+        $('#twextWord')[0].previousSibling.nodeValue = $('#twextWord')[0].previousSibling.nodeValue == " " ? "" : $('#twextWord')[0].previousSibling.nodeValue.slice(1);
+        $('#twextWord')[0].nextSibling.nodeValue = " " + $('#twextWord')[0].nextSibling.nodeValue;
+      } else if(n == twextWord.length-1) { // Last word
+        $('#twextWord')[0].previousSibling.nodeValue = " " + $('#twextWord')[0].previousSibling.nodeValue;
+        $('#twextWord')[0].nextSibling.nodeValue = ('#twextWord')[0].nextSibling.nodeValue == " " ? "" : $('#twextWord')[0].nextSibling.nodeValue.slice(1);
+      }
       data = $('#twextWord')[0].previousSibling.nodeValue + $('#twextWord')[0].childNodes[0].nodeValue + $('#twextWord')[0].nextSibling.nodeValue;
       parentEl.childNodes[0].nodeValue = data;
       $(parentEl.childNodes[2]).remove();
