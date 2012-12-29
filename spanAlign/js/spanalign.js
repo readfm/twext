@@ -1,4 +1,4 @@
-var nN = ["3:2", "4:3", "8:5"];
+var nN = ["3:2", "4:3", "7:5"];
 
 var textStr = "wafaa is the boss of span align";
 
@@ -44,10 +44,9 @@ function alignChunks(textEl) {
 */
 function spanAlign(textEl, textLine, twextLine) {
   var i, n=0, N=0, textWordsIndices, twextWordsIndices, textWords, twextWords, tmp, Npos, npos, textSpacesCount = 0, twextSpacesCount = 0, parentEl, textNode, twextNode, data;
-  textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
-  textNode.nodeValue = cleanText(textNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned text
-  twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
-  twextNode.nodeValue = cleanText(twextNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned twext
+  var nodes = getTextTwext(textEl, textLine, twextLine);
+  textNode = nodes[0];
+  twextNode = nodes[1];
   textWords = getWords(textNode.nodeValue);
   twextWords = getWords(twextNode.nodeValue);
   textWordsIndices = getWordsIndices(textNode.nodeValue);
@@ -57,15 +56,9 @@ function spanAlign(textEl, textLine, twextLine) {
     n = parseInt(tmp[0]) - 1; // Twext word number
     N = parseInt(tmp[1]) - 1; // Text word number
     // Put text word in span
-    textNode.nodeValue = textNode.nodeValue.substring(0, textWordsIndices[N]+textSpacesCount) + textNode.nodeValue.slice(textWordsIndices[N]+textSpacesCount+textWords[N].length);
-    spanNode = $('<span id="textWord">' + textWords[N] + '</span>');
-    setCaretPos(textNode, textWordsIndices[N]+textSpacesCount);
-    insertNode(spanNode);
+    putWordInSpan(textNode, textWordsIndices[N]+textSpacesCount, textWords[N], "textWord");
     // Put twext word in span
-    twextNode.nodeValue = twextNode.nodeValue.substring(0, twextWordsIndices[n]+twextSpacesCount) + twextNode.nodeValue.slice(twextWordsIndices[n]+twextSpacesCount+twextWords[n].length);
-    spanNode = $('<span id="twextWord">' + twextWords[n] + '</span>');
-    setCaretPos(twextNode, twextWordsIndices[n]+twextSpacesCount);
-    insertNode(spanNode);
+    putWordInSpan(twextNode, twextWordsIndices[n]+twextSpacesCount, twextWords[n], "twextWord");
     // Get words left position
     NPos = parseInt($('#textWord').position().left);
     nPos = parseInt($('#twextWord').position().left);
@@ -77,30 +70,10 @@ function spanAlign(textEl, textLine, twextLine) {
         nPos = parseInt($('#twextWord').position().left);
         textSpacesCount++;
       }
-      // Take span value of text word before removing span tag
-      if(N == 0) { // first word
-        $('#textWord')[0].previousSibling.nodeValue = $('#textWord')[0].previousSibling.nodeValue == " " ? "" : $('#textWord')[0].previousSibling.nodeValue.slice(1);
-        $('#textWord')[0].nextSibling.nodeValue = " " + $('#textWord')[0].nextSibling.nodeValue;
-      } else if(N == textWord.length-1) { // Last word
-        $('#textWord')[0].previousSibling.nodeValue = " " + $('#textWord')[0].previousSibling.nodeValue;
-        $('#textWord')[0].nextSibling.nodeValue = ('#textWord')[0].nextSibling.nodeValue == " " ? "" : $('#textWord')[0].nextSibling.nodeValue.slice(1);
-      }
-      data = $('#textWord')[0].previousSibling.nodeValue + $('#textWord')[0].childNodes[0].nodeValue + $('#textWord')[0].nextSibling.nodeValue;
-      parentEl.childNodes[0].nodeValue = data;
-      $(parentEl.childNodes[2]).remove();
-      $('#textWord').remove();
-      // Take span value of twext word before removing span tag
-      if(n == 0) { // first word
-        $('#twextWord')[0].previousSibling.nodeValue = $('#twextWord')[0].previousSibling.nodeValue == " " ? "" : $('#twextWord')[0].previousSibling.nodeValue.slice(1);
-        $('#twextWord')[0].nextSibling.nodeValue = " " + $('#twextWord')[0].nextSibling.nodeValue;
-      } else if(n == twextWord.length-1) { // Last word
-        $('#twextWord')[0].previousSibling.nodeValue = " " + $('#twextWord')[0].previousSibling.nodeValue;
-        $('#twextWord')[0].nextSibling.nodeValue = ('#twextWord')[0].nextSibling.nodeValue == " " ? "" : $('#twextWord')[0].nextSibling.nodeValue.slice(1);
-      }
-      data = $('#twextWord')[0].previousSibling.nodeValue + $('#twextWord')[0].childNodes[0].nodeValue + $('#twextWord')[0].nextSibling.nodeValue;
-      textEl[0].childNodes[twextLine].childNodes[0].nodeValue = data;
-      $(textEl[0].childNodes[twextLine].childNodes[2]).remove();
-      $('#twextWord').remove();
+      // Take span value of text word and remove span tag
+      removeSpanNode(parentEl, "textWord", N == 0, N == textWord.length-1);
+      // Take span value of twext word and remove span tag
+      removeSpanNode(textEl[0].childNodes[twextLine], "twextWord", n == 0, n == twextWord.length-1);
     } else if(NPos > nPos) {  // Move twext word
       parentEl = twextNode.parentElement;
       while(NPos > nPos) {
@@ -109,72 +82,86 @@ function spanAlign(textEl, textLine, twextLine) {
         nPos = parseInt($('#twextWord').position().left);
         twextSpacesCount++;
       }
-      // Take span value of text word before removing span tag
-      if(N == 0) { // first word
-        $('#textWord')[0].previousSibling.nodeValue = $('#textWord')[0].previousSibling.nodeValue == " " ? "" : $('#textWord')[0].previousSibling.nodeValue.slice(1);
-        $('#textWord')[0].nextSibling.nodeValue = " " + $('#textWord')[0].nextSibling.nodeValue;
-      } else if(N == textWord.length-1) { // Last word
-        $('#textWord')[0].previousSibling.nodeValue = " " + $('#textWord')[0].previousSibling.nodeValue;
-        $('#textWord')[0].nextSibling.nodeValue = ('#textWord')[0].nextSibling.nodeValue == " " ? "" : $('#textWord')[0].nextSibling.nodeValue.slice(1);
-      }
-      var data = $('#textWord')[0].previousSibling.nodeValue + $('#textWord')[0].childNodes[0].nodeValue + $('#textWord')[0].nextSibling.nodeValue;
+      // Take span value of text word and remove span tag
       if(textLine == 0) { // First node
-        textEl[0].childNodes[0].nodeValue = data;
-        $(textEl[0].childNodes[2]).remove();
+        removeSpanNode(textEl[0], "textWord", N == 0, N == textWord.length-1);
       } else {
-        textEl[0].childNodes[textLine].childNodes[0].nodeValue = data;
-        $(textEl[0].childNodes[textLine].childNodes[2]).remove();
+        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWord.length-1);
       }
-      $('#textWord').remove();
-      // Take span value of twext word before removing span tag
-      if(n == 0) { // first word
-        $('#twextWord')[0].previousSibling.nodeValue = $('#twextWord')[0].previousSibling.nodeValue == " " ? "" : $('#twextWord')[0].previousSibling.nodeValue.slice(1);
-        $('#twextWord')[0].nextSibling.nodeValue = " " + $('#twextWord')[0].nextSibling.nodeValue;
-      } else if(n == twextWord.length-1) { // Last word
-        $('#twextWord')[0].previousSibling.nodeValue = " " + $('#twextWord')[0].previousSibling.nodeValue;
-        $('#twextWord')[0].nextSibling.nodeValue = ('#twextWord')[0].nextSibling.nodeValue == " " ? "" : $('#twextWord')[0].nextSibling.nodeValue.slice(1);
-      }
-      data = $('#twextWord')[0].previousSibling.nodeValue + $('#twextWord')[0].childNodes[0].nodeValue + $('#twextWord')[0].nextSibling.nodeValue;
-      parentEl.childNodes[0].nodeValue = data;
-      $(parentEl.childNodes[2]).remove();
-      $('#twextWord').remove();
+      // Take span value of twext word and remove span tag
+      removeSpanNode(parentEl, "twextWord", n == 0, n == twextWord.length-1);
     } else {  // =
       parentEl = twextNode.parentElement;
       parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
       twextSpacesCount++;
-      // Take span value of text word before removing span tag
-      if(N == 0) { // first word
-        $('#textWord')[0].previousSibling.nodeValue = $('#textWord')[0].previousSibling.nodeValue == " " ? "" : $('#textWord')[0].previousSibling.nodeValue.slice(1);
-        $('#textWord')[0].nextSibling.nodeValue = " " + $('#textWord')[0].nextSibling.nodeValue;
-      } else if(N == textWord.length-1) { // Last word
-        $('#textWord')[0].previousSibling.nodeValue = " " + $('#textWord')[0].previousSibling.nodeValue;
-        $('#textWord')[0].nextSibling.nodeValue = ('#textWord')[0].nextSibling.nodeValue == " " ? "" : $('#textWord')[0].nextSibling.nodeValue.slice(1);
-      }
-      var data = $('#textWord')[0].previousSibling.nodeValue + $('#textWord')[0].childNodes[0].nodeValue + $('#textWord')[0].nextSibling.nodeValue;
+      // Take span value of text word and remove span tag
       if(textLine == 0) { // First node
-        textEl[0].childNodes[0].nodeValue = data;
-        $(textEl[0].childNodes[2]).remove();
+        removeSpanNode(textEl[0], "textWord", N == 0, N == textWord.length-1);
       } else {
-        textEl[0].childNodes[textLine].childNodes[0].nodeValue = data;
-        $(textEl[0].childNodes[textLine].childNodes[2]).remove();
+        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWord.length-1);
       }
-      $('#textWord').remove();
-      // Take span value of twext word before removing span tag
-      if(n == 0) { // first word
-        $('#twextWord')[0].previousSibling.nodeValue = $('#twextWord')[0].previousSibling.nodeValue == " " ? "" : $('#twextWord')[0].previousSibling.nodeValue.slice(1);
-        $('#twextWord')[0].nextSibling.nodeValue = " " + $('#twextWord')[0].nextSibling.nodeValue;
-      } else if(n == twextWord.length-1) { // Last word
-        $('#twextWord')[0].previousSibling.nodeValue = " " + $('#twextWord')[0].previousSibling.nodeValue;
-        $('#twextWord')[0].nextSibling.nodeValue = ('#twextWord')[0].nextSibling.nodeValue == " " ? "" : $('#twextWord')[0].nextSibling.nodeValue.slice(1);
-      }
-      data = $('#twextWord')[0].previousSibling.nodeValue + $('#twextWord')[0].childNodes[0].nodeValue + $('#twextWord')[0].nextSibling.nodeValue;
-      parentEl.childNodes[0].nodeValue = data;
-      $(parentEl.childNodes[2]).remove();
-      $('#twextWord').remove();
+      // Take span value of twext word and remove span tag
+      removeSpanNode(parentEl, "twextWord", n == 0, n == twextWord.length-1);
     }
     textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
     twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
   }
+}
+
+/**
+  Append span node value to the parent node and remove the span node.
+  Params: 'parentEl' the parent element of the span
+          'firstWord' boolean detects if the word at the begining of the line
+          'lastWord' boolean detects if the word at the end of the line
+*/
+function removeSpanNode(parentEl, id, firstWord, lastWord) {
+  var data = getNodeNewData(id, firstWord, lastWord);
+  parentEl.childNodes[0].nodeValue = data;
+  $(parentEl.childNodes[2]).remove();
+  $('#'+id).remove();
+}
+
+/**
+  Get the new parent node value after appending span node value
+  Params: 'id' the id of the word
+          'firstWord' boolean detects if the word at the begining of the line
+          'lastWord' boolean detects if the word at the end of the line
+*/
+function getNodeNewData(id, firstWord, lastWord) {
+  if(firstWord) { // first word
+    $('#'+id)[0].previousSibling.nodeValue = $('#'+id)[0].previousSibling.nodeValue == " " ? "" : $('#'+id)[0].previousSibling.nodeValue.slice(1);
+    $('#'+id)[0].nextSibling.nodeValue = " " + $('#'+id)[0].nextSibling.nodeValue;
+  } else if(lastWord) { // Last word
+    $('#'+id)[0].previousSibling.nodeValue = " " + $('#'+id)[0].previousSibling.nodeValue;
+    $('#'+id)[0].nextSibling.nodeValue = $('#'+id)[0].nextSibling.nodeValue == " " ? "" : $('#'+id)[0].nextSibling.nodeValue.slice(1);
+  }
+  var data = $('#'+id)[0].previousSibling.nodeValue + $('#'+id)[0].childNodes[0].nodeValue + $('#'+id)[0].nextSibling.nodeValue;
+  return data;
+}
+
+/**
+  Put word in span tag and insert it in the dom.
+  Params: 'node' is the node contains the word.
+          'index' is the index of the word.
+          'word' the word to be put in span tag
+          'id' the id of the span tag
+*/
+function putWordInSpan(node, index, word, id) {
+  node.nodeValue = node.nodeValue.substring(0, index) + node.nodeValue.slice(index+word.length);
+  var spanNode = $('<span id="' + id + '">' + word + '</span>');
+  setCaretPos(node, index);
+  insertNode(spanNode);
+}
+
+/**
+  Get text and twext nodes.
+*/
+function getTextTwext(textEl, textLine, twextLine) {
+  var textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
+  textNode.nodeValue = cleanText(textNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned text
+  var twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
+  twextNode.nodeValue = cleanText(twextNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned twext
+  return [textNode, twextNode];
 }
 
 /**
