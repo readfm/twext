@@ -71,9 +71,9 @@ function spanAlign(textEl, textLine, twextLine) {
         textSpacesCount++;
       }
       // Take span value of text word and remove span tag
-      removeSpanNode(parentEl, "textWord", N == 0, N == textWord.length-1);
+      removeSpanNode(parentEl, "textWord", N == 0, N == textWords.length-1);
       // Take span value of twext word and remove span tag
-      removeSpanNode(textEl[0].childNodes[twextLine], "twextWord", n == 0, n == twextWord.length-1);
+      removeSpanNode(textEl[0].childNodes[twextLine], "twextWord", n == 0, n == twextWords.length-1);
     } else if(NPos > nPos) {  // Move twext word
       parentEl = twextNode.parentElement;
       while(NPos > nPos) {
@@ -84,24 +84,24 @@ function spanAlign(textEl, textLine, twextLine) {
       }
       // Take span value of text word and remove span tag
       if(textLine == 0) { // First node
-        removeSpanNode(textEl[0], "textWord", N == 0, N == textWord.length-1);
+        removeSpanNode(textEl[0], "textWord", N == 0, N == textWords.length-1);
       } else {
-        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWord.length-1);
+        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
       }
       // Take span value of twext word and remove span tag
-      removeSpanNode(parentEl, "twextWord", n == 0, n == twextWord.length-1);
+      removeSpanNode(parentEl, "twextWord", n == 0, n == twextWords.length-1);
     } else {  // =
       parentEl = twextNode.parentElement;
       parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
       twextSpacesCount++;
       // Take span value of text word and remove span tag
       if(textLine == 0) { // First node
-        removeSpanNode(textEl[0], "textWord", N == 0, N == textWord.length-1);
+        removeSpanNode(textEl[0], "textWord", N == 0, N == textWords.length-1);
       } else {
-        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWord.length-1);
+        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
       }
       // Take span value of twext word and remove span tag
-      removeSpanNode(parentEl, "twextWord", n == 0, n == twextWord.length-1);
+      removeSpanNode(parentEl, "twextWord", n == 0, n == twextWords.length-1);
     }
     textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
     twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
