@@ -1,8 +1,12 @@
-var nN = ["3:2", "4:3", "7:5"];
+var nN = ["3:2", "4:3", "6:5"];
 
-var textStr = "wafaa is the boss of span align";
+var textStr1 = "wafaa is the boss of span align";
 
-var twextStr = "resize me to see if I behave nice";
+var textStr2 = "Text str to test multiple lines";
+
+var twextStr1 = "resize me to see if I behave nice";
+
+var twextStr2 = "Twext str to align second line";
 
 /**
   On document load.
@@ -11,21 +15,56 @@ $(document).ready(function() {
   var textEl = $('#textInput');
   textEl.focus();
   initHtml(textEl);
-  alignChunks(textEl);
+  showTwextsOnZoom(textEl);
   $(window).resize(function() {
-    alignChunks(textEl);
+    showTwextsOnZoom(textEl);
   });
 });
+
+/**
+  Show twexts when zooming to more than 120%
+*/
+function showTwextsOnZoom(textEl) {
+  if(document.documentElement.clientWidth/screen.width < 0.8 && $('.twext').length == 0) {  // zoom level > 120%
+    addTwexts(textEl);
+  } else if(document.documentElement.clientWidth/screen.width > 0.8 && $('.twext').length > 0) {  // zoom level < 120%
+    removeTwexts();
+  }
+  if($('.twext').length > 0) {
+    alignChunks(textEl);
+  }
+}
+
 
 /**
   Sample html.
 */
 function initHtml(textEl) {
-  var html = "", textLine = "", twextLine = "";
-  textLine = textStr.replace(/\ /g, '&nbsp;');
-  twextLine = '<div class="twext">' + twextStr.replace(/\ /g, '&nbsp;') + "</div>";
-  html = textLine + twextLine;
+  var html = "", textLine1 = "", textLine2 = "";
+  textLine1 = textStr1.replace(/\ /g, '&nbsp;');
+  textLine2 = '<div>' + textStr2.replace(/\ /g, '&nbsp;') + "</div>";
+  html = textLine1 + textLine2;
   textEl.html(html);
+}
+
+/**
+  Create twext lines.
+*/
+function addTwexts(textEl) {
+  var twextLines = ['<div class="twext">' + twextStr1.replace(/\ /g, '&nbsp;') + "</div>", '<div class="twext">' + twextStr2.replace(/\ /g, '&nbsp;') + "</div>"]; // twext line example, should be replaced by real twexts.
+  var i, j=0;
+  textEl.html(cleanHtml(textEl.html()));
+  for(i=0; i<textEl[0].childNodes.length; i=i+2) {
+    $(twextLines[j]).insertAfter(textEl[0].childNodes[i]);
+    j++;
+  }
+}
+
+/**
+  Remove twexts
+*/
+function removeTwexts() {
+  $('.twext').remove();
 }
 
 /**
