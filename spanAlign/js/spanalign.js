@@ -40,10 +40,11 @@ function showTwextsOnZoom(textEl) {
   Sample html.
 */
 function initHtml(textEl) {
-  var html = "", textLine1 = "", textLine2 = "";
+  var html = "", textLine1 = "", textLine2 = "", emptyLine = "";
   textLine1 = textStr1.replace(/\ /g, '&nbsp;');
   textLine2 = '<div>' + textStr2.replace(/\ /g, '&nbsp;') + "</div>";
-  html = textLine1 + textLine2;
+  emptyLine = '<div><br></div>'
+  html = textLine1 + emptyLine + textLine2;
   textEl.html(html);
 }
 
@@ -55,6 +56,11 @@ function addTwexts(textEl) {
   var i, j=0;
   textEl.html(cleanHtml(textEl.html()));
   for(i=0; i<textEl[0].childNodes.length; i=i+2) {
+    if(textEl[0].childNodes[i].innerHTML == '<br>') {
+      i--;
+      //textEl[0].childNodes[i].innerHTML == '<br>';
+      continue;
+    }
     $(twextLines[j]).insertAfter(textEl[0].childNodes[i]);
     j++;
   }
@@ -74,6 +80,10 @@ function alignChunks(textEl) {
   var i;
   textEl.html(cleanHtml(textEl.html()));
   for(i=0; i<textEl[0].childNodes.length; i=i+2) {
+    if(textEl[0].childNodes[i].innerHTML == '<br>') {
+      i--;
+      continue;
+    }
     spanAlign(textEl, i, i+1);
   }
 }
@@ -257,7 +267,7 @@ function setCaretPos(node, offset) {
 */
 function cleanHtml(html) {
   var re, str = "", i;
-  var whitespacesList = ['\\n', '<br>'];
+  var whitespacesList = ['\\n'];
   for (i = 0; i < whitespacesList.length; i++) {
     str += whitespacesList[i] + "|";
   }
