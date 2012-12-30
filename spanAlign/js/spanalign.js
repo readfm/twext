@@ -58,7 +58,6 @@ function addTwexts(textEl) {
   for(i=0; i<textEl[0].childNodes.length; i=i+2) {
     if(textEl[0].childNodes[i].innerHTML == '<br>') {
       i--;
-      //textEl[0].childNodes[i].innerHTML == '<br>';
       continue;
     }
     $(twextLines[j]).insertAfter(textEl[0].childNodes[i]);
