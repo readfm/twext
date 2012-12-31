@@ -1,0 +1,47 @@
+<html>
+
+<head>
+
+
+
+	<title>Jasmine Test Runner</title>
+
+
+
+	<!-- Jasmine includes -->
+
+	<link rel="stylesheet" type="text/css" href="lib/jasmine.css">
+	<script type="text/javascript" src="lib/jasmine.js"></script>
+	<script type="text/javascript" src="lib/jasmine-html.js"></script>
+
+
+
+	<!-- Source files -->
+	<script type="text/javascript" src="../js/classy.js"></script>
+	<script type="text/javascript" src="../js/scooch_edit_line.js"></script>
+  <script type="text/javascript" src="../js/scooch_edit_lines.js"></script>
+
+
+
+	<!-- Spec files -->
+
+	<script type="text/javascript" src="word-index.js"></script>
+
+
+
+</head>
+
+<body>
+
+
+
+<script type="text/javascript">
+	jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+	jasmine.getEnv().execute();
+</script>
+
+
+
+</body>
+
+</html>

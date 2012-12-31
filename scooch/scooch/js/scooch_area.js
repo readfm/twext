@@ -1,0 +1,337 @@
+
+
+ScoochAreaError = function (message) {  
+    this.name = "MyError";  
+    this.message = message || "Scooch Area Error";  
+}
+ScoochAreaError.prototype = new Error();
+ScoochAreaError.prototype.name = "ScoochAreaError";
+ScoochAreaError.prototype.constructor = ScoochAreaError;
+
+
+window.trim_ = function(str){
+   if(typeof str != 'string') return str;
+   var str = str.replace(/^\s\s*/, ''),
+           ws = /\s/,
+           i = str.length;
+   while (ws.test(str.charAt(--i)));
+   return str.slice(0, i + 1);
+};
+
+window.rtrim_ = function(str){
+    return str.replace(/\s+$/,"");
+};
+
+window.pad_ = function( input, pad_length, pad_string, pad_type ) {
+    var half = '', pad_to_go;
+    var str_pad_repeater = function(s, len) {
+        var collect = '', i;
+        while(collect.length < len){ collect += s; }
+        collect = collect.substr(0,len);
+        return collect;
+    };
+    input += '';
+    if (pad_type != 'L' && pad_type != 'R' && pad_type != 'B') { pad_type = 'R'; }
+    if ((pad_to_go = pad_length - input.length) > 0) {
+        if (pad_type == 'L') { input = str_pad_repeater(pad_string, pad_to_go) + input; }
+        else if (pad_type == 'R') { input = input + str_pad_repeater(pad_string, pad_to_go); }
+        else if (pad_type == 'B') {
+        half = str_pad_repeater(pad_string, Math.ceil(pad_to_go/2));
+        input = half + input + half;
+        input = input.substr(0, pad_length);
+        }
+    }
+    return input;
+};
+
+window.rpad_ = function(str, length, padString) {
+    while (str.length < length)
+        str = str + padString;
+    return str;
+};
+
+
+window.ScoochArea = Class.$extend({
+	
+	__init__: function(area){
+		this.area = area;
+		this.text_lines = new Array();
+		this.caret_coord = null;
+		this.ignore_BR = false;
+    	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
+    	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
+      $(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+	},
+
+    
+    /**
+    Takes html content, identifies #text nodes and appends it on "lines" array.
+    Each element in "lines" represents a text line, null values represent empty lines.
+    It reads only DIV and SPAN, BR, and #text elements for nesting, new lines and content
+    as it corresponds; other elements are discarded. 
+    */
+    parse_text_lines: function(nodes, lines){
+      this.ignore_BR = false;
+      this.parse_text_sub(nodes, lines);
+    },
+    
+    parse_text_sub: function(nodes, lines){
+      var type;
+      var index = 0;
+      var nodes_length = nodes.length;
+      
+      for(; index < nodes_length; index++ ){
+        type = nodes[index].nodeName;
+        switch( type ){
+          case "DIV":
+            this.ignore_BR = false;
+          case "SPAN":
+            //inspecting children for DIV and SPAN
+            this.parse_text_sub( nodes[index].childNodes, lines );
+            break;
+          case "BR":
+            if(!this.ignore_BR) lines.push( null );
+            this.ignore_BR = false;
+            break;
+          case "#text":
+            //pending to strip-out new-lines
+            lines.push( this.ignore_BR? lines.pop() + nodes[index].nodeValue:nodes[index].nodeValue );
+            this.ignore_BR = true;
+            break;   
+        }
+      }
+    },
+    
+    /**
+    TODO: Put this method to the test.
+    */
+    count_previous_lines: function(parent_node, current_node){
+      var breaks = 0;
+      var start = true;
+      var old = null;
+      if(current_node==null){
+        if(parent_node!=null){
+          current_node = parent_node.lastChild || parent_node;
+        }
+        else{
+          return 0;
+        }
+      }
+      do{  
+        while(current_node!= null){
+          if(current_node.nodeName == "BR"){
+            if(!start) breaks++;
+            start = false;
+          }
+          if(current_node.nodeName == "DIV"){
+            var this_breaks = start? 0:this.count_previous_lines(current_node, null);
+            if(this_breaks==0) this_breaks = 1;
+            breaks+=this_breaks;
+          }
+          if(current_node.nodeName == "SPAN"){
+            breaks += this.count_previous_lines(current_node, null);
+          }
+          start = false;
+          old = current_node;
+          current_node = current_node.previousSibling;
+        }
+        start = false;
+        old = old.parentNode;
+        if(old == parent_node || old == null) break;
+        /*
+        try{
+          if(current_node.nodeName == "DIV" && breaks == 0)
+            breaks = 1;
+        }catch(e){
+          alert("this AN error : " + e);
+        }
+        */
+        //old = current_node;
+        current_node = old.previousSibling;
+      }while(true);
+      return breaks;
+    },
+
+    getCaretPos: function(){
+      var node = window.getSelection().focusNode;
+      var focus_offset = window.getSelection().focusOffset;
+      var node_index = 0;
+      //mozilla fix
+      if(node == this.area){
+        try{
+          node = node.childNodes[focus_offset];
+        }catch(e){}
+        focus_offset = 0;
+      }
+      else{
+        node_index = this.count_previous_lines(this.area, node);
+      }
+      return { lines:node_index, offset:focus_offset };
+    },
+
+
+    /**
+     * Function to manually set the caret position.
+     */
+    setCaretPos: function(line_index, offset){
+
+      var child_focus = 0;
+      var focus_now = this.area.children[child_focus];
+      while(child_focus < line_index && focus_now.nextSibling != null){
+        if(focus_now.nodeName != "SPAN" && focus_now.nodeName != "#text"){
+          child_focus++;
+        }
+        focus_now = focus_now.nextSibling;
+      }
+      var caret_range = document.createRange();
+      try{
+        if( focus_now.childNodes.length > 0 ) focus_now = focus_now.childNodes[0];
+      }
+      catch(e){ 
+        Console.log("Sorry: " + e); Console.log("- area::" + this.area);
+       }
+      caret_range.setStart( focus_now, offset);
+      caret_range.setEnd( focus_now, offset);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange( caret_range );
+
+
+    },
+
+
+    /**
+    * Return index of first line on the current pair.
+    */
+    getPairIndex: function(lines, current_line){
+      var index_empty = current_line - 1;
+      while(index_empty >= 0){
+        if( lines[index_empty] == null ) break;
+        index_empty--;
+      };
+      var empty_offset = current_line - index_empty - 1;
+      if(empty_offset > 0){
+        var even_offset = (empty_offset % 2 == 0);
+        if(even_offset && lines[current_line + 1]==null)
+          return -1;
+        return current_line - (even_offset?0:1);
+      }
+      else if(current_line  < lines.length - 1 && lines[current_line + 1]!=null){
+        return current_line;
+      }
+      return -1;
+    },
+    
+    nbsp_spaces:function(string){
+        return string.replace(/\s/g, '&nbsp;');
+    },
+
+    render_html: function(lines){
+      var index = 0;
+        big = true,
+        big_span = '<div class="text">',
+        small_span = '<div class="twext">',
+        html_lines = new Array();
+      for(; index < lines.length; index++){
+        if( typeof(lines[index]) == 'string' && lines[index].trim().length > 0){
+          html_lines[index] = (big?big_span:small_span) + this.nbsp_spaces(lines[index]) + "</div>";//<br/>";
+          big = !big;
+        }
+        else{
+          html_lines[index] = "<div class=\"line-break\"></div>";
+        }
+      }
+      console.log("to unbind...");
+      console.log(html_lines);
+      $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+      this.area.innerHTML = html_lines.join("");
+        $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    },
+    
+    render_update:function(event){
+        this.caret_coord = this.getCaretPos();
+
+        this.text_lines = new Array();
+        this.parse_text_lines( this.area.childNodes, this.text_lines);
+
+        this.render_html( this.text_lines );
+        this.setCaretPos( this.caret_coord.lines, this.caret_coord.offset);
+
+    },
+
+    count_previous_blanks: function(){
+      var node = window.getSelection().focusNode;
+      var focus_offset = window.getSelection().focusOffset;
+      var blanks = 0;
+      while( focus_offset > blanks && /\s/.test( node.nodeValue.charAt(focus_offset - 1 - blanks) ) ){ blanks++; }
+      return blanks;
+    },
+
+    onSpace: function(event){
+        this.caret_coord = this.getCaretPos();
+
+        this.text_lines = new Array();
+        this.parse_text_lines( this.area.childNodes, this.text_lines);
+        
+        //If there is only one space, then ignore.
+        if(this.count_previous_blanks() == 0 && this.caret_coord.offset > 0) return;
+
+        var pair_index = this.getPairIndex( this.text_lines, this.caret_coord.lines);
+        if(pair_index == -1) return;
+
+        var line_1 = new ScoochEditorLine( this.text_lines[pair_index] );
+        var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
+        var lines = new ScoochEditorLines(2);
+        lines.setLine( 0, line_1);
+        lines.setLine( 1, line_2);
+
+        var caret_on_first = this.caret_coord.lines == pair_index;
+        var scooched_lines = lines.pushChunk( caret_on_first, this.caret_coord.offset);
+        if(!scooched_lines) return false;
+        this.text_lines[pair_index] = scooched_lines[0];
+        this.text_lines[pair_index + 1] = scooched_lines[1];
+        
+        event.stopPropagation();
+        event.preventDefault();
+        $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+
+        this.render_html( this.text_lines );
+        this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
+        
+        $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    },
+
+    onBackspace: function(event){
+        this.caret_coord = this.getCaretPos();
+
+        this.text_lines = new Array();
+        this.parse_text_lines( this.area.childNodes, this.text_lines);
+        
+        //If there is only one space, then ignore.
+        if(this.count_previous_blanks() <= 0) return;
+
+        var pair_index = this.getPairIndex( this.text_lines, this.caret_coord.lines);
+        if(pair_index == -1) return;
+
+        var line_1 = new ScoochEditorLine( this.text_lines[pair_index] );
+        var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
+        var lines = new ScoochEditorLines(2);
+        lines.setLine( 0, line_1);
+        lines.setLine( 1, line_2);
+        
+        var caret_on_first = this.caret_coord.lines == pair_index;
+        var scooched_lines = lines.pullChunk( caret_on_first, this.caret_coord.offset );
+        if(!scooched_lines) return false;
+        this.text_lines[pair_index] = scooched_lines[0];
+        this.text_lines[pair_index + 1] = scooched_lines[1];
+
+        event.stopPropagation();
+        event.preventDefault();
+        $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+
+        this.render_html( this.text_lines );
+        this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
+        $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    }
+
+})

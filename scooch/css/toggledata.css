@@ -1,0 +1,52 @@
+
+body {
+    padding: 15px;
+    background-color: #f5f5dc;
+}
+
+#data-show {
+    width: 99%;
+    height: 200px;
+    border: 2px solid gray;
+    border-radius: 7px;
+    background-color: white;
+    padding: 12px;
+    overflow: none;
+    font-family: 'Liberation Mono', 'Courier New', Courier, monospace;
+}
+
+#data-bar {
+    font-family: arial;
+    font-size: 14px;
+    padding-left: 15px;
+}
+
+#data-bar-language {
+    margin-right: 5px;
+    text-transform: capitalize;
+    color: #333;
+    float: left;
+}
+
+#data-bar-version {
+    color: #8b008b;
+    float: left;
+}
+
+#data-bar-error {
+    color: red;
+    display: none;
+    margin-left: 15px;
+    padding-left: 15px;
+}
+
+.clear {
+    clear: both;
+}
+
+#instructions{
+    font: monospace;
+    font-size: 10px;
+    color: gray;
+    padding-left: 15px;
+}
