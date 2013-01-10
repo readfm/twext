@@ -8,8 +8,10 @@ var SpanAligner = Class({
 
   /**
     Align text/twext rows in the input element.
+    Params: 'textEl' the contenteditable element.
+            'nNs' key/value array contains nNs for each text/twext pair. The key is the text line number, the value is nN array.
   */
-  align: function(textEl) {
+  align: function(textEl, nNs) {
     var i;
     textEl.html(cleanHtml(textEl.html()));
     for(i=0; i<textEl[0].childNodes.length; i=i+2) {
@@ -17,7 +19,7 @@ var SpanAligner = Class({
         i--;
         continue;
       }
-      this.alignChuncks(textEl, i, i+1);
+      this.alignChunks(textEl, i, i+1, nNs[i]?nNs[i]:[]);
     }
   },
 
@@ -25,19 +27,11 @@ var SpanAligner = Class({
     Align chunks in text/twext rows.
     Put N,n words in <span> and compare their left position to align chunks.
   */
-  alignChuncks: function(textEl, textLine, twextLine) {
-    var i, n=0, N=0, textWordsIndices, twextWordsIndices, textWords, twextWords, tmp, Npos, npos, textSpacesCount = 0, twextSpacesCount = 0, parentEl, textNode, twextNode, data;
-    var nodes = getTextTwext(textEl, textLine, twextLine);
-    textNode = nodes[0];
-    twextNode = nodes[1];
-    
+  alignChunks: function(textEl, textLine, twextLine, nN) {
+    var i, textNode, twextNode;
+    cleanTextTwext(textEl, textLine, twextLine);    
     for(i=0; i<nN.length; i++) {
-      
-      this.alignChunck(textEl, textNode, twextNode, nN[i], textLine);
-      
-      
-      textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
-      twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
+      this.alignChunk(textEl[0], textLine, twextLine, nN[i]);
     }
   },
 
@@ -46,7 +40,9 @@ var SpanAligner = Class({
     Put words in <span> and compare their left position to align.
     Params: 'nN' twext/text word number in the form of n:N string.
   */
-  alignChunck: function(textEl, textNode, twextNode, nN, textLine) {
+  alignChunk: function(textEl, textLine, twextLine, nN) {
+    var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
+    var twextNode = textEl.childNodes[twextLine].childNodes.length > 0 ? textEl.childNodes[twextLine].childNodes[0] : textEl.childNodes[twextLine];
     var textWords = getWords(textNode.nodeValue);
     var twextWords = getWords(twextNode.nodeValue);
     var textWordsIndices = getWordsIndices(textNode.nodeValue);
@@ -71,7 +67,11 @@ var SpanAligner = Class({
       // Take span value of text word and remove span tag
       removeSpanNode(parentEl, "textWord", N == 0, N == textWords.length-1);
       // Take span value of twext word and remove span tag
-      removeSpanNode(textEl[0].childNodes[twextLine], "twextWord", n == 0, n == twextWords.length-1);
+      removeSpanNode(textEl.childNodes[twextLine], "twextWord", n == 0, n == twextWords.length-1);
+      // Check if text is moved after twext, this may occur because the text font size is bigger that twext.
+      if(NPos > nPos) {
+        this.alignChunk(textEl, textLine, twextLine, nN);
+      }
     } else if(NPos > nPos) {  // Move twext word
       parentEl = twextNode.parentElement;
       while(NPos > nPos) {
@@ -80,22 +80,21 @@ var SpanAligner = Class({
         nPos = parseInt($('#twextWord').position().left);
       }
       // Take span value of text word and remove span tag
-      if(textLine == 0) { // First node
-        removeSpanNode(textEl[0], "textWord", N == 0, N == textWords.length-1);
+      if(textEl.childNodes[textLine].nodeType == 3) { // Text node (First node)
+        removeSpanNode(textEl, "textWord", N == 0, N == textWords.length-1);
       } else {
-        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
+        removeSpanNode(textEl.childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
       }
       // Take span value of twext word and remove span tag
       removeSpanNode(parentEl, "twextWord", n == 0, n == twextWords.length-1);
     } else {  // =
       parentEl = twextNode.parentElement;
       parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
-      twextSpacesCount++;
       // Take span value of text word and remove span tag
-      if(textLine == 0) { // First node
-        removeSpanNode(textEl[0], "textWord", N == 0, N == textWords.length-1);
+      if(textEl.childNodes[textLine].nodeType == 3) { // Text node (First node)
+        removeSpanNode(textEl, "textWord", N == 0, N == textWords.length-1);
       } else {
-        removeSpanNode(textEl[0].childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
+        removeSpanNode(textEl.childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
       }
       // Take span value of twext word and remove span tag
       removeSpanNode(parentEl, "twextWord", n == 0, n == twextWords.length-1);

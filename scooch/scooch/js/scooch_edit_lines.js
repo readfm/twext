@@ -4,7 +4,8 @@ window.ScoochEditorLines = Class.$extend({
 	__init__: function(ratio){
 		this.lines = [];
 		this.cursor_offset;
-		this.ratio = ratio?ratio:1;
+		this.ratio = /*ratio?ratio:*/1;
+    this.element = $('#data-show');
 	},
 
     length: function(lineNum){
@@ -65,26 +66,123 @@ window.ScoochEditorLines = Class.$extend({
         }
   },
 
+  /**
+    Get the next word available for the current word to be aligned with.
+    Params: 'first' boolean to detect if the moving word in text or twext, true when moving text word.
+            'lineNumber' number of the current line containing the word to be moved.
+            'wordNumber' number of the current word to be moved to the next word in the ref line.
+  */
+  getNextAlignToWord: function(first, lineNumber, wordNumber) {
+    var i, refWordpos;
+    var currentNode = this.element[0].childNodes[lineNumber].childNodes.length > 0 ? this.element[0].childNodes[lineNumber].childNodes[0] : this.element[0].childNodes[lineNumber];
+    var refNode = this.element[0].childNodes[first?lineNumber+1:lineNumber-1].childNodes.length > 0 ? this.element[0].childNodes[first?lineNumber+1:lineNumber-1].childNodes[0] : this.element[0].childNodes[lineNumber];
+    var currentValue = cleanText(currentNode.nodeValue);
+    var refValue = cleanText(refNode.nodeValue);
+    var currentWords = getWords(currentValue);
+    var currentWordsPos = getWordsIndices(currentValue);
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
+    var currentWordPos = parseInt($('#tempWord').position().left);
+    removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
+    for(var i=0; i<refWordsPos.length; i++) {
+      putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
+      refWordPos = parseInt($('#testWord').position().left);
+      removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
+      if(refWordPos > currentWordPos) return i;
+    }
+    return -1;
+  },
+
+  /**
+    Check if the current word is a chunk
+    Params: 'chunks' the chunks of the current pair lines
+            'wordNum' the current word number
+            'first' detects if the current moving line is the text line.
+  */
+  busyChunk: function(chunks, wordNum, first) {
+    if(first) {
+      for(var key in chunks) {
+        if(chunks[key] == wordNum) return key;
+      }
+    } else {
+      for(var key in chunks) {
+        if(key == wordNum) return key;
+      }
+    }
+    return -1;
+  },
+
+  /**
+    Return nN chunks in the form of n:N array.
+  */
+  getnN: function(chunks) {
+    var nN = new Array();
+    for(var key in chunks) {
+      nN.push(key+":"+chunks[key]);
+    }
+    return nN;
+  },
+
 	/**
 	* This function is used to calculate pushing a chunk
 	*/
-	pushChunk: function(first, cursor_pos){//1, 7, 0
+	pushChunk: function(first, cursor_pos, chunks){//1, 7, 0
     var current_line = this.lines[first? 0:1],
       current_string = current_line.text(),
       ref_line = this.lines[first? 1:0],
       //ref_string = ref_line.text(),
       ref_words = ref_line.words();
+      current_word_ix = current_line.wordAtCaret(cursor_pos); // The word to move number
 
     //detect -between spaces-
     if(/\s/.test(current_string.charAt(cursor_pos))){
       cursor_pos = current_line.next_word_pos(cursor_pos);
       if(cursor_pos < 0) return false;
     }
-    //no ref forward position to align?
-    var next_word_ix = ref_line.next_word_ix( first? this.to_ratio(cursor_pos):this.from_ratio(cursor_pos) );
-    if(next_word_ix < 0) return false;
 
-    var chunks = this.chunks(),
+    //no ref forward position to align?
+    var next_word_ix = this.getNextAlignToWord(first, current_line.lineNumber(), current_word_ix);//ref_line.next_word_ix( first? this.to_ratio(cursor_pos):this.from_ratio(cursor_pos) );
+    if(next_word_ix < 0) {
+      this.cursor_offset = cursor_pos;
+      return false;
+    }
+
+    // Update chunks array.
+    var key = first?next_word_ix+1:current_word_ix+1; // n
+    var value = first?current_word_ix+1:next_word_ix+1; // N
+    var textLineNum = first?current_line.lineNumber():ref_line.lineNumber();
+    var lineChunks = chunks[textLineNum];
+    if(this.size(lineChunks) > 0) {
+      var next_chunk_key = this.busyChunk(lineChunks, next_word_ix+1, !first);  // Check if the next word is a chunk, return chunk key
+      if(next_chunk_key != -1) {  // next word is a chunk
+        delete lineChunks[next_chunk_key]; // Delete the exisiting nN pair to add the new one.
+      }
+      var current_chunk_key = this.busyChunk(lineChunks, current_word_ix+1, first);  // Check if the current word is a chunk, return chunk key
+      if(current_chunk_key != -1) {  // current word is a chunk
+        delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair to add the new one.
+      }
+      lineChunks[key] = value; // Add the new pair, this line will work also if the ref chunk is busy.
+      chunks[textLineNum] = lineChunks;
+    } else {  //No previous chunks
+      var lineChunks = {};
+      lineChunks[key] = value;
+      chunks[textLineNum] = lineChunks;
+    }
+
+    // Use span aligner to align chunks
+    var nN = this.getnN(lineChunks); // Get nN array to align chunks
+    var aligner = new SpanAligner();
+    aligner.alignChunks(this.element, this.lines[0].lineNumber(), this.lines[1].lineNumber(), nN);
+    var updated_text = first?this.element[0].childNodes[this.lines[0].lineNumber()].textContent:this.element[0].childNodes[this.lines[1].lineNumber()].textContent;
+    current_line.text(updated_text);
+    var current_words = current_line.words();
+    this.cursor_offset = current_words[current_word_ix];
+    return chunks;
+    
+    
+    /* to be removed*/
+    /*var chunks = this.chunks(),
         current_chunk_ix = 0;
     //find which chunk we are moving to
     var i = 0, 
@@ -145,10 +243,22 @@ window.ScoochEditorLines = Class.$extend({
           current_chunk_strings.push( current_line.ratio_substring(chunks[next_chunk + 1]).trim() );
         }
       }
-      var cursor_move = { index:1, offset:0 };
-      return this.text_for_chunks(current_chunk_strings, ref_chunk_strings, first, cursor_move);
+      
+      //var cursor_move = { index:1, offset:0 };
+      //return this.text_for_chunks(current_chunk_strings, ref_chunk_strings, first, cursor_move);
 
-    return false;
+    return false;*/
+  },
+
+  /**
+    Get the size of associative array
+  */
+  size: function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
   },
 	
   rtrim: function(str){
@@ -160,21 +270,94 @@ window.ScoochEditorLines = Class.$extend({
     return str;
   },
 
-	pullChunk: function(on_first, cursor_pos){
+  /**
+    Get the previous word available for the current word to be aligned with.
+    Params: 'first' boolean to detect if the moving word in text or twext, true when moving text word.
+            'lineNumber' number of the current line containing the word to be moved.
+            'wordNumber' number of the current word to be moved to the previous word in the ref line.
+  */
+  getPreviousAlignToWord: function(first, lineNumber, wordNumber) {
+    var i, refWordpos;
+    var currentNode = this.element[0].childNodes[lineNumber].childNodes.length > 0 ? this.element[0].childNodes[lineNumber].childNodes[0] : this.element[0].childNodes[lineNumber];
+    var refNode = this.element[0].childNodes[first?lineNumber+1:lineNumber-1].childNodes.length > 0 ? this.element[0].childNodes[first?lineNumber+1:lineNumber-1].childNodes[0] : this.element[0].childNodes[lineNumber];
+    var currentValue = cleanText(currentNode.nodeValue);
+    var refValue = cleanText(refNode.nodeValue);
+    var currentWords = getWords(currentValue);
+    var currentWordsPos = getWordsIndices(currentValue);
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
+    var currentWordPos = parseInt($('#tempWord').position().left);
+    removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
+    for(var i=0; i<refWordsPos.length; i++) {
+      putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
+      refWordPos = parseInt($('#testWord').position().left);
+      removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
+      if(refWordPos >= currentWordPos) return i-1;
+      
+    }
+    return -1;
+  },
+
+	pullChunk: function(on_first, cursor_pos, chunks){
     var current_line = this.lines[on_first? 0:1],
       current_string = current_line.text(),
       ref_line = this.lines[on_first? 1:0],
       ref_string = ref_line.text(),
       ref_words = ref_line.words();
+      current_word_ix = current_line.wordAtCaret(cursor_pos); // The word to move number
     //detect -between spaces-
     if(/\s/.test(current_string.charAt(cursor_pos))){
       cursor_pos = current_line.next_word_pos(cursor_pos);
       if(cursor_pos < 0) return false;
     }
     //no ref backward position to align?
-    var previous_word_ix = ref_line.prev_word_ix( on_first? this.to_ratio(cursor_pos):this.from_ratio(cursor_pos) );
-    if(previous_word_ix < 0) return false;
+    var previous_word_ix = this.getPreviousAlignToWord(on_first, current_line.lineNumber(), current_word_ix);
+    //var previous_word_ix = ref_line.prev_word_ix( on_first? this.to_ratio(cursor_pos):this.from_ratio(cursor_pos) );
+    if(previous_word_ix < 0) {
+      this.cursor_offset = cursor_pos;
+      return false;
+    }
 
+    // Update chunks array.
+    var key = on_first?previous_word_ix+1:current_word_ix+1; // n
+    var value = on_first?current_word_ix+1:previous_word_ix+1; // N
+    var textLineNum = on_first?current_line.lineNumber():ref_line.lineNumber();
+    var lineChunks = chunks[textLineNum];
+    if(this.size(lineChunks) > 0) {
+      var previous_chunk_key = this.busyChunk(lineChunks, previous_word_ix+1, !on_first);  // Check if the previous word is a chunk, return chunk key
+      if(previous_chunk_key != -1) {  // previous word is a chunk
+        delete lineChunks[previous_chunk_key]; // Delete the exisiting nN pair to add the new one.
+      }
+      var current_chunk_key = this.busyChunk(lineChunks, current_word_ix+1, on_first);  // Check if the current word is a chunk, return chunk key
+      if(current_chunk_key != -1) {  // current word is a chunk
+        delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair to add the new one.
+      }
+      if(previous_word_ix != 0) { // Don't try to align with the first word.
+        lineChunks[key] = value; // Add the new pair.
+        chunks[textLineNum] = lineChunks;
+      }
+    } else {  //No previous chunks
+      if(previous_word_ix != 0) { // Don't try to align with the first word.
+        var lineChunks = {};
+        lineChunks[key] = value;
+        chunks[textLineNum] = lineChunks;
+      }
+    }
+
+    // Use span aligner to align chunks
+    var nN = this.getnN(lineChunks); // Get nN array to align chunks
+    var aligner = new SpanAligner();
+    aligner.alignChunks(this.element, this.lines[0].lineNumber(), this.lines[1].lineNumber(), nN);
+    var updated_text = on_first?this.element[0].childNodes[this.lines[0].lineNumber()].textContent:this.element[0].childNodes[this.lines[1].lineNumber()].textContent;
+    current_line.text(updated_text);
+    var current_words = current_line.words();
+    this.cursor_offset = current_words[current_word_ix];
+    return chunks;
+
+ 
+    // To be removed
+    /*
     var chunks = this.chunks();
     var i,
         previous_chunk_ix = -1,
@@ -244,7 +427,7 @@ window.ScoochEditorLines = Class.$extend({
       ref_chunk_strings.push( ref_line.ratio_substring( chunks[next_chunk_ix] ).trim() );
       current_chunk_strings.push( current_line.ratio_substring(chunks[next_chunk_ix]).trim() );
     }
-    return this.text_for_chunks(current_chunk_strings, ref_chunk_strings, on_first, cursor_move);
+    return this.text_for_chunks(current_chunk_strings, ref_chunk_strings, on_first, cursor_move);*/
   },
   
   text_for_chunks: function(actual_chunks, ref_chunks, is_first, cursor_move){

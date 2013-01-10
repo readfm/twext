@@ -58,11 +58,38 @@ window.ScoochArea = Class.$extend({
 		this.text_lines = new Array();
 		this.caret_coord = null;
 		this.ignore_BR = false;
+    this.lines_chunks = {}; // key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: N, value: n}
     	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
     	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
       $(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+      $(window).bind("resize", $.proxy(this.realign, this));
 	},
 
+  /**
+    Realign chunks on resize.
+  */
+  realign: function() {
+    $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    var aligner = new SpanAligner();
+    aligner.align($(this.area), this.getToAlignChunks());
+    $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+  },
+
+  /**
+    Put chunks nNs key/value arrays in a normal arrays to be sent to span aligner.
+  */
+  getToAlignChunks: function() {
+    var nN = new Array();
+    var chunks = {};
+    for(var key in this.lines_chunks) {
+      nN = new Array();
+      for(var key1 in this.lines_chunks[key]) {
+        nN.push(key1+":"+this.lines_chunks[key][key1]);
+      }
+      chunks[key] = nN;
+    }
+    return chunks;
+  },
     
     /**
     Takes html content, identifies #text nodes and appends it on "lines" array.
@@ -267,35 +294,76 @@ window.ScoochArea = Class.$extend({
       return blanks;
     },
 
+    /**
+      Renumber following chunks when 'make' occurs.
+    */
+    renumberChunks: function(chunks, wordNum, first) {
+      var newChunks = {};
+      if(first) { // make in text, wordNum = N
+        for(var key in chunks) {
+          key = parseInt(key);
+          if(chunks[key] > wordNum) {
+            newChunks[key] = chunks[key]+1;
+          } else {
+            newChunks[key] = chunks[key];
+          }
+        }
+      } else {  // make in twext, wordNum = n
+        for(var key in chunks) {
+          key = parseInt(key);
+          if(key > wordNum) {
+            newChunks[key+1] = chunks[key];
+          } else {
+            newChunks[key] = chunks[key];
+          }
+        }
+      }
+      return newChunks;
+    },
+
     onSpace: function(event){
         this.caret_coord = this.getCaretPos();
 
         this.text_lines = new Array();
         this.parse_text_lines( this.area.childNodes, this.text_lines);
-        
-        //If there is only one space, then ignore.
-        if(this.count_previous_blanks() == 0 && this.caret_coord.offset > 0) return;
 
         var pair_index = this.getPairIndex( this.text_lines, this.caret_coord.lines);
         if(pair_index == -1) return;
 
         var line_1 = new ScoochEditorLine( this.text_lines[pair_index] );
+        line_1.lineNumber(pair_index);
         var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
+        line_2.lineNumber(pair_index + 1);
         var lines = new ScoochEditorLines(2);
         lines.setLine( 0, line_1);
         lines.setLine( 1, line_2);
 
         var caret_on_first = this.caret_coord.lines == pair_index;
-        var scooched_lines = lines.pushChunk( caret_on_first, this.caret_coord.offset);
-        if(!scooched_lines) return false;
-        this.text_lines[pair_index] = scooched_lines[0];
-        this.text_lines[pair_index + 1] = scooched_lines[1];
-        
+
+        //If there is only one space, then ignore.
+        if(this.count_previous_blanks() == 0 && this.caret_coord.offset > 0) {
+          // Renumber chunks in case of 'make'
+          var chunks = this.lines_chunks[pair_index];
+          var wordNum = caret_on_first ? line_1.wordNumber(this.caret_coord.offset) : line_2.wordNumber(this.caret_coord.offset);
+          if(wordNum != -1) {
+            chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
+            this.lines_chunks[pair_index] = chunks;
+          }
+          return;
+        }
         event.stopPropagation();
         event.preventDefault();
         $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
 
-        this.render_html( this.text_lines );
+        /*var scooched_lines*/var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
+        if(chunks) this.lines_chunks = chunks;
+        /*if(!scooched_lines) return false;
+        this.text_lines[pair_index] = scooched_lines[0];
+        this.text_lines[pair_index + 1] = scooched_lines[1];
+        
+        
+
+        this.render_html( this.text_lines );*/
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         
         $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
@@ -306,30 +374,43 @@ window.ScoochArea = Class.$extend({
 
         this.text_lines = new Array();
         this.parse_text_lines( this.area.childNodes, this.text_lines);
-        
-        //If there is only one space, then ignore.
-        if(this.count_previous_blanks() <= 0) return;
 
         var pair_index = this.getPairIndex( this.text_lines, this.caret_coord.lines);
         if(pair_index == -1) return;
 
         var line_1 = new ScoochEditorLine( this.text_lines[pair_index] );
+        line_1.lineNumber(pair_index);
         var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
+        line_2.lineNumber(pair_index+1);
         var lines = new ScoochEditorLines(2);
         lines.setLine( 0, line_1);
         lines.setLine( 1, line_2);
         
         var caret_on_first = this.caret_coord.lines == pair_index;
-        var scooched_lines = lines.pullChunk( caret_on_first, this.caret_coord.offset );
-        if(!scooched_lines) return false;
-        this.text_lines[pair_index] = scooched_lines[0];
-        this.text_lines[pair_index + 1] = scooched_lines[1];
+
+        //If there is only one space, then ignore.
+        if(this.count_previous_blanks() <= 0) {
+          // Renumber chunks in case of 'make'
+          var chunks = this.lines_chunks[pair_index];
+          var wordNum = caret_on_first ? line_1.wordNumber(this.caret_coord.offset) : line_2.wordNumber(this.caret_coord.offset);
+          if(wordNum != -1) {
+            chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
+            this.lines_chunks[pair_index] = chunks;
+          }
+          return;
+        }
 
         event.stopPropagation();
         event.preventDefault();
         $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
 
-        this.render_html( this.text_lines );
+        /*var scooched_lines*/var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
+        if(chunks) this.lines_chunks = chunks;
+        /*if(!scooched_lines) return false;
+        this.text_lines[pair_index] = scooched_lines[0];
+        this.text_lines[pair_index + 1] = scooched_lines[1];
+
+        this.render_html( this.text_lines );*/
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     }

@@ -6,8 +6,8 @@ window.ScoochEditorLine = Class.$extend({
 	
 	__init__: function(lineText, ratio){
 		this.lineText = lineText;
-		this.ratio = ratio?ratio:1;
-//    	this.lineNum = num || false;
+		this.ratio = /*ratio?ratio:*/1;
+    this.lineNum = -1;
 //    	this.cursor = cursor || false;
     	this._cache_wordpos = false;
 	},
@@ -30,7 +30,7 @@ window.ScoochEditorLine = Class.$extend({
     * set or get the line number for this line of text
     */
     lineNumber: function(line){
-        if(line) this.lineNum = line;
+        if(line >= 0) this.lineNum = line;
         return this.lineNum;
     },
 
@@ -152,6 +152,32 @@ window.ScoochEditorLine = Class.$extend({
 
     raw_substring:function(initial, end){
       return this.lineText.substring( initial, !isNaN(end)?end:this.lineText.length);
+    },
+
+    /**
+      Get the word number where the cursor points at its start.
+    */
+    wordAtCaret: function(cursor_pos) {
+      if(!this._cache_wordpos) this.words();
+      for(var i=0; i<this._cache_wordpos.length; i++){
+        if(this._cache_wordpos[i] == cursor_pos){
+          return i;
+        }
+      }
+      return -1;
+    },
+
+    /**
+      Get the word number where the cursor points at any character of it. This function is used to detect 'make' cases.
+    */
+    wordNumber: function(cursor_pos) {
+      if(!this._cache_wordpos) this.words();
+      for(var i=0; i<this._cache_wordpos.length; i++){
+        if(!/\s/.test(this.lineText.charAt(cursor_pos-1)) && !/\s/.test(this.lineText.charAt(cursor_pos+1)) && this._cache_wordpos[i] < cursor_pos && (this._cache_wordpos[i+1] && this._cache_wordpos[i+1] > cursor_pos)){
+          return i;
+        }
+      }
+      return -1;
     },
 
     /**
