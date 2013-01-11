@@ -62,7 +62,7 @@ window.ScoochArea = Class.$extend({
     	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
     	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
       $(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
-      $(window).bind("resize", $.proxy(this.realign, this));
+      $(window).bind("resize", this.realign());
 	},
 
   /**
