@@ -353,6 +353,16 @@ window.ScoochEditorLines = Class.$extend({
     }
     return -1;
   },
+  /**
+    Count the number of spaces before caret.
+  */
+  countPreviousSpaces: function(str, pos){
+    var spaces = 0;
+    while(pos > spaces && /\s/.test(str.charAt(pos-1-spaces) ) ){
+      spaces++;
+    }
+    return spaces;
+  },
 
 	pullChunk: function(on_first, cursor_pos, chunks){
     var current_line = this.lines[on_first? 0:1],
@@ -383,22 +393,25 @@ window.ScoochEditorLines = Class.$extend({
     if(this.size(lineChunks) > 0) {
       var previous_chunk_key = this.busyChunk(lineChunks, previous_word_ix+1, !on_first);  // Check if the previous word is a chunk, return chunk key
       var current_chunk_key = this.busyChunk(lineChunks, current_word_ix+1, on_first);  // Get the current chunk key
-      if(previous_chunk_key != -1 && current_chunk_key != -1) {  // previous word and current word are chunks, delete current pair
-        delete lineChunks[current_chunk_key]; // Delete the current exisiting nN pair
+      var spaces = this.countPreviousSpaces(current_string, cursor_pos);  // count previous spaces, merge if 1 space, merge(if needed) and align if 2+
+      if((previous_chunk_key != -1 && current_chunk_key != -1) || (previous_chunk_key == -1 && current_chunk_key != -1 && spaces == 1)) {  // previous word and current word are busy, delete current pair
+        delete lineChunks[current_chunk_key]; // Delete the current exisiting nN pair (merge)
       } else {
         if(previous_chunk_key != -1) {  // previous word is a chunk, delete pair
           delete lineChunks[previous_chunk_key]; // Delete the exisiting nN pair
         }
         if(current_chunk_key != -1) {  // current word is a chunk, delete pair
-          delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair
+          delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair (merge)
         }
-        if(previous_word_ix != 0) { // Don't try to align with the first word, , don't add new pair if previous word is busy
-          lineChunks[key] = value; // Add the new pair.
+        if(previous_word_ix != 0) { // Don't try to align with the first word
+          // Add the new pair (align)
+          lineChunks[key] = value;
           chunks[textLineNum] = lineChunks;
         }
       }
     } else {  //No previous chunks
       if(previous_word_ix != 0) { // Don't try to align with the first word
+        // Add the new pair (align)
         var lineChunks = {};
         lineChunks[key] = value;
         chunks[textLineNum] = lineChunks;
