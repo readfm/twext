@@ -15,7 +15,7 @@ var SpanAligner = Class({
     var i;
     textEl.html(cleanHtml(textEl.html()));
     for(i=0; i<textEl[0].childNodes.length; i=i+2) {
-      if(textEl[0].childNodes[i].innerHTML == '<br>') {
+      if(textEl[0].childNodes[i].innerHTML == '<br>' || textEl[0].childNodes[i].className == "line-break") {
         i--;
         continue;
       }

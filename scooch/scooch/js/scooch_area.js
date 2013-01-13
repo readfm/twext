@@ -59,10 +59,11 @@ window.ScoochArea = Class.$extend({
 		this.caret_coord = null;
 		this.ignore_BR = false;
     this.lines_chunks = {}; // key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: N, value: n}
+    this.cached_formatted_chunks = false;
     	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
     	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
       $(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
-      $(window).bind("resize", this.realign());
+      $(window).bind("resize", $.proxy(this.realign, this));
 	},
 
   /**
@@ -71,14 +72,15 @@ window.ScoochArea = Class.$extend({
   realign: function() {
     $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
     var aligner = new SpanAligner();
-    aligner.align($(this.area), this.getToAlignChunks());
+    aligner.align($(this.area), this.getFormattedChunks());
     $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
   },
 
   /**
     Put chunks nNs key/value arrays in a normal arrays to be sent to span aligner.
   */
-  getToAlignChunks: function() {
+  getFormattedChunks: function() {
+    if(this.cached_formatted_chunks) return this.cached_formatted_chunks;
     var nN = new Array();
     var chunks = {};
     for(var key in this.lines_chunks) {
@@ -88,6 +90,7 @@ window.ScoochArea = Class.$extend({
       }
       chunks[key] = nN;
     }
+    this.cached_formatted_chunks = chunks;
     return chunks;
   },
     
@@ -348,6 +351,7 @@ window.ScoochArea = Class.$extend({
           if(wordNum != -1) {
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
             this.lines_chunks[pair_index] = chunks;
+            this.cached_formatted_chunks = false;
           }
           return;
         }
@@ -356,7 +360,10 @@ window.ScoochArea = Class.$extend({
         $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
 
         /*var scooched_lines*/var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
-        if(chunks) this.lines_chunks = chunks;
+        if(chunks) {
+          this.lines_chunks = chunks;
+          this.cached_formatted_chunks = false;
+        }
         /*if(!scooched_lines) return false;
         this.text_lines[pair_index] = scooched_lines[0];
         this.text_lines[pair_index + 1] = scooched_lines[1];
@@ -396,6 +403,7 @@ window.ScoochArea = Class.$extend({
           if(wordNum != -1) {
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
             this.lines_chunks[pair_index] = chunks;
+            this.cached_formatted_chunks = false;
           }
           return;
         }
@@ -405,7 +413,10 @@ window.ScoochArea = Class.$extend({
         $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
 
         /*var scooched_lines*/var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
-        if(chunks) this.lines_chunks = chunks;
+        if(chunks) {
+          this.lines_chunks = chunks;
+          this.cached_formatted_chunks = false;
+        }
         /*if(!scooched_lines) return false;
         this.text_lines[pair_index] = scooched_lines[0];
         this.text_lines[pair_index + 1] = scooched_lines[1];

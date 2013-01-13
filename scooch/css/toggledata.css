@@ -5,13 +5,14 @@ body {
 }
 
 #data-show {
-    width: 99%;
+    width: 1220px;
     height: 200px;
     border: 2px solid gray;
     border-radius: 7px;
     background-color: white;
     padding: 12px;
-    overflow: none;
+    overflow: auto;
+    white-space: nowrap;
     font-family: 'Liberation Mono', 'Courier New', Courier, monospace;
 }
 
