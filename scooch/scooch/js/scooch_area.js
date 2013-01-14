@@ -267,9 +267,9 @@ window.ScoochArea = Class.$extend({
           html_lines[index] = (big?big_span:small_span) + this.nbsp_spaces(lines[index]) + "</div>";//<br/>";
           big = !big;
         }
-        else{
+        /*else{
           html_lines[index] = "<div class=\"line-break\"></div>";
-        }
+        }*/
       }
       console.log("to unbind...");
       console.log(html_lines);
