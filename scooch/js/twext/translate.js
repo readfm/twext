@@ -56,8 +56,8 @@ Twext.Translation = Class.$extend({
     },
 
     translate: function(text,source,target,callback,errorback,format){
-        if(this._empty(text) || this._empty(source) || this._empty(target)) return errorback ? errorback() : false;
-        var data = {q:text,source:source,target:target};
+        if(this._empty(text) || this._empty(target)) return errorback ? errorback() : false;
+        var data = {q:text,target:target};
         if(format) data.format=format;
         var url = this._makeUrl('translate');
         console.log(url);

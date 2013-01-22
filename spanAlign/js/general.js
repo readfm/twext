@@ -112,7 +112,7 @@ function cleanHtml(html) {
   }
   re = new RegExp(str.substring(0, str.length-1), 'g');
   html = html.replace(re, '');
-  return html;
+  return trim(html);
 }
 
 /**
@@ -126,5 +126,12 @@ function cleanText(text) {
   }
   re = new RegExp(str.substring(0, str.length-1), 'g');
   text = text.replace(re, ' ');
-  return text;
+  return trim(text);
+}
+
+/**
+  Trim string, remove spaces at the start/end of string.
+*/
+function trim(str) {
+  return str.replace(/^\s+|\s+$/g, "");
 }

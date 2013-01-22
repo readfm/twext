@@ -10,6 +10,7 @@
     var language = 0;
     var version = 0;
     var area = null;
+    var toggle_data = null;
 
     function onLeft(){
         console.log("KEYev: left");
@@ -34,6 +35,7 @@
 
     function register_keys(){
         console.log("register keys")
+        $(d).bind("keydown","f2", check_translations);
         $(d).bind("keydown","alt+left",onLeft);
         $(d).bind("keydown","alt+right",onRight);
         $(d).bind("keydown","alt+up",onUp);
@@ -41,12 +43,15 @@
     }
 
     function load_data(){
-        if($useThisData){
+        /*if($useThisData){
             sampleData = $useThisData;
         }else{
             sampleData = new Twext.ToggleData(SampleTwextData1);
-        }
-        return sampleData;
+        }*/
+        var data =  "We're connecting ourselves with everyone else on earth,\n"+
+    "with all human knowledge, and in all kinds of languages.\n"+
+    "How can we learn each others' words?\n";
+        return data;
     }
 
     function display_document(doc){
@@ -56,7 +61,7 @@
     }
 
     function set_language_name(){
-        var lang = sampleData.languageName(language);
+        var lang = toggle_data.languageName(language);//sampleData.languageName(language);
         if(lang){
             $('#data-bar-language').html(lang);
         }else{
@@ -65,7 +70,7 @@
     }
 
     function set_version_name(){
-        var ver = sampleData.versionName(version,language);
+        var ver = toggle_data.latest_version(language).version;//sampleData.versionName(version,language);
         if(ver){
             $('#data-bar-version').html(ver);
         }else{
@@ -75,22 +80,23 @@
 
     function language_switch(add){
         var nl = language+add;
-        var lcount = sampleData.languageCount();
+        var lcount = toggle_data.languageCount();
         if(nl<0){
             nl = lcount-1;
         }else if(nl>=lcount){
             nl=0;
         }
 
-        if(sampleData.language(nl)){
-            version = 0
-            language = nl;
-            var doc = sampleData.languageVersion(language,version);
-            console.log(doc);
-            display_document(doc);
-            set_language_name();
-            set_version_name();
-        }
+        //if(sampleData.language(nl)){
+        version = 0
+        language = nl;
+        place_twext(nl);
+            //var doc = sampleData.languageVersion(language,version);
+            //console.log(doc);
+            //display_document(doc);
+            //set_language_name();
+            //set_version_name();
+        //}
     }
 
     function switch_versions(add){
@@ -118,16 +124,102 @@
         },400);
     }
 
+    var targets = ["fr", "it", "es", "en"];
+    var lang_names = ["French", "Italian", "Spanish", "English"];
+    var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8");
+
+    function trim(str) {
+      str = str.replace(/^\s+|\s+$/g, "");
+      return str.replace(/^\n+|\n+$/g, "");
+    }
+
+    function check_translations() {
+      //if(current_display_mode != SOURCE_MODE)
+        //return;
+      if($('.twext').length == 0){
+        var text = trim(area.area.innerText);
+        get_translations(text);
+      }    
+      area.setCaretPos(0,0);
+    }
+
+    function get_translations(text) {
+      toggle_data = new Twext.ToggleData();
+      toggle_data.source_text = text;
+      var i = 0;
+      for(; i < targets.length; i++){
+        translate_html(text, targets[i], lang_names[i], targets.length, trans);
+      }
+    }
+
+    function translate_html(text_source, target_lang, target_name, total_langs, translator){ 
+      translator.translateWithFormat(text_source, null, target_lang, function(data){
+            if(data.data && data.data.translations){
+                var translated_text = data.data.translations[0].translatedText;
+                var source_lang = data.data.translations[0].detectedSourceLanguage;
+                var lang_ix = toggle_data.addLanguage( target_name );
+                toggle_data.set_version( "1.0", [translated_text] );
+                
+                if(lang_ix == total_langs - 1){
+                  toggle_data.source_lang = source_lang;
+                  var first_lang = source_lang=="en"?"Spanish":"English";
+                  var lang = toggle_data.find_by_language_name(first_lang);
+                  version = 0;
+                  language = lang;
+                  place_twext(lang);
+                }
+            }
+        },function(){
+            console.log("error: " + target_lang + " " + lang_name);
+        });
+    }
+
+    function place_twext(new_lang){
+      if(new_lang != undefined){
+        //save_current_lang();
+        language = new_lang;
+      }
+      var doc = toggle_data.latest_version(language);
+      display_twext(doc);
+      //current_display_mode = TWEXT_MODE;
+      set_language_name();
+      set_version_name();
+    }
+
+    function display_twext(doc) {
+      var lines = meld_twext_lines(toggle_data.source_text, doc.data, doc.chunks);
+      //area.enable_twext();
+      //area.enable_scooching();
+      area.render_html(lines);
+      // Align twexts
+      area.realign();
+    }
+
+    function meld_twext_lines(main, lang){
+      var nl = /\n/g, main = main.split(nl),lang = lang.split(nl);
+      var l = main.length, i = 0, text_lines = [];
+      for(; i<l ; i++){
+          if(main[i].length > 0 || lang[i].length > 0) {
+            text_lines.push(main[i]);
+            text_lines.push(lang[i]);
+          } else {
+            text_lines.push(null);
+          }
+      }
+      return text_lines;
+    }
+
     function init(){
         register_keys();
         area = new ScoochArea( this.getElementById('data-show') );
 
         var data = load_data();
         console.log(data);
-        doc = data.languageVersion(language,version);
-        display_document(doc);
-        set_language_name();
-        setTimeout(set_version_name,200);
+        get_translations(data)
+        //doc = data.languageVersion(language,version);
+        //display_document(doc);
+        //set_language_name();
+        //setTimeout(set_version_name,200);
     }
 
     console.log("Init");

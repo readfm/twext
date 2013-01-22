@@ -38,8 +38,13 @@ TwextToggle Data Format
 
 Twext.ToggleData = Class.$extend({
 
-    __init__: function(data){
-        this.data = data;
+    __init__: function(){
+        this.data = {
+            title: "",
+            languages: []
+        };
+        this.source_language = null;
+        this.source_text = null;
         this.currentLang = false;
         this.currentVersion = false;
 
@@ -63,6 +68,15 @@ Twext.ToggleData = Class.$extend({
             }
             return false;
         }
+    },
+
+    find_by_language_name: function(name_string){
+      var i = 0;
+      for(; i < this.data.languages.length; i++){
+        if(this.data.languages[i].language == name_string)
+          return i;
+      }
+      return -1;
     },
 
     languageName: function(ident){
@@ -122,6 +136,11 @@ Twext.ToggleData = Class.$extend({
         return ver;
     },
 
+    latest_version: function(lang){
+      var versions = this.data.languages[lang].versions;
+      return versions[versions.length - 1];
+    },
+
     addLanguage: function(language){
       this.data.languages.push({language:language,versions:[]});
       this.currentLang = this.data.languages.length-1;
@@ -160,7 +179,32 @@ Twext.ToggleData = Class.$extend({
         if(!isVer) throw "version not set";
 
         this.data.languages[this.currentLang].versions[this.currentVersion].data = data;
-    }
+    },
 
+    get_version_by_id: function(id){
+        var versions = this.data.languages[this.currentLang].versions;
+        var i = 0;
+        for(; i<versions.length; i++){
+          if(versions[i].version == id){
+            return versions[i];
+          }
+        }
+        return null;
+    },
 
+    set_version: function(version_id,data,language){
+        var lang = (language==undefined) ? this.currentLang : language;
+        var isLang = this.language(lang);
+        if(!isLang) throw "Language does not exist: "+lang;
+        var version = this.get_version_by_id(version_id);
+        if(version == null){
+          version = {version:version_id, data:data[0]};
+          this.data.languages[this.currentLang].versions.push(version);
+        }
+        else{
+          version.data = data[0];
+        }
+        //if(data.length > 0)
+          //version.chunks = data[1];
+    },
 });

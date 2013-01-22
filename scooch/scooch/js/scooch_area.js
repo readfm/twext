@@ -62,7 +62,7 @@ window.ScoochArea = Class.$extend({
     this.cached_formatted_chunks = false;
     	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
     	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
-      $(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+      //$(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
       $(window).bind("resize", $.proxy(this.realign, this));
 	},
 
@@ -70,10 +70,10 @@ window.ScoochArea = Class.$extend({
     Realign chunks on resize.
   */
   realign: function() {
-    $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
     var aligner = new SpanAligner();
     aligner.align($(this.area), this.getFormattedChunks());
-    $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
   },
 
   /**
@@ -218,7 +218,7 @@ window.ScoochArea = Class.$extend({
         if( focus_now.childNodes.length > 0 ) focus_now = focus_now.childNodes[0];
       }
       catch(e){ 
-        Console.log("Sorry: " + e); Console.log("- area::" + this.area);
+        console.log("Sorry: " + e); console.log("- area::" + this.area);
        }
       caret_range.setStart( focus_now, offset);
       caret_range.setEnd( focus_now, offset);
@@ -273,9 +273,9 @@ window.ScoochArea = Class.$extend({
       }
       console.log("to unbind...");
       console.log(html_lines);
-      $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+      //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
       this.area.innerHTML = html_lines.join("");
-        $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+        //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     },
     
     render_update:function(event){
@@ -357,7 +357,7 @@ window.ScoochArea = Class.$extend({
         }
         event.stopPropagation();
         event.preventDefault();
-        $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+        //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
 
         /*var scooched_lines*/var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
         if(chunks) {
@@ -373,7 +373,7 @@ window.ScoochArea = Class.$extend({
         this.render_html( this.text_lines );*/
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         
-        $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+        //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     },
 
     onBackspace: function(event){
@@ -410,7 +410,7 @@ window.ScoochArea = Class.$extend({
 
         event.stopPropagation();
         event.preventDefault();
-        $(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
+        //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
 
         /*var scooched_lines*/var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
         if(chunks) {
@@ -423,7 +423,7 @@ window.ScoochArea = Class.$extend({
 
         this.render_html( this.text_lines );*/
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
-        $(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+        //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     }
 
 })
