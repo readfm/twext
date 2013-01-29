@@ -172,7 +172,7 @@ window.ScoochEditorLines = Class.$extend({
     var lineChunks = chunks[textLineNum];
 
     //no ref forward position to align?
-    var next_word_ix = this.getNextRefWord(first, current_line.lineNumber(), current_word_ix, lineChunks);//ref_line.next_word_ix( first? this.to_ratio(cursor_pos):this.from_ratio(cursor_pos) );
+    var next_word_ix = this.getNextRefWord(first, current_line.lineNumber(), current_word_ix, lineChunks);
     if(next_word_ix < 0 || next_word_ix > ref_words.length-1) { // Second condition for the last word in the line
       this.cursor_offset = cursor_pos;
       return false;
@@ -207,75 +207,6 @@ window.ScoochEditorLines = Class.$extend({
     var current_words = current_line.words();
     this.cursor_offset = current_words[current_word_ix];
     return chunks;
-    
-    
-    /* to be removed*/
-    /*var chunks = this.chunks(),
-        current_chunk_ix = 0;
-    //find which chunk we are moving to
-    var i = 0, 
-        chunk_pos = first? cursor_pos:this.from_ratio(cursor_pos);
-    for(; i<chunks.length; i++){
-        if(chunks[i] < chunk_pos){
-            current_chunk_ix = i+1;
-        }
-        else{
-          break;
-        }
-    }
-
-    var in_chunk = chunks[current_chunk_ix] == chunk_pos;
-    var new_current_string, new_ref_string, longest;
-
-      var current_chunk_strings = [];
-      var ref_chunk_strings = [];
-      var next_chunk = in_chunk? current_chunk_ix+1:current_chunk_ix;
-      var next_pos_is_chunk = (first?this.from_ratio(ref_words[next_word_ix]):ref_words[next_word_ix]) == chunks[next_chunk];
-      
-      var into_last_chunk = next_chunk == chunks.length || (chunks.length == next_chunk + 1) && next_pos_is_chunk;
-      //REF
-      var first_piece;
-      if(in_chunk && chunk_pos > 0){//merge happens
-        first_piece = this.rtrim( ref_line.ratio_substring(0, chunk_pos) ) + " " +ref_line.raw_substring(ref_line.to_ratio(chunk_pos), ref_words[next_word_ix]).trim();
-      }
-      else{
-        first_piece = this.rtrim( ref_line.raw_substring(0, ref_words[next_word_ix]) );
-      }
-      ref_chunk_strings.push( first_piece );
-      //curr
-      current_chunk_strings.push( this.rtrim( current_line.raw_substring(0, cursor_pos) ) );
-
-      if(!next_pos_is_chunk){
-        if(chunks[next_chunk]){
-          ref_chunk_strings.push( ref_line.raw_substring( ref_words[next_word_ix], ref_line.to_ratio(chunks[next_chunk]) ).trim() );
-          ref_chunk_strings.push( ref_line.ratio_substring(chunks[next_chunk]).trim() );
-          current_chunk_strings.push( current_line.raw_substring(cursor_pos, current_line.to_ratio(chunks[next_chunk])).trim() );
-          current_chunk_strings.push( current_line.ratio_substring(chunks[next_chunk]).trim() );
-        }
-        else{
-          ref_chunk_strings.push( ref_line.raw_substring( ref_words[next_word_ix] ).trim() );
-          current_chunk_strings.push( current_line.raw_substring(cursor_pos).trim() );
-        }
-      }
-      else{
-        if(into_last_chunk){
-          ref_chunk_strings.push( ref_line.raw_substring( ref_words[next_word_ix] ).trim() );
-          to_merge = current_line.ratio_substring(chunks[next_chunk]).trim();
-          current_chunk_strings.push( current_line.raw_substring(cursor_pos, current_line.to_ratio(chunks[next_chunk])).trim() + " " + to_merge);
-        }
-        else{
-          ref_chunk_strings.push( ref_line.ratio_substring(chunks[next_chunk], chunks[next_chunk+1]).trim() );
-          ref_chunk_strings.push( ref_line.ratio_substring(chunks[next_chunk+1]).trim() );
-          to_merge = current_line.ratio_substring(chunks[next_chunk], chunks[next_chunk + 1]).trim();
-          current_chunk_strings.push( current_line.raw_substring(cursor_pos, current_line.to_ratio(chunks[next_chunk])).trim() + " " + to_merge);
-          current_chunk_strings.push( current_line.ratio_substring(chunks[next_chunk + 1]).trim() );
-        }
-      }
-      
-      //var cursor_move = { index:1, offset:0 };
-      //return this.text_for_chunks(current_chunk_strings, ref_chunk_strings, first, cursor_move);
-
-    return false;*/
   },
 
   /**
@@ -364,6 +295,41 @@ window.ScoochEditorLines = Class.$extend({
     return spaces;
   },
 
+  /**
+    Check if current chunk can be moved backward.
+    Get the previous ref word pos, check if the char at the same pos in current line is space, if yes then the chunk can be pulled.
+    Params: 'currentWord' The current word number (starts with 0)
+            'refWord' The ref word number (starts with 0)
+            'lineNumber' The current line number
+            'cursorPos' cursor position
+  */
+  canMoveChunk: function(currentWord, refWord, lineNumber, cursorPos, first) {
+    var currentNode = this.element[0].childNodes[lineNumber].childNodes.length > 0 ? this.element[0].childNodes[lineNumber].childNodes[0] : this.element[0].childNodes[lineNumber];
+    var currentValue = cleanText(currentNode.nodeValue);
+    var refNode = this.element[0].childNodes[first?lineNumber+1:lineNumber-1].childNodes.length > 0 ? this.element[0].childNodes[first?lineNumber+1:lineNumber-1].childNodes[0] : this.element[0].childNodes[lineNumber];
+    var refValue = cleanText(refNode.nodeValue);
+
+    // Check if there is more than 1 space, a must to move backward.
+    var spaces = this.countPreviousSpaces(currentValue, cursorPos);  // count previous spaces
+    if(spaces < 2) return false;
+
+    // Get previous ref word pos    
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    putWordInSpan(refNode, refWordsPos[refWord], refWords[refWord], "refWord");
+    var refWordPos = parseInt($('#refWord').position().left);
+    removeSpanNode(refNode.parentElement, "refWord", refWord == 0, refWord == refWords.length-1);
+    // Get pos of space after previous word of current line, comparing it with previous ref word pos detects if the index to pull to is busy.
+    var currentWords = getWords(currentValue);
+    var currentWordsPos = getWordsIndices(currentValue);
+    putWordInSpan(currentNode, currentWordsPos[currentWord-1]+currentWords[currentWord-1].length, ' ', "currentWord");
+    var endSpacePos = parseInt($('#currentWord').position().left);
+    removeSpanNode(currentNode.parentElement, "currentWord", currentWord == 0, currentWord == currentWords.length-1);
+
+    if(endSpacePos < refWordPos) return true;
+    return false;
+  },
+
 	pullChunk: function(on_first, cursor_pos, chunks){
     var current_line = this.lines[on_first? 0:1],
       current_string = current_line.text(),
@@ -393,15 +359,30 @@ window.ScoochEditorLines = Class.$extend({
     if(this.size(lineChunks) > 0) {
       var previous_chunk_key = this.busyChunk(lineChunks, previous_word_ix+1, !on_first);  // Check if the previous word is a chunk, return chunk key
       var current_chunk_key = this.busyChunk(lineChunks, current_word_ix+1, on_first);  // Get the current chunk key
-      var spaces = this.countPreviousSpaces(current_string, cursor_pos);  // count previous spaces, merge if 1 space, merge(if needed) and align if 2+
-      if((previous_chunk_key != -1 && current_chunk_key != -1) || (previous_chunk_key == -1 && current_chunk_key != -1 && spaces == 1)) {  // previous word and current word are busy, delete current pair
-        delete lineChunks[current_chunk_key]; // Delete the current exisiting nN pair (merge)
-      } else {
+      //var spaces = this.countPreviousSpaces(current_string, cursor_pos);  // count previous spaces, merge if 1 space, merge(if needed) and align if 2+
+      // Delete current pair, if chunk
+      if(current_chunk_key != -1) {  // current word is a chunk
+        delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair (merge)
+      }
+      if(this.canMoveChunk(current_word_ix, previous_word_ix, current_line.lineNumber(), cursor_pos, on_first)) { // There is available space for the current chunk to be moved backward, pull chunk 'align'.
         if(previous_chunk_key != -1) {  // previous word is a chunk, delete pair
           delete lineChunks[previous_chunk_key]; // Delete the exisiting nN pair
         }
-        if(current_chunk_key != -1) {  // current word is a chunk, delete pair
+        if(previous_word_ix != 0) { // Don't try to align with the first word
+          // Add the new pair (align)
+          lineChunks[key] = value;
+          chunks[textLineNum] = lineChunks;
+        }
+      }
+    }
+      /*if((previous_chunk_key != -1 && current_chunk_key != -1) || (previous_chunk_key == -1 && current_chunk_key != -1 && spaces == 1)) {  // previous word and current word are busy, delete current pair
+        delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair (merge)
+      } else {
+        if(current_chunk_key != -1) {  // current word is a chunk
           delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair (merge)
+        }
+        if(previous_chunk_key != -1) {  // previous word is a chunk, delete pair
+          delete lineChunks[previous_chunk_key]; // Delete the exisiting nN pair
         }
         if(previous_word_ix != 0) { // Don't try to align with the first word
           // Add the new pair (align)
@@ -416,7 +397,7 @@ window.ScoochEditorLines = Class.$extend({
         lineChunks[key] = value;
         chunks[textLineNum] = lineChunks;
       }
-    }
+    }*/
 
     // Use span aligner to align chunks
     var nN = this.getnN(lineChunks); // Get nN array to align chunks
@@ -427,80 +408,6 @@ window.ScoochEditorLines = Class.$extend({
     var current_words = current_line.words();
     this.cursor_offset = current_words[current_word_ix];
     return chunks;
-
- 
-    // To be removed
-    /*
-    var chunks = this.chunks();
-    var i,
-        previous_chunk_ix = -1,
-        chunk_pos = on_first? cursor_pos:this.from_ratio(cursor_pos);
-    //find which chunk we are moving
-    for(i=0; i<chunks.length; i++){
-        if(chunks[i] < chunk_pos){
-            previous_chunk_ix = i;
-        }
-        else{
-          break;
-        }
-    }
-
-    var current_chunk_strings = [], ref_chunk_strings = [];
-    var into_chunk = previous_chunk_ix > -1 && ref_words[previous_word_ix] == chunks[previous_chunk_ix];
-    var in_chunk = chunk_pos == chunks[previous_chunk_ix + 1];
-    var next_chunk_ix = previous_chunk_ix + (in_chunk? 2:1);
-    var cursor_move = { index:0, offset:0 };
-
-    var to_merge;
-    if(chunks[previous_chunk_ix] && chunks[previous_chunk_ix] > 0){
-      ref_chunk_strings.push( this.rtrim( ref_line.ratio_substring(0, chunks[previous_chunk_ix]) ) );
-
-      to_merge = this.rtrim( current_line.ratio_substring(0, chunks[previous_chunk_ix]) );
-      if(into_chunk && !in_chunk){
-        current_chunk_strings.push( to_merge + " " + current_line.raw_substring( current_line.to_ratio(chunks[previous_chunk_ix]), cursor_pos).trim() );
-      }
-      else{
-        current_chunk_strings.push( to_merge );
-      }
-      cursor_move.index = 1;
-    }
-
-    if(into_chunk){
-      if( in_chunk ){//merge happens
-        to_merge = ref_line.ratio_substring(chunks[previous_chunk_ix], chunk_pos).trim();
-        to_merge += " " + ref_line.ratio_substring(chunk_pos, chunks[next_chunk_ix] ).trim();
-        ref_chunk_strings.push( to_merge );
-        to_merge = current_line.raw_substring( current_line.to_ratio(chunks[previous_chunk_ix]), cursor_pos).trim();
-        cursor_move.offset = to_merge.length + 1;
-        to_merge += " " + current_line.raw_substring(cursor_pos, current_line.to_ratio(chunks[next_chunk_ix]) ).trim();
-        current_chunk_strings.push( to_merge );
-      }
-      else{
-        ref_chunk_strings.push( ref_line.ratio_substring(chunks[previous_chunk_ix], chunks[next_chunk_ix] ).trim() );
-        if(chunks[previous_chunk_ix] == 0 ) 
-          return false;
-        current_chunk_strings.push( current_line.raw_substring(cursor_pos, current_line.to_ratio(chunks[next_chunk_ix]) ).trim() );
-      }
-    }
-    else{
-      if(previous_word_ix > 0){
-        ref_chunk_strings.push( this.rtrim( ref_line.raw_substring( ref_line.to_ratio(chunks[previous_chunk_ix] || 0 ), ref_words[previous_word_ix]) ) );
-        current_chunk_strings.push( current_line.raw_substring( current_line.to_ratio(chunks[previous_chunk_ix] || 0), cursor_pos).trim() );
-        cursor_move.index++;
-      }
-
-      to_merge = ref_line.raw_substring( ref_words[previous_word_ix], ref_words[previous_word_ix + 1] ).trim();
-      if( ref_words[previous_word_ix + 1] ){
-        to_merge += " " + ref_line.raw_substring( ref_words[previous_word_ix + 1], ref_line.to_ratio(chunks[next_chunk_ix]) ).trim();
-      }
-      ref_chunk_strings.push( to_merge );
-      current_chunk_strings.push( current_line.raw_substring(cursor_pos, current_line.to_ratio( chunks[next_chunk_ix]) ).trim() );
-    }
-    if(chunks[next_chunk_ix]){
-      ref_chunk_strings.push( ref_line.ratio_substring( chunks[next_chunk_ix] ).trim() );
-      current_chunk_strings.push( current_line.ratio_substring(chunks[next_chunk_ix]).trim() );
-    }
-    return this.text_for_chunks(current_chunk_strings, ref_chunk_strings, on_first, cursor_move);*/
   },
   
   text_for_chunks: function(actual_chunks, ref_chunks, is_first, cursor_move){
