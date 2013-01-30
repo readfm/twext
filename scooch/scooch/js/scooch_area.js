@@ -58,7 +58,10 @@ window.ScoochArea = Class.$extend({
 		this.text_lines = new Array();
 		this.caret_coord = null;
 		this.ignore_BR = false;
-    this.lines_chunks = {}; // key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: N, value: n}
+    this.firstLangSwitch = true;  // Boolean detects the first language switch, this is used to init all languages chunks with current chunks.
+    this.lines_chunks = {}; // The chunks of the current language, key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: n, value: N}
+    this.language = 0; // The current language number
+    this.lang_chunks = {}; // key/value array contains language with its chunks. The key is the language number, the value is its chunks.
     this.cached_formatted_chunks = false;
     	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
     	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
@@ -93,7 +96,34 @@ window.ScoochArea = Class.$extend({
     this.cached_formatted_chunks = chunks;
     return chunks;
   },
-    
+
+  /**
+    Apply the current chunks to all other languages at the first language switch only.
+  */
+  initLanguagesChunks: function(lCount) {
+    if(this.firstLangSwitch) {
+      for(var i=0; i<lCount; i++) {
+        this.lang_chunks[i] = this.copyObj(this.lines_chunks);//$.extend(true, {}, this.lines_chunks);
+      }
+      this.firstLangSwitch = false;
+    }
+  },
+
+  /**
+    Update the current chunks when language change.
+  */
+  setCurrentChunks: function() {
+    this.lines_chunks = this.lang_chunks[this.language]?this.lang_chunks[this.language]:{};
+    this.cached_formatted_chunks = false;
+  },
+
+  /**
+    Return a deep copy of the object.
+  */
+  copyObj: function(obj) {
+    return $.extend(true, {}, obj);
+  },
+
     /**
     Takes html content, identifies #text nodes and appends it on "lines" array.
     Each element in "lines" represents a text line, null values represent empty lines.
@@ -352,27 +382,20 @@ window.ScoochArea = Class.$extend({
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
             this.lines_chunks[pair_index] = chunks;
             this.cached_formatted_chunks = false;
+            this.lang_chunks[this.language] = this.lines_chunks;
           }
           return;
         }
         event.stopPropagation();
         event.preventDefault();
         //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
-
-        /*var scooched_lines*/var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
+        var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
         if(chunks) {
           this.lines_chunks = chunks;
           this.cached_formatted_chunks = false;
+          this.lang_chunks[this.language] = this.lines_chunks;
         }
-        /*if(!scooched_lines) return false;
-        this.text_lines[pair_index] = scooched_lines[0];
-        this.text_lines[pair_index + 1] = scooched_lines[1];
-        
-        
-
-        this.render_html( this.text_lines );*/
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
-        
         //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     },
 
@@ -404,6 +427,7 @@ window.ScoochArea = Class.$extend({
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
             this.lines_chunks[pair_index] = chunks;
             this.cached_formatted_chunks = false;
+            this.lang_chunks[this.language] = this.lines_chunks;
           }
           return;
         }
@@ -411,17 +435,12 @@ window.ScoochArea = Class.$extend({
         event.stopPropagation();
         event.preventDefault();
         //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
-
-        /*var scooched_lines*/var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
+        var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
         if(chunks) {
           this.lines_chunks = chunks;
           this.cached_formatted_chunks = false;
+          this.lang_chunks[this.language] = this.lines_chunks;
         }
-        /*if(!scooched_lines) return false;
-        this.text_lines[pair_index] = scooched_lines[0];
-        this.text_lines[pair_index + 1] = scooched_lines[1];
-
-        this.render_html( this.text_lines );*/
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     }

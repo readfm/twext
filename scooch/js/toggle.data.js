@@ -86,17 +86,10 @@
         }else if(nl>=lcount){
             nl=0;
         }
-
-        //if(sampleData.language(nl)){
         version = 0
         language = nl;
+        area.initLanguagesChunks(lcount);
         place_twext(nl);
-            //var doc = sampleData.languageVersion(language,version);
-            //console.log(doc);
-            //display_document(doc);
-            //set_language_name();
-            //set_version_name();
-        //}
     }
 
     function switch_versions(add){
@@ -190,6 +183,8 @@
       var lines = meld_twext_lines(toggle_data.source_text, doc.data, doc.chunks);
       //area.enable_twext();
       //area.enable_scooching();
+      area.language = language;
+      area.setCurrentChunks();
       area.render_html(lines);
       // Align twexts
       area.realign();

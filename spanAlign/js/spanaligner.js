@@ -50,6 +50,7 @@ var SpanAligner = Class({
     var tmp = nN.split(":");
     var n = parseInt(tmp[0]) - 1; // Twext word number
     var N = parseInt(tmp[1]) - 1; // Text word number
+    if(n >= twextWords.length || N >= textWords) return;
     // Put text word in span
     putWordInSpan(textNode, textWordsIndices[N], textWords[N], "textWord");
     // Put twext word in span
