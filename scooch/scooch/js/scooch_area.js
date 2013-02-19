@@ -61,12 +61,14 @@ window.ScoochArea = Class.$extend({
     this.firstLangSwitch = true;  // Boolean detects the first language switch, this is used to init all languages chunks with current chunks.
     this.lines_chunks = {}; // The chunks of the current language, key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: n, value: N}
     this.language = 0; // The current language number
+    this.version = 0; // The current version number
     this.lang_chunks = {}; // key/value array contains language with its chunks. The key is the language number, the value is its chunks.
     this.cached_formatted_chunks = false;
-    	$(area).bind("keydown","space",$.proxy(this.onSpace,this));
-    	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
-      //$(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
-      $(window).bind("resize", $.proxy(this.realign, this));
+
+    $(area).bind("keydown","space",$.proxy(this.onSpace,this));
+   	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
+    //$(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    $(window).bind("resize", $.proxy(this.realign, this));
 	},
 
   /**
@@ -100,29 +102,69 @@ window.ScoochArea = Class.$extend({
   /**
     Apply the current chunks to all other languages at the first language switch only.
   */
-  initLanguagesChunks: function(lCount) {
+  /*initLanguagesChunks: function(lCount) {
     if(this.firstLangSwitch) {
       for(var i=0; i<lCount; i++) {
         this.lang_chunks[i] = this.copyObj(this.lines_chunks);//$.extend(true, {}, this.lines_chunks);
       }
       this.firstLangSwitch = false;
     }
+  },*/
+
+  /**
+    Load saved chunks.
+  */
+  loadChunks: function(languages) {
+    var i, j, k;
+    for(i=0; i<languages.length; i++) {
+      if(!this.lang_chunks[i]) {
+        this.lang_chunks[i] = {versions:{}};
+      }
+      for(j=0; j<languages[i].versions.length; j++) {
+        if(!this.lang_chunks[i].versions[j]) {
+          this.lang_chunks[i].versions[j] = {};
+        }
+        for(k=0; k<languages[i].versions[j].data.lines.length; k++) {
+          if(languages[i].versions[j].data.lines[k]) {
+            this.lang_chunks[i].versions[j][k*2] = this.formatnNPairs(languages[i].versions[j].data.lines[k].chunks); // k*2 to save line number after adding twexts
+          } else {
+            this.lang_chunks[i].versions[j][k*2] = {};
+          }
+        }
+      }
+    }
+  },
+
+  /**
+    Construct key/value array of nN pairs from string.
+  */
+  formatnNPairs: function(str) {
+    var formatted = {};
+    if(str) {
+      var nNs = str.split(' ');
+      var i, tmp = "";
+      for(i=0; i<nNs.length; i++) {
+        tmp = nNs[i].split(':');
+        formatted[tmp[0]] = tmp[1];
+      }
+    }
+    return formatted;
   },
 
   /**
     Update the current chunks when language change.
   */
   setCurrentChunks: function() {
-    this.lines_chunks = this.lang_chunks[this.language]?this.lang_chunks[this.language]:{};
+    this.lines_chunks = (this.lang_chunks[this.language] && this.lang_chunks[this.language].versions[this.version])?this.lang_chunks[this.language].versions[this.version]:{};
     this.cached_formatted_chunks = false;
   },
 
   /**
     Return a deep copy of the object.
   */
-  copyObj: function(obj) {
+  /*copyObj: function(obj) {
     return $.extend(true, {}, obj);
-  },
+  },*/
 
     /**
     Takes html content, identifies #text nodes and appends it on "lines" array.
@@ -382,7 +424,7 @@ window.ScoochArea = Class.$extend({
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
             this.lines_chunks[pair_index] = chunks;
             this.cached_formatted_chunks = false;
-            this.lang_chunks[this.language] = this.lines_chunks;
+            this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
           }
           return;
         }
@@ -393,7 +435,7 @@ window.ScoochArea = Class.$extend({
         if(chunks) {
           this.lines_chunks = chunks;
           this.cached_formatted_chunks = false;
-          this.lang_chunks[this.language] = this.lines_chunks;
+          this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
         }
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
@@ -427,7 +469,7 @@ window.ScoochArea = Class.$extend({
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
             this.lines_chunks[pair_index] = chunks;
             this.cached_formatted_chunks = false;
-            this.lang_chunks[this.language] = this.lines_chunks;
+            this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
           }
           return;
         }
@@ -439,7 +481,7 @@ window.ScoochArea = Class.$extend({
         if(chunks) {
           this.lines_chunks = chunks;
           this.cached_formatted_chunks = false;
-          this.lang_chunks[this.language] = this.lines_chunks;
+          this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
         }
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));

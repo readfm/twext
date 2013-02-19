@@ -21,6 +21,27 @@ function empty (v) {
     return false;
 }
 
+/**
+  Remove empty elements from the array.
+*/
+Array.prototype.clean = function() {
+  for (var i = 0; i < this.length; i++) {
+    if (this[i] == undefined || this[i] == "") {         
+      this.splice(i, 1);
+      i--;
+    }
+  }
+  return this;
+};
+
+Object.size = function(obj) {
+  var size = 0, key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) size++;
+  }
+  return size;
+};
+
 Twext.Utils.TextToLines = function(t){
     var sp = /\s\s+/i;
     t = trim(t);

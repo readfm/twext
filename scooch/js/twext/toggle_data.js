@@ -136,6 +136,11 @@ Twext.ToggleData = Class.$extend({
         return ver;
     },
 
+    first_version: function(lang) {
+      var versions = this.data.languages[lang].versions;
+      return versions[0];
+    },
+
     latest_version: function(lang){
       var versions = this.data.languages[lang].versions;
       return versions[versions.length - 1];
@@ -157,6 +162,26 @@ Twext.ToggleData = Class.$extend({
         if(!isLang) throw "Language does not exist: "+lang;
 
         this.data.languages[this.currentLang].versions.push({version:version,data:data});
+    },
+
+    addLine: function(language, version_id, lineNum, data){
+      if(language == undefined && this.currentLang===false){
+        throw "No Language Set";
+      } else {
+        var lang = (language==undefined && typeof language != "object") ? this.currentLang : language;
+      }
+      var isLang = this.language(lang);
+      if(!isLang) throw "Language does not exist: "+lang;
+
+      var version = this.get_version_by_id(version_id);
+      if(version == null){//console.log("addline null 1");
+        var lines = [];//console.log("addline null 2");
+        lines[lineNum] = {value: data.value, chunks: data.nN};//console.log("addline null 3");
+        version = {version:version_id, data:{lines:lines}};//console.log("addline null 4");
+        this.data.languages[this.currentLang].versions.push(version);//console.log("addline null 5");
+      } else {//console.log("addline before");
+        version.data.lines[lineNum] = {value: data.value, chunks: data.nN};//console.log("addline after");
+      }
     },
 
     updateVersion: function(data,version,language){

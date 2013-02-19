@@ -61,7 +61,7 @@ function cleanTextTwext(textEl, textLine, twextLine) {
 function getWords(text) {
   //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;  // Match url | words
   //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|((\w+)?([^\u0000-\u0080]+)(\w+)?)+|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;
-  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\S+/gi; // Match url | words, any non space char
+  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words, any non space char
   return text.match(re);
 }
 
@@ -71,7 +71,7 @@ function getWords(text) {
 function getWordsIndices(text) {
   //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=||\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;  // Match url | words
   //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|((\w+)?([^\u0000-\u0080]+)(\w+)?)+|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;
-  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\S+/gi; // Match url | words, any non space char
+  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words, any non space char
   return getMatchesIndices(text, re);
 }
 
