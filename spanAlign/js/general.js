@@ -19,11 +19,11 @@ function removeSpanNode(parentEl, id, firstWord, lastWord) {
 */
 function getNodeNewData(id, firstWord, lastWord) {
   if(firstWord) { // first word
-    $('#'+id)[0].previousSibling.nodeValue = $('#'+id)[0].previousSibling.nodeValue == " " ? "" : $('#'+id)[0].previousSibling.nodeValue.slice(1);
-    //$('#'+id)[0].nextSibling.nodeValue = " " + $('#'+id)[0].nextSibling.nodeValue;
+    var preVal = cleanText($('#'+id)[0].previousSibling.nodeValue);
+    $('#'+id)[0].previousSibling.nodeValue = preVal.charAt(0) != " " ? preVal : preVal.slice(1);
   } else if(lastWord) { // Last word
-    //$('#'+id)[0].previousSibling.nodeValue = " " + $('#'+id)[0].previousSibling.nodeValue;
-    $('#'+id)[0].nextSibling.nodeValue = $('#'+id)[0].nextSibling.nodeValue == " " ? "" : $('#'+id)[0].nextSibling.nodeValue.slice(1);
+    var nextVal = cleanText($('#'+id)[0].nextSibling.nodeValue);
+    $('#'+id)[0].nextSibling.nodeValue = nextVal.charAt(0) != " " ? nextVal : nextVal.slice(1);
   }
   var data = $('#'+id)[0].previousSibling.nodeValue + $('#'+id)[0].childNodes[0].nodeValue + $('#'+id)[0].nextSibling.nodeValue;
   return data;
@@ -49,9 +49,9 @@ function putWordInSpan(node, index, word, id) {
   Get text and twext nodes.
 */
 function cleanTextTwext(textEl, textLine, twextLine) {
-  var textNode = textEl[0].childNodes[textLine].childNodes.length > 0 ? textEl[0].childNodes[textLine].childNodes[0] : textEl[0].childNodes[textLine];
+  var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
   textNode.nodeValue = cleanText(textNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned text
-  var twextNode = textEl[0].childNodes[twextLine].childNodes.length > 0 ? textEl[0].childNodes[twextLine].childNodes[0] : textEl[0].childNodes[twextLine];
+  var twextNode = textEl.childNodes[twextLine].childNodes.length > 0 ? textEl.childNodes[twextLine].childNodes[0] : textEl.childNodes[twextLine];
   twextNode.nodeValue = cleanText(twextNode.nodeValue).replace(/\ +/g, ' '); // Return to unaligned twext
 }
 
@@ -134,4 +134,17 @@ function cleanText(text) {
 */
 function trim(str) {
   return str.replace(/^\s+|\s+$/g, "");
+}
+
+/**
+  Convert text into html.
+*/
+function convertTextToHtml(text) {
+  var i, html = "";
+  //text = text.replace(/\ /g, '&nbsp;')
+  var lines = text.split('\n');
+  for(i=0; i<lines.length; i++) {
+    html += "<div class='text'>" + lines[i] + "</div>";
+  }
+  return html;
 }

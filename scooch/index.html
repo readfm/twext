@@ -48,6 +48,13 @@
 <button id="tkorean">Translate to Korean</button>
 -->
 
-
+<script>
+  document.querySelector("div[contenteditable]").addEventListener("paste", function (e) {
+    e.preventDefault();
+    var text = e.clipboardData.getData("text/plain");
+    var html = convertTextToHtml(text);
+    document.execCommand("insertHTML", false, html);
+  });
+</script>
 </body>
 </html>

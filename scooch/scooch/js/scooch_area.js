@@ -58,17 +58,22 @@ window.ScoochArea = Class.$extend({
 		this.text_lines = new Array();
 		this.caret_coord = null;
 		this.ignore_BR = false;
-    this.firstLangSwitch = true;  // Boolean detects the first language switch, this is used to init all languages chunks with current chunks.
+    //this.firstLangSwitch = true;  // Boolean detects the first language switch, this is used to init all languages chunks with current chunks.
     this.lines_chunks = {}; // The chunks of the current language, key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: n, value: N}
     this.language = 0; // The current language number
     this.version = 0; // The current version number
+    this.languages = [];
+    this.versions = [];
     this.lang_chunks = {}; // key/value array contains language with its chunks. The key is the language number, the value is its chunks.
     this.cached_formatted_chunks = false;
+    this.firebaseRef = "https://readfm.firebaseio.com/foo";
+    this.lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
 
     $(area).bind("keydown","space",$.proxy(this.onSpace,this));
    	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
     //$(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     $(window).bind("resize", $.proxy(this.realign, this));
+    $(window).bind("beforeunload", $.proxy(this.save, this));
 	},
 
   /**
@@ -82,21 +87,36 @@ window.ScoochArea = Class.$extend({
   },
 
   /**
+    Save chunks on window close or refresh.
+  */
+  save: function() {
+    this.saveChunks(this.language, this.version);
+  },
+
+  /**
     Put chunks nNs key/value arrays in a normal arrays to be sent to span aligner.
   */
   getFormattedChunks: function() {
     if(this.cached_formatted_chunks) return this.cached_formatted_chunks;
     var nN = new Array();
     var chunks = {};
-    for(var key in this.lines_chunks) {
+    for(var key in this.lines_chunks) { // key is the line number
       nN = new Array();
-      for(var key1 in this.lines_chunks[key]) {
-        nN.push(key1+":"+this.lines_chunks[key][key1]);
+      for(var key1 in this.lines_chunks[key].chunks) {
+        nN.push(key1+":"+this.lines_chunks[key].chunks[key1]);
       }
       chunks[key] = nN;
     }
     this.cached_formatted_chunks = chunks;
     return chunks;
+  },
+
+  constructChunksString: function(chunks) {
+    var nN = "";
+    for(var key in chunks) {
+      nN += key+":"+chunks[key] + " ";
+    }
+    return nN.substring(0, nN.length-1);  // Remove the last space
   },
 
   /**
@@ -120,15 +140,18 @@ window.ScoochArea = Class.$extend({
       if(!this.lang_chunks[i]) {
         this.lang_chunks[i] = {versions:{}};
       }
+      this.languages[i] = this.lang_abrs[languages[i].language];
       for(j=0; j<languages[i].versions.length; j++) {
         if(!this.lang_chunks[i].versions[j]) {
           this.lang_chunks[i].versions[j] = {};
         }
+        this.versions[j] = languages[i].versions[j].version;
         for(k=0; k<languages[i].versions[j].data.lines.length; k++) {
+          if(!this.lang_chunks[i].versions[j][k*2]) {
+            this.lang_chunks[i].versions[j][k*2] = {isChanged: false, chunks:{}};
+          }
           if(languages[i].versions[j].data.lines[k]) {
-            this.lang_chunks[i].versions[j][k*2] = this.formatnNPairs(languages[i].versions[j].data.lines[k].chunks); // k*2 to save line number after adding twexts
-          } else {
-            this.lang_chunks[i].versions[j][k*2] = {};
+            this.lang_chunks[i].versions[j][k*2].chunks = this.formatnNPairs(languages[i].versions[j].data.lines[k].chunks); // k*2 to save line number after adding twexts
           }
         }
       }
@@ -165,6 +188,23 @@ window.ScoochArea = Class.$extend({
   /*copyObj: function(obj) {
     return $.extend(true, {}, obj);
   },*/
+
+  /**
+    Save updated chunks into firebase db.
+  */
+  saveChunks: function(lang, ver) {
+    var line = "", words = null;
+    var lines = this.lang_chunks[lang].versions[ver];
+    for(var key in lines) {
+      line = cleanText(this.text_lines[key]).replace(/\ +/g, ' ');
+      words = line?getWords(line):null;
+      line = words?$.trim(words.join('-')):null;
+      if(line && lines[key].isChanged) {  // Chunks of this line is changed, save into db
+        new Firebase(this.firebaseRef+"/"+line+"/"+this.languages[lang]+"/"+this.versions[ver]+"/nN").set(this.constructChunksString(lines[key].chunks));
+        lines[key].isChanged = false;
+      }
+    }
+  },
 
     /**
     Takes html content, identifies #text nodes and appends it on "lines" array.
@@ -415,14 +455,15 @@ window.ScoochArea = Class.$extend({
 
         var caret_on_first = this.caret_coord.lines == pair_index;
 
+        this.lines_chunks[pair_index].isChanged = true;
         //If there is only one space, then ignore.
         if(this.count_previous_blanks() == 0 && this.caret_coord.offset > 0) {
           // Renumber chunks in case of 'make'
-          var chunks = this.lines_chunks[pair_index];
+          var chunks = this.lines_chunks[pair_index].chunks;
           var wordNum = caret_on_first ? line_1.wordNumber(this.caret_coord.offset) : line_2.wordNumber(this.caret_coord.offset);
           if(wordNum != -1) {
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
-            this.lines_chunks[pair_index] = chunks;
+            this.lines_chunks[pair_index].chunks = chunks;
             this.cached_formatted_chunks = false;
             this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
           }
@@ -460,14 +501,15 @@ window.ScoochArea = Class.$extend({
         
         var caret_on_first = this.caret_coord.lines == pair_index;
 
+        this.lines_chunks[pair_index].isChanged = true;
         //If there is only one space, then ignore.
         if(this.count_previous_blanks() <= 0) {
           // Renumber chunks in case of 'make'
-          var chunks = this.lines_chunks[pair_index];
+          var chunks = this.lines_chunks[pair_index].chunks;
           var wordNum = caret_on_first ? line_1.wordNumber(this.caret_coord.offset) : line_2.wordNumber(this.caret_coord.offset);
           if(wordNum != -1) {
             chunks = this.renumberChunks(chunks, wordNum+1, caret_on_first);
-            this.lines_chunks[pair_index] = chunks;
+            this.lines_chunks[pair_index].chunks = chunks;
             this.cached_formatted_chunks = false;
             this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
           }

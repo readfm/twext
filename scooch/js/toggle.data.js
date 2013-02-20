@@ -13,7 +13,7 @@
     var toggle_data = null;
     var firebaseRef = "https://readfm.firebaseio.com/foo";
     var gTranslatedText = {};
-    var firebaseTranslations = {}; // key=line number, value=firebase entry contains language/versions/translated text and chunks
+    var firebaseTranslations = []; // index=line number, value=firebase entry contains language/versions/translated text and chunks
 
     function toggleLangDown(){
         console.log("KEYev: left");
@@ -62,7 +62,7 @@
     function load_data(){
       var data =  "We're connecting ourselves with everyone else on earth,\n"+
     "with all human knowledge, and in all kinds of languages.\n"+
-    "How can we learn each others' words?\n";
+    "How can we learn each others' words?";
         return data;
     }
 
@@ -91,6 +91,7 @@
     }
 
     function language_switch(add, ver){
+        var oldLang = language, oldVer = version;
         var nl = language+add;
         var lcount = toggle_data.languageCount();
         if(nl<0){
@@ -105,10 +106,14 @@
         display_twext(doc);
         set_language_name();
         set_version_name();
+        // Save previous chunks into firebase
+        area.saveChunks(oldLang, oldVer);
+        
         //place_twext();
     }
 
     function switch_versions(add){
+      var oldLang = language, oldVer = version;
         var nv = version+add;
         if(nv<0){
             //display_error("No more versions");
@@ -137,6 +142,8 @@
           set_version_name();
           // Align twexts
           area.realign();
+          // Save previous chunks into firebase
+          area.saveChunks(oldLang, oldVer);
         } else {
           return false;//display_error("No more versions");
         }
@@ -191,6 +198,8 @@
     }
 
     function get_translations(text) {
+      gTranslatedText = {};
+      firebaseTranslations = [];
       toggle_data = new Twext.ToggleData();
       toggle_data.source_text = text;
       toggle_data.source_lang = "en";
@@ -216,12 +225,12 @@
       }
     }
 
-    function fillTranslations(text) {
-      var i, j, lang_ix;
+    function fillTranslations(text, lineIx, langIx) {
+      var i = lineIx?lineIx:0, j = langIx?langIx:0, lang_ix;
       var lines = text.split("\n");
       lines = lines.clean();
-      for(i in firebaseTranslations) {  // Loop over lines
-        for(j=0; j<targets.length; j++) {
+      for(; i<firebaseTranslations.length; i++) {  // Loop over lines
+        for(; j<targets.length; j++) {
           if(firebaseTranslations[i] && firebaseTranslations[i][targets[j]]) {  // Firebase entry loaded
             lang_ix = toggle_data.find_by_language_name(lang_names[j]);
             if(lang_ix != -1) { // language added before
@@ -238,8 +247,8 @@
               } else {
                 lang_ix = toggle_data.addLanguage(lang_names[j]);
               }
-              var translatedLine = $.trim(gTranslatedText[targets[j]].split("\n")[i]);console.log("Translate before fill add line");
-              toggle_data.addLine(lang_ix, "1-0", i, {value: translatedLine, nN: ""});console.log("Translate after fill add line");
+              var translatedLine = $.trim(gTranslatedText[targets[j]].split("\n")[i]);
+              toggle_data.addLine(lang_ix, "1-0", i, {value: translatedLine, nN: ""});
 
               // Save text/translation into firebase db
               var line = $.trim(getWords(lines[i]).join('-'));
@@ -250,6 +259,7 @@
             }
           }
         }
+        j = 0;
       }
       var first_lang = toggle_data.source_lang=="en"?"Spanish":"English";
       var lang = toggle_data.find_by_language_name(first_lang);
@@ -259,7 +269,7 @@
       place_twext();
     }
 
-    function translate_html(text_source, target_lang, target_name, total_langs, translator, langIx, lineIx){ 
+    function translate_html(text_source, target_lang, target_name, total_langs, translator, lineIx, langIx){ 
       translator.translateWithFormat(text_source, null, target_lang, function(data){
             if(data.data && data.data.translations){
                 var translated_text = data.data.translations[0].translatedText;
@@ -273,14 +283,14 @@
                 }
                 var translatedLine = $.trim(translated_text.split("\n")[lineIx]);
                 toggle_data.addLine(lang_ix, "1-0", lineIx, {nN:"", value:translatedLine});
-                gTranslatedText[target_lang] = translated_text;console.log("Translate before fill");
-                fillTranslations(text_source);console.log("Translate after fill");
+                gTranslatedText[target_lang] = translated_text;
+                fillTranslations(text_source, lineIx, langIx);
 
                 // Save text/translation into firebase db
                 var lines = text_source.split("\n");
                 lines = lines.clean();
                 var line = $.trim(getWords(lines[lineIx]).join('-'));
-                new Firebase(firebaseRef+"/"+line+"/"+target_lang+"/1-0").set({nN:"", value:translatedLine});console.log("Translate after save");
+                new Firebase(firebaseRef+"/"+line+"/"+target_lang+"/1-0").set({nN:"", value:translatedLine});
             }
         },function(){
             console.log("error: " + target_lang + " " + lang_name);
@@ -314,13 +324,14 @@
 
     function meld_twext_lines(main, lang){
       var nl = /\n/g, main = main.split(nl);
-      var l = main.length, i = 0, text_lines = [];
-      for(; i<l ; i++){
-          if(main[i].length > 0 || (lang[i] && lang[i].value.length > 0)) {
+      var l = main.length, i = 0, j=0, text_lines = [];
+      for(; i<l ; i++,j++){
+          if(main[i].length > 0 || (lang[j] && lang[j].value.length > 0)) {
             text_lines.push(main[i]);
-            text_lines.push(lang[i].value);
+            text_lines.push(lang[j].value);
           } else {
             text_lines.push(null);
+            j--;
           }
       }
       return text_lines;

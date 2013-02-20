@@ -169,7 +169,7 @@ window.ScoochEditorLines = Class.$extend({
     }
     var current_word_ix = current_line.wordAtCaret(cursor_pos); // The word to move number
     var textLineNum = first?current_line.lineNumber():ref_line.lineNumber();
-    var lineChunks = chunks[textLineNum];
+    var lineChunks = chunks[textLineNum].chunks;
 
     //no ref forward position to align?
     var next_word_ix = this.getNextRefWord(first, current_line.lineNumber(), current_word_ix, lineChunks);
@@ -191,11 +191,11 @@ window.ScoochEditorLines = Class.$extend({
         delete lineChunks[current_chunk_key]; // Delete the exisiting nN pair to add the new one.
       }
       lineChunks[key] = value; // Add the new pair, this line will work also if the ref chunk is busy.
-      chunks[textLineNum] = lineChunks;
+      chunks[textLineNum].chunks = lineChunks;
     } else {  //No previous chunks
       var lineChunks = {};
       lineChunks[key] = value;
-      chunks[textLineNum] = lineChunks;
+      chunks[textLineNum].chunks = lineChunks;
     }
 
     // Use span aligner to align chunks
@@ -344,7 +344,7 @@ window.ScoochEditorLines = Class.$extend({
     }
     current_word_ix = current_line.wordAtCaret(cursor_pos); // The word to move number
     var textLineNum = on_first?current_line.lineNumber():ref_line.lineNumber();
-    var lineChunks = chunks[textLineNum];
+    var lineChunks = chunks[textLineNum].chunks;
 
     //no ref backward position to align?
     var previous_word_ix = this.getPreviousRefWord(on_first, current_line.lineNumber(), current_word_ix, lineChunks);
@@ -371,7 +371,7 @@ window.ScoochEditorLines = Class.$extend({
         if(previous_word_ix != 0) { // Don't try to align with the first word
           // Add the new pair (align)
           lineChunks[key] = value;
-          chunks[textLineNum] = lineChunks;
+          chunks[textLineNum].chunks = lineChunks;
         }
       }
     }

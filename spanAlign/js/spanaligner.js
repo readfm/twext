@@ -29,7 +29,7 @@ var SpanAligner = Class({
   */
   alignChunks: function(textEl, textLine, twextLine, nN) {
     var i, textNode, twextNode;
-    cleanTextTwext(textEl, textLine, twextLine);    
+    cleanTextTwext(textEl[0], textLine, twextLine);    
     for(i=0; i<nN.length; i++) {
       this.alignChunk(textEl[0], textLine, twextLine, nN[i]);
     }
@@ -43,10 +43,12 @@ var SpanAligner = Class({
   alignChunk: function(textEl, textLine, twextLine, nN) {
     var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
     var twextNode = textEl.childNodes[twextLine].childNodes.length > 0 ? textEl.childNodes[twextLine].childNodes[0] : textEl.childNodes[twextLine];
-    var textWords = getWords(textNode.nodeValue);
-    var twextWords = getWords(twextNode.nodeValue);
-    var textWordsIndices = getWordsIndices(textNode.nodeValue);
-    var twextWordsIndices = getWordsIndices(twextNode.nodeValue);
+    var textVal = cleanText(textNode.nodeValue);
+    var twextVal = cleanText(twextNode.nodeValue);
+    var textWords = getWords(textVal);
+    var twextWords = getWords(twextVal);
+    var textWordsIndices = getWordsIndices(textVal);
+    var twextWordsIndices = getWordsIndices(twextVal);
     var tmp = nN.split(":");
     var n = parseInt(tmp[0]) - 1; // Twext word number
     var N = parseInt(tmp[1]) - 1; // Text word number
