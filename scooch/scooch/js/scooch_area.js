@@ -68,9 +68,12 @@ window.ScoochArea = Class.$extend({
     this.cached_formatted_chunks = false;
     this.firebaseRef = "https://readfm.firebaseio.com/foo";
     this.lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
+    this.savedLines = [];
+    this.oldText = "";
 
     $(area).bind("keydown","space",$.proxy(this.onSpace,this));
    	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
+    $(area).bind("keydown",'delete',$.proxy(this.onDelete,this));
     //$(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     $(window).bind("resize", $.proxy(this.realign, this));
     $(window).bind("beforeunload", $.proxy(this.save, this));
@@ -90,7 +93,8 @@ window.ScoochArea = Class.$extend({
     Save chunks on window close or refresh.
   */
   save: function() {
-    this.saveChunks(this.language, this.version);
+    //this.saveChunks(this.language, this.version);
+    this.saveData(this.language, this.version, this.savedLines, this.area.innerText);
   },
 
   /**
@@ -189,22 +193,70 @@ window.ScoochArea = Class.$extend({
     return $.extend(true, {}, obj);
   },*/
 
-  /**
-    Save updated chunks into firebase db.
-  */
-  saveChunks: function(lang, ver) {
-    var line = "", words = null;
-    var lines = this.lang_chunks[lang].versions[ver];
-    for(var key in lines) {
-      line = cleanText(this.text_lines[key]).replace(/\ +/g, ' ');
-      words = line?getWords(line):null;
-      line = words?$.trim(words.join('-')):null;
-      if(line && lines[key].isChanged) {  // Chunks of this line is changed, save into db
-        new Firebase(this.firebaseRef+"/"+line+"/"+this.languages[lang]+"/"+this.versions[ver]+"/nN").set(this.constructChunksString(lines[key].chunks));
-        lines[key].isChanged = false;
+  saveData: function(lang, ver, savedLines, text) {
+    var i, j, saveTwexts = false, saveChunks = false, words = null, line = "", currentTwext = "", savedTwext = "", nNValue = "", data = null;
+    text = cleanText(text);
+    var textLines = text.split('\n');
+    var theLanguage = this.languages[lang];
+    var theVersion = this.versions[ver];
+    var chunksLines = this.lang_chunks[lang].versions[ver];
+    for(i=0,j=0; i<textLines.length; i=i+2,j++) { // i is the index of textLines (0,1,2,3..), j is the index of savedLines(1,2,4...)
+      // Get firebase entry (text line)
+      words = textLines[i]?getWords(textLines[i]):null; // Get words of the text line
+      line = words?$.trim(words.join('-')):null; // Get the text line with the format of firebase entries
+
+      // Prepare to save twexts
+      currentTwext = textLines[i+1].replace(/\ +/g, ' '); // get the current twext, remove any extra spaces that may be put to align
+      savedTwext = savedLines[j].value;
+      if(currentTwext != savedTwext) {
+        console.log("Save twext into firebase....");
+        saveTwexts = true;
+        savedLines[j].value = currentTwext;
+      } else {
+        saveTwexts = false;
+      }
+
+      // Prepare to save chunks
+      saveChunks = chunksLines[i].isChanged;
+      nNValue = saveChunks?this.constructChunksString(chunksLines[i].chunks):"";
+
+      // Save data
+      if(line) {
+        if(saveTwexts && saveChunks) {
+          data = {nN: nNValue, value: currentTwext};
+          new Firebase(this.firebaseRef+"/"+line+"/"+theLanguage+"/"+theVersion).set(data);
+          this.lang_chunks[lang].versions[ver][i].isChanged = false;
+        } else if(saveTwexts && !saveChunks) {
+          this.lang_chunks[lang].versions[ver][i].chunks = {};
+          data = {nN: "", value: currentTwext};
+          new Firebase(this.firebaseRef+"/"+line+"/"+theLanguage+"/"+theVersion).set(data);
+        } else if(!saveTwexts && saveChunks) {
+          new Firebase(this.firebaseRef+"/"+line+"/"+theLanguage+"/"+theVersion+"/nN").set(nNValue);
+          this.lang_chunks[lang].versions[ver][i].isChanged = false;
+        }
       }
     }
+    return savedLines;
   },
+
+  /**
+    Save updated chunks into firebase db. This method is called on toggle, window refresh and window close.
+  */
+  /*saveChunks: function(lang, ver) {
+    var line = "", words = null;
+    var lines = this.lang_chunks[lang].versions[ver];
+    if(this.text_lines.length > 0) {  // the text_lines are filled only when space/backspace pressed, where a chunk added/deleted
+      for(var key in lines) {
+        line = this.text_lines[key]?cleanText(this.text_lines[key]).replace(/\ +/g, ' '):null;
+        words = line?getWords(line):null;
+        line = words?$.trim(words.join('-')):null;
+        if(line && lines[key].isChanged) {  // Chunks of this line is changed, save into db
+          new Firebase(this.firebaseRef+"/"+line+"/"+this.languages[lang]+"/"+this.versions[ver]+"/nN").set(this.constructChunksString(lines[key].chunks));
+          lines[key].isChanged = false;
+        }
+      }
+    }
+  },*/
 
     /**
     Takes html content, identifies #text nodes and appends it on "lines" array.
@@ -455,7 +507,6 @@ window.ScoochArea = Class.$extend({
 
         var caret_on_first = this.caret_coord.lines == pair_index;
 
-        this.lines_chunks[pair_index].isChanged = true;
         //If there is only one space, then ignore.
         if(this.count_previous_blanks() == 0 && this.caret_coord.offset > 0) {
           // Renumber chunks in case of 'make'
@@ -466,6 +517,7 @@ window.ScoochArea = Class.$extend({
             this.lines_chunks[pair_index].chunks = chunks;
             this.cached_formatted_chunks = false;
             this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
+            this.lines_chunks[pair_index].isChanged = true;
           }
           return;
         }
@@ -477,6 +529,7 @@ window.ScoochArea = Class.$extend({
           this.lines_chunks = chunks;
           this.cached_formatted_chunks = false;
           this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
+          this.lines_chunks[pair_index].isChanged = true;
         }
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
@@ -484,6 +537,12 @@ window.ScoochArea = Class.$extend({
 
     onBackspace: function(event){
         this.caret_coord = this.getCaretPos();
+
+        // Check if the line is deleted
+        if(this.area.childNodes[this.caret_coord.lines].nodeValue == "") {
+          this.lines_chunks[this.caret_coord.lines-1] = {};  // Reset the chunks of the line when twexts is deleted.
+          return;
+        }
 
         this.text_lines = new Array();
         this.parse_text_lines( this.area.childNodes, this.text_lines);
@@ -501,7 +560,6 @@ window.ScoochArea = Class.$extend({
         
         var caret_on_first = this.caret_coord.lines == pair_index;
 
-        this.lines_chunks[pair_index].isChanged = true;
         //If there is only one space, then ignore.
         if(this.count_previous_blanks() <= 0) {
           // Renumber chunks in case of 'make'
@@ -512,6 +570,7 @@ window.ScoochArea = Class.$extend({
             this.lines_chunks[pair_index].chunks = chunks;
             this.cached_formatted_chunks = false;
             this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
+            this.lines_chunks[pair_index].isChanged = true;
           }
           return;
         }
@@ -524,9 +583,17 @@ window.ScoochArea = Class.$extend({
           this.lines_chunks = chunks;
           this.cached_formatted_chunks = false;
           this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
+          this.lines_chunks[pair_index].isChanged = true;
         }
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
         //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
+    },
+
+    onDelete: function(event) {
+      var currentLine = this.getCaretPos().lines;
+      if(this.area.childNodes[currentLine].nodeValue == "") {
+        this.lines_chunks[currentLine-1] = {};  // Reset the chunks of the line when twexts is deleted.
+      }
     }
 
 })

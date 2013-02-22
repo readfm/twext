@@ -73,7 +73,7 @@
     }
 
     function set_language_name(){
-        var lang = toggle_data.languageName(language);//sampleData.languageName(language);
+        var lang = toggle_data.languageName(language);
         if(lang){
             $('#data-bar-language').html(lang);
         }else{
@@ -91,7 +91,7 @@
     }
 
     function language_switch(add, ver){
-        var oldLang = language, oldVer = version;
+        var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
         var nl = language+add;
         var lcount = toggle_data.languageCount();
         if(nl<0){
@@ -107,13 +107,15 @@
         set_language_name();
         set_version_name();
         // Save previous chunks into firebase
-        area.saveChunks(oldLang, oldVer);
-        
+        var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText);
+        toggle_data.updateVersion({lines:saved}, oldVer, oldLang);
+        //area.saveChunks(oldLang, oldVer);
+        //saveTwexts(oldText, oldLang, oldVer);
         //place_twext();
     }
 
     function switch_versions(add){
-      var oldLang = language, oldVer = version;
+      var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
         var nv = version+add;
         if(nv<0){
             //display_error("No more versions");
@@ -138,12 +140,16 @@
           area.version = version;
           area.setCurrentChunks();
           area.render_html(lines);
+          area.savedLines = toggle_data.getLines(language, version);
           set_language_name();
           set_version_name();
           // Align twexts
           area.realign();
           // Save previous chunks into firebase
-          area.saveChunks(oldLang, oldVer);
+          var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText);
+          toggle_data.updateVersion({lines:saved}, oldVer, oldLang);
+          //area.saveChunks(oldLang, oldVer);
+          //saveTwexts(oldText, oldLang, oldVer);
         } else {
           return false;//display_error("No more versions");
         }
@@ -166,9 +172,34 @@
         },400);
     }
 
+    /**
+      Save twexts into firebase if edited by the user.
+    */
+    function saveTwexts(text, lang, ver) {
+      var currentTwext = "", savedTwext = "", line = "", words = null, i, j;
+      var textLines = text.split('\n');
+      var savedLines = toggle_data.getLines(lang, ver);
+      var theLanguage = lang_abrs[toggle_data.languageName(lang)];
+      var theVersion = toggle_data.versionName(ver, lang);
+      for(i=0,j=0; i<textLines.length; i=i+2,j++) {
+        currentTwext = cleanText(textLines[i+1]).replace(/\ +/g, ' '); // get the current twext, remove any extra spaces that may be put to align
+        savedTwext = savedLines[j].value;
+        if(currentTwext != savedTwext) {
+          console.log("Save twext into firebase....");
+          words = textLines[i]?getWords(textLines[i]):null;
+          line = words?$.trim(words.join('-')):null;
+          if(line) {
+            savedLines[j].value = currentTwext;
+            toggle_data.updateVersion({lines:savedLines}, ver, lang);
+            new Firebase(firebaseRef+"/"+line+"/"+theLanguage+"/"+theVersion+"/value").set(currentTwext);
+          }
+        }
+      }
+    }
+
     var targets = ["fr", "it", "es", "en"];
     var lang_names = ["French", "Italian", "Spanish", "English"];
-    //var lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
+    var lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
     var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8");
 
     function trim(str) {
@@ -318,6 +349,7 @@
       area.version = version;
       area.setCurrentChunks();
       area.render_html(lines);
+      area.savedLines = toggle_data.getLines(language, version);
       // Align twexts
       area.realign();
     }

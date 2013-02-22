@@ -105,6 +105,19 @@ Twext.ToggleData = Class.$extend({
         }
     },
 
+    /**
+      Get the translated lines of the specified language and version.
+    */
+    getLines: function(lang, ver) {
+      if(lang == undefined) lang = this.currentLang;
+      if(ver == undefined)  ver = this.currentVersion;
+      if(this.data.languages[lang].versions[ver]){
+        return this.data.languages[lang].versions[ver].data.lines;
+      } else {
+        return false;
+      }
+    },
+
     versionName: function(ident,language){
         if(this.data.languages[language] && this.data.languages[language].versions[ident]){
             return this.data.languages[language].versions[ident].version;
@@ -188,13 +201,13 @@ Twext.ToggleData = Class.$extend({
         if(language == undefined && this.currentLang===false){
             throw "No Language Set";
         }else{
-            var lang = (language==undefined && typeof language != "object") ? language : this.currentLang;
+            var lang = (language!=undefined && typeof language != "object") ? language : this.currentLang;
         }
 
         if(version == undefined && this.currentVersion===false){
             throw "No Version Set";
         }else{
-            var ver = (version==undefined && typeof version != "object") ? version : this.currentVersion;
+            var ver = (version!=undefined && typeof version != "object") ? version : this.currentVersion;
         }
 
         var isLang = this.language(lang);
