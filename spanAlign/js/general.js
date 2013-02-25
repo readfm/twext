@@ -18,6 +18,7 @@ function removeSpanNode(parentEl, id, firstWord, lastWord) {
           'lastWord' boolean detects if the word at the end of the line
 */
 function getNodeNewData(id, firstWord, lastWord) {
+  var data = "";
   if(firstWord) { // first word
     var preVal = cleanText($('#'+id)[0].previousSibling.nodeValue);
     $('#'+id)[0].previousSibling.nodeValue = preVal.charAt(0) != " " ? preVal : preVal.slice(1);
@@ -25,7 +26,11 @@ function getNodeNewData(id, firstWord, lastWord) {
     var nextVal = cleanText($('#'+id)[0].nextSibling.nodeValue);
     $('#'+id)[0].nextSibling.nodeValue = nextVal.charAt(0) != " " ? nextVal : nextVal.slice(1);
   }
-  var data = $('#'+id)[0].previousSibling.nodeValue + $('#'+id)[0].childNodes[0].nodeValue + $('#'+id)[0].nextSibling.nodeValue;
+  if($('#'+id)[0].childNodes[0]) {
+    data = $('#'+id)[0].previousSibling.nodeValue + $('#'+id)[0].childNodes[0].nodeValue + $('#'+id)[0].nextSibling.nodeValue;
+  } else {
+    data = $('#'+id)[0].previousSibling.nodeValue + $('#'+id)[0].nextSibling.nodeValue;
+  }
   return data;
 }
 
