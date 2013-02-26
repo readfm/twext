@@ -6,7 +6,7 @@ window.ScoochEditorLine = Class.$extend({
 	
 	__init__: function(lineText, ratio){
 		this.lineText = lineText;
-		this.ratio = /*ratio?ratio:*/1;
+		//this.ratio = /*ratio?ratio:*/1;
     this.lineNum = -1;
 //    	this.cursor = cursor || false;
     	this._cache_wordpos = false;
@@ -142,13 +142,13 @@ window.ScoochEditorLine = Class.$extend({
       return -1;
     },
     
-    to_ratio:function(value){
+    /*to_ratio:function(value){
       return Math.round(this.ratio * value);
     },
     
     ratio_substring:function(initial, end){
       return this.lineText.substring( this.to_ratio(initial), !isNaN(end)?this.to_ratio(end):this.lineText.length);
-    },
+    },*/
 
     raw_substring:function(initial, end){
       return this.lineText.substring( initial, !isNaN(end)?end:this.lineText.length);

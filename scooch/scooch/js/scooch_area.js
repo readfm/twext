@@ -58,7 +58,6 @@ window.ScoochArea = Class.$extend({
 		this.text_lines = new Array();
 		this.caret_coord = null;
 		this.ignore_BR = false;
-    //this.firstLangSwitch = true;  // Boolean detects the first language switch, this is used to init all languages chunks with current chunks.
     this.lines_chunks = {}; // The chunks of the current language, key/value array contains line number with n:N chunks. The key is the text line number, the value is a key/value array contains nN chunks in the form of {key: n, value: N}
     this.language = 0; // The current language number
     this.version = 0; // The current version number
@@ -74,26 +73,22 @@ window.ScoochArea = Class.$extend({
     $(area).bind("keydown","space",$.proxy(this.onSpace,this));
    	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
     $(area).bind("keydown",'delete',$.proxy(this.onDelete,this));
-    //$(area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     $(window).bind("resize", $.proxy(this.realign, this));
-    $(window).bind("beforeunload", $.proxy(this.save, this));
+    $(window).bind("beforeunload", $.proxy(this.save, this)); // Attach refresh/close window event
 	},
 
   /**
     Realign chunks on resize.
   */
   realign: function() {
-    //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
     var aligner = new SpanAligner();
     aligner.align($(this.area), this.getFormattedChunks());
-    //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
   },
 
   /**
-    Save chunks on window close or refresh.
+    Save chunks and edits of lines, this is called on window close or refresh.
   */
   save: function() {
-    //this.saveChunks(this.language, this.version);
     this.saveData(this.language, this.version, this.savedLines, this.area.innerText);
   },
 
@@ -115,6 +110,9 @@ window.ScoochArea = Class.$extend({
     return chunks;
   },
 
+  /**
+    Put nN key/value array into n:N pair string.
+  */
   constructChunksString: function(chunks) {
     var nN = "";
     for(var key in chunks) {
@@ -193,6 +191,9 @@ window.ScoochArea = Class.$extend({
     return $.extend(true, {}, obj);
   },*/
 
+  /**
+    Save chunks and edits of lines into firebase.
+  */
   saveData: function(lang, ver, savedLines, text) {
     var i, j, saveTwexts = false, saveChunks = false, words = null, line = "", currentTwext = "", savedTwext = "", nNValue = "", data = null;
     text = cleanText(text);
@@ -393,7 +394,6 @@ window.ScoochArea = Class.$extend({
 
     },
 
-
     /**
     * Return index of first line on the current pair.
     */
@@ -437,9 +437,7 @@ window.ScoochArea = Class.$extend({
       }
       console.log("to unbind...");
       console.log(html_lines);
-      //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
       this.area.innerHTML = html_lines.join("");
-        //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     },
     
     render_update:function(event){
@@ -523,7 +521,6 @@ window.ScoochArea = Class.$extend({
         }
         event.stopPropagation();
         event.preventDefault();
-        //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
         var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
         if(chunks) {
           this.lines_chunks = chunks;
@@ -532,7 +529,6 @@ window.ScoochArea = Class.$extend({
           this.lines_chunks[pair_index].isChanged = true;
         }
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
-        //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     },
 
     onBackspace: function(event){
@@ -577,7 +573,6 @@ window.ScoochArea = Class.$extend({
 
         event.stopPropagation();
         event.preventDefault();
-        //$(this.area).unbind("DOMSubtreeModified",$.proxy(this.render_update,this));
         var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
         if(chunks) {
           this.lines_chunks = chunks;
@@ -586,9 +581,11 @@ window.ScoochArea = Class.$extend({
           this.lines_chunks[pair_index].isChanged = true;
         }
         this.setCaretPos( this.caret_coord.lines, lines.cursor_offset);
-        //$(this.area).bind("DOMSubtreeModified",$.proxy(this.render_update,this));
     },
 
+    /**
+      Delete chunks of current lines on delete text line value.
+    */
     onDelete: function(event) {
       var currentLine = this.getCaretPos().lines;
       if(this.area.childNodes[currentLine].nodeValue == "") {

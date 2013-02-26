@@ -64,8 +64,6 @@ function cleanTextTwext(textEl, textLine, twextLine) {
   Get words in text.
 */
 function getWords(text) {
-  //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;  // Match url | words
-  //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|((\w+)?([^\u0000-\u0080]+)(\w+)?)+|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;
   var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words, any non space char
   return text.match(re);
 }
@@ -74,8 +72,6 @@ function getWords(text) {
   Get indices of words in text.
 */
 function getWordsIndices(text) {
-  //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=||\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;  // Match url | words
-  //var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|\=|((\w+)?([^\u0000-\u0080]+)(\w+)?)+|\b((\w+)?('|\.)(\w+)?)+\b|\b\w+\b/gi;
   var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words, any non space char
   return getMatchesIndices(text, re);
 }
@@ -117,7 +113,7 @@ function cleanHtml(html) {
   }
   re = new RegExp(str.substring(0, str.length-1), 'g');
   html = html.replace(re, '');
-  return trim(html);
+  return $.trim(html);
 }
 
 /**
@@ -131,15 +127,15 @@ function cleanText(text) {
   }
   re = new RegExp(str.substring(0, str.length-1), 'g');
   text = text.replace(re, ' ');
-  return trim(text);
+  return $.trim(text);
 }
 
 /**
   Trim string, remove spaces at the start/end of string.
 */
-function trim(str) {
+/*function trim(str) {
   return str.replace(/^\s+|\s+$/g, "");
-}
+}*/
 
 /**
   Convert text into html.

@@ -4,7 +4,7 @@ window.ScoochEditorLines = Class.$extend({
 	__init__: function(ratio){
 		this.lines = [];
 		this.cursor_offset;
-		this.ratio = /*ratio?ratio:*/1;
+		//this.ratio = /*ratio?ratio:*/1;
     this.element = $('#data-show');
 	},
 
@@ -29,7 +29,7 @@ window.ScoochEditorLines = Class.$extend({
 		}
 	},
 	
-	to_ratio: function(base_pos){
+	/*to_ratio: function(base_pos){
 	  return base_pos * this.ratio;
 	},
 	
@@ -56,7 +56,7 @@ window.ScoochEditorLines = Class.$extend({
 	    i++;
 	  };
 	  return chunks;
-	},
+	},*/
 
   wordIndex: function(lineNum){
         if(this.lines[lineNum] instanceof ScoochEditorLine){
@@ -267,14 +267,14 @@ window.ScoochEditorLines = Class.$extend({
     return size;
   },
 	
-  rtrim: function(str){
+  /*rtrim: function(str){
     return str.replace(/\s+$/,"");
-  },
+  },*/
 
-  fill_up_to: function(str, length){
+  /*fill_up_to: function(str, length){
     while(str.length < length) str += " ";
     return str;
-  },
+  },*/
 
   /**
     Get the previous reference word for the current cursor position, this is used to move the cursor to the previous word.
@@ -479,9 +479,9 @@ window.ScoochEditorLines = Class.$extend({
     var current_words = current_line.words();
     this.cursor_offset = current_words[current_word_ix];
     return chunks;
-  },
+  }
   
-  text_for_chunks: function(actual_chunks, ref_chunks, is_first, cursor_move){
+  /*text_for_chunks: function(actual_chunks, ref_chunks, is_first, cursor_move){
     var top, below, longest, length_so_far = 0, i = 0;
     var first_chunks = new Array(), second_chunks = new Array();
     for(; i< actual_chunks.length; i++){
@@ -499,6 +499,6 @@ window.ScoochEditorLines = Class.$extend({
     }
     this.cursor_offset = length_so_far + cursor_move.offset;
     return [ first_chunks.join(" "), second_chunks.join( this.fill_up_to(" ", this.ratio) ) ];
-  }
+  }*/
 
 });

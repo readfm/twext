@@ -40,15 +40,9 @@
 <div id="data-show" contenteditable="true"></div>
 <div id="instructions">F2: translate. &nbsp; F8/Alt+F8: Change Language. &nbsp;F7/Alt+F7: Change Version. &nbsp;F9/Alt+F9: Toggle Language/Version</div>
 </div>
-<!--
-<span>Use Google Translate: </span>
-<button id="tswedish">Translate to Swedish</button>
-<button id="tczech">Translate to Czech</button>
-<button id="tjapanese">Translate to Japanese</button>
-<button id="tkorean">Translate to Korean</button>
--->
 
 <script>
+  // Attach 'paste' event to document, reformat pasted text.
   document.querySelector("div[contenteditable]").addEventListener("paste", function (e) {
     e.preventDefault();
     var text = e.clipboardData.getData("text/plain");

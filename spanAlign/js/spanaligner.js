@@ -124,7 +124,6 @@ var SpanAligner = Class({
     var twextWords = getWords(twextVal);
     var textWordsIndices = getWordsIndices(textVal);
     var twextWordsIndices = getWordsIndices(twextVal);
-    //var nIsLast = n == twextWords.length-1, NIsLast = N == textWords.length-1;
     var nIsLast = false, NIsLast = false;
     var tmp = nN.split(":");
     var n = parseInt(tmp[0]) - 1; // Twext word number
