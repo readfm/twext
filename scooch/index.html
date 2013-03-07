@@ -27,7 +27,8 @@
     <script src="js/data/sample2.js" type="text/javascript"></script>
     <script src="js/toggle.data.js" type="text/javascript"></script>
 
-    <script src="../spanAlign/js/general.js" type="text/javascript"></script>
+    <!-- Span aligner package -->
+    <script src="../spanAlign/js/utils.js" type="text/javascript"></script>
     <script src="../spanAlign/js/class.js" type="text/javascript"></script>
     <script src="../spanAlign/js/spanaligner.js" type="text/javascript"></script>
 
@@ -46,7 +47,7 @@
   document.querySelector("div[contenteditable]").addEventListener("paste", function (e) {
     e.preventDefault();
     var text = e.clipboardData.getData("text/plain");
-    var html = convertTextToHtml(text);
+    var html = textToHtml(text);
     document.execCommand("insertHTML", false, html);
   });
 </script>

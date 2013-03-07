@@ -75,13 +75,13 @@ window.ScoochEditorLines = Class.$extend({
     var refValue = cleanText(refNode.nodeValue);
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
-    putWordInSpan(currentNode, cursorPos, "", "tempWord");
+    SpanUtils.putWordInSpan(currentNode, cursorPos, "", "tempWord");
     var currentWordPos = parseInt($('#tempWord').position().left);
-    removeSpanNode(currentNode.parentElement, "tempWord", false, true);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", false, true);
     for(var i=0; i<refWordsPos.length; i++) {
-      putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
       refWordPos = parseInt($('#testWord').position().left);
-      removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
       if(refWordPos > currentWordPos) {
         return i;
       }
@@ -133,13 +133,13 @@ window.ScoochEditorLines = Class.$extend({
     var currentWordsPos = getWordsIndices(currentValue);
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
-    putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
+    SpanUtils.putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
     var currentWordPos = parseInt($('#tempWord').position().left);
-    removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
     for(var i=0; i<refWordsPos.length; i++) {
-      putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
       refWordPos = parseInt($('#testWord').position().left);
-      removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
       if(refWordPos > currentWordPos) return i;
     }
     return -1;
@@ -285,13 +285,13 @@ window.ScoochEditorLines = Class.$extend({
     var refValue = cleanText(refNode.nodeValue);
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
-    putWordInSpan(currentNode, cursorPos, "", "tempWord");
+    SpanUtils.putWordInSpan(currentNode, cursorPos, "", "tempWord");
     var currentWordPos = parseInt($('#tempWord').position().left);
-    removeSpanNode(currentNode.parentElement, "tempWord", false, true);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", false, true);
     for(var i=0; i<refWordsPos.length; i++) {
-      putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
       refWordPos = parseInt($('#testWord').position().left);
-      removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
       if(refWordPos >= currentWordPos) {
         return i-1;
       }
@@ -342,13 +342,13 @@ window.ScoochEditorLines = Class.$extend({
     var currentWordsPos = getWordsIndices(currentValue);
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
-    putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
+    SpanUtils.putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
     var currentWordPos = parseInt($('#tempWord').position().left);
-    removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
     for(var i=0; i<refWordsPos.length; i++) {
-      putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");
       refWordPos = parseInt($('#testWord').position().left);
-      removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);
       if(refWordPos >= currentWordPos) return i-1;
       
     }
@@ -386,15 +386,15 @@ window.ScoochEditorLines = Class.$extend({
     // Get previous ref word pos    
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
-    putWordInSpan(refNode, refWordsPos[refWord], refWords[refWord], "refWord");
+    SpanUtils.putWordInSpan(refNode, refWordsPos[refWord], refWords[refWord], "refWord");
     var refWordPos = parseInt($('#refWord').position().left);
-    removeSpanNode(refNode.parentElement, "refWord", refWord == 0, refWord == refWords.length-1);
+    SpanUtils.removeSpanNode(refNode.parentElement, "refWord", refWord == 0, refWord == refWords.length-1);
     // Get pos of space after previous word of current line, comparing it with previous ref word pos detects if the index to pull to is busy.
     var currentWords = getWords(currentValue);
     var currentWordsPos = getWordsIndices(currentValue);
-    putWordInSpan(currentNode, currentWordsPos[currentWord-1]+currentWords[currentWord-1].length, ' ', "currentWord");
+    SpanUtils.putWordInSpan(currentNode, currentWordsPos[currentWord-1]+currentWords[currentWord-1].length, ' ', "currentWord");
     var endSpacePos = parseInt($('#currentWord').position().left);
-    removeSpanNode(currentNode.parentElement, "currentWord", currentWord == 0, currentWord == currentWords.length-1);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "currentWord", currentWord == 0, currentWord == currentWords.length-1);
 
     if(endSpacePos < refWordPos) return true;
     return false;

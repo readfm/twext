@@ -1,4 +1,8 @@
-var nN = {0: ["2:2", "4:3", "6:5"],
+/**
+  This file manipulate a demo for span align. Text/twext are hardcoded examples, not real text.
+  The twexts are not shown on zoom level less than 120%
+*/
+var nN = {0: ["1:2", "4:3", "6:5"],
           3: ["2:2", "4:3", "6:5"]};
 
 var textStr1 = "wafaa is the boss of span align";
