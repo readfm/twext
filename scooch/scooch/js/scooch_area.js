@@ -499,7 +499,7 @@ window.ScoochArea = Class.$extend({
         line_1.lineNumber(pair_index);
         var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
         line_2.lineNumber(pair_index + 1);
-        var lines = new ScoochEditorLines(2);
+        var lines = new ScoochEditorLines();
         lines.setLine( 0, line_1);
         lines.setLine( 1, line_2);
 
@@ -521,9 +521,9 @@ window.ScoochArea = Class.$extend({
         }
         event.stopPropagation();
         event.preventDefault();
-        var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks);
+        var chunks = lines.pushChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks[pair_index].chunks);
         if(chunks) {
-          this.lines_chunks = chunks;
+          this.lines_chunks[pair_index].chunks = chunks;
           this.cached_formatted_chunks = false;
           this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
           this.lines_chunks[pair_index].isChanged = true;
@@ -550,7 +550,7 @@ window.ScoochArea = Class.$extend({
         line_1.lineNumber(pair_index);
         var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
         line_2.lineNumber(pair_index+1);
-        var lines = new ScoochEditorLines(2);
+        var lines = new ScoochEditorLines();
         lines.setLine( 0, line_1);
         lines.setLine( 1, line_2);
         
@@ -573,9 +573,9 @@ window.ScoochArea = Class.$extend({
 
         event.stopPropagation();
         event.preventDefault();
-        var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks );
+        var chunks = lines.pullChunk( caret_on_first, this.caret_coord.offset, this.lines_chunks[pair_index].chunks);
         if(chunks) {
-          this.lines_chunks = chunks;
+          this.lines_chunks[pair_index].chunks = chunks;
           this.cached_formatted_chunks = false;
           this.lang_chunks[this.language].versions[this.version] = this.lines_chunks;
           this.lines_chunks[pair_index].isChanged = true;

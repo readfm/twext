@@ -56,7 +56,7 @@ var SpanAligner = Class({
     Params: 'textEl' the input div element (textEl[0]).
             'textLine' the Text line number
             'twextLine' the Twext line number
-            'nN' twext/text word number in the form of n:N string; word number starts with index 1
+            'nN' twext/text word number in the form of n:N string (eg:"1:1"); word number starts with index 1
   */
   alignChunk: function(textEl, textLine, twextLine, nN) {
     // Get Text/Twext nodes
@@ -126,7 +126,7 @@ var SpanAligner = Class({
     Params: 'textEl' the contenteditable element
             'textLine' the text line number
             'twextLine' the twext line number
-            'nN' twext/text word number in the form of n:N string.
+            'nN' twext/text word number in the form of n:N string, word number starts with index 1
             'cursorPos' the cursor position
   */
   alignCursor: function(textEl, textLine, twextLine, nN, cursorPos) {
@@ -229,5 +229,184 @@ var SpanAligner = Class({
     // Return the current cursor position
     if(nIsLast) return textEl.childNodes[twextLine].innerText.length;
     if(NIsLast) return textEl.childNodes[textLine].innerText.length;
+  },
+
+  /**
+    Get the next word in the reference line to be aligned with the current word in the current line; if the current word is in Text line, then the reference line is Twext line; if the current word is in Twext line, then the reference line is Text line.
+    Put the current word in <span> and get its left position. Loop over reference line words, put word in <span>, get its left position and compare it with the current word postion, return the word index if its position is greater than the current word position.
+    Params: 'el' the input div element (textEl[0]).
+            'currentLine' the line number contains the current word
+            'refLine' the reference line number contains the next word to be found
+            'wordNumber' the current word number; word number starts with index 0
+  */
+  nextWord: function(el, currentLine, refLine, wordNumber) {
+    var i, refWordpos, currentWordPos;
+    // Get the current and reference nodes
+    var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
+    var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
+    // Get current and reference nodes' values
+    var currentValue = cleanText(currentNode.nodeValue);
+    var refValue = cleanText(refNode.nodeValue);
+    // Get current words and positions
+    var currentWords = getWords(currentValue);
+    var currentWordsPos = getWordsIndices(currentValue);
+    // Get reference words and positions
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    // Put current word in <span>, get its left position and remove the span tag
+    SpanUtils.putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
+    currentWordPos = parseInt($('#tempWord').position().left);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
+    // Loop over reference words to look for the word with position greater than the current word position
+    for(i=0; i<refWordsPos.length; i++) {
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");  // Put word on <span>
+      refWordPos = parseInt($('#testWord').position().left);  // Get word left position
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);  // remove span tag
+      if(refWordPos > currentWordPos) return i; // return reference word index if its position is greater than current word potition
+    }
+    return -1;  // return -1 if no next word found
+  },
+
+  /**
+    Get the next word in the reference line to be aligned with the cursor in the current line; if the cursor is in Text line, then the reference line is Twext line; if the cursor is in Twext line, then the reference line is Text line.
+    Create <span> where the cursor is positioned and get its left position. Loop over reference line words, put word in <span>, get its left position and compare it with the cursor span postion, return the word index if its position is greater than the cursor span position.
+    Params: 'el' the input div element (textEl[0]).
+            'currentLine' the line number where the cursor is positioned
+            'refLine' the reference line number contains the next word to be found
+            'cursorPos' the position of the cursor.
+  */
+  nextWordToCursor: function(el, currentLine, refLine, cursorPos) {
+    var i, currentWordPos, refWordPos;
+    // Get the current and reference nodes
+    var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
+    var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
+    // Get reference node value, words and positions
+    var refValue = cleanText(refNode.nodeValue);
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    // Create <span> where the cursor is positioned, get its left position and remove the span tag
+    SpanUtils.putWordInSpan(currentNode, cursorPos, "", "tempWord");
+    var currentWordPos = parseInt($('#tempWord').position().left);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", false, true);
+    // Loop over reference words to look for the word with position greater than the cursor span position
+    for(i=0; i<refWordsPos.length; i++) {
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");  // Put word on <span>
+      refWordPos = parseInt($('#testWord').position().left);  // Get word left position
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);  // remove span tag
+      if(refWordPos > currentWordPos) return i; // return reference word index if its position is greater than cursor span potition
+    }
+    return -1;  // return -1 if no next word found
+  },
+
+  /**
+    Get the previous word in the reference line to be aligned with the current word in the current line; if the current word is in Text line, then the reference line is Twext line; if the current word is in Twext line, then the reference line is Text line.
+    Put the current word in <span> and get its left position. Loop over reference line words, put word in <span>, get its left position and compare it with the current word postion, return the word index if its position is less than the current word position.
+    Params: 'el' the input div element (textEl[0]).
+            'currentLine' the line number contains the current word
+            'refLine' the reference line number contains the previous word to be found
+            'wordNumber' the current word number; word number starts with index 0
+  */
+  previousWord: function(el, currentLine, refLine, wordNumber) {
+    var i, refWordpos, currentWordPos;
+    // Get the current and reference nodes
+    var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
+    var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
+    // Get current and reference nodes' values
+    var currentValue = cleanText(currentNode.nodeValue);
+    var refValue = cleanText(refNode.nodeValue);
+    // Get current words and positions
+    var currentWords = getWords(currentValue);
+    var currentWordsPos = getWordsIndices(currentValue);
+    // Get reference words and positions
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    // Put current word in <span>, get its left position and remove the span tag
+    SpanUtils.putWordInSpan(currentNode, currentWordsPos[wordNumber], currentWords[wordNumber], "tempWord");
+    currentWordPos = parseInt($('#tempWord').position().left);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", wordNumber == 0, wordNumber == currentWords.length-1);
+    // Loop over reference words to look for the word with position less than the current word position
+    for(i=refWordsPos.length-1; i<refWordsPos.length; i--) {
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");  // Put word on <span>
+      refWordPos = parseInt($('#testWord').position().left);  // Get word left position
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);  // remove span tag
+      if(refWordPos < currentWordPos) return i; // return reference word index if its position is less than current word potition
+    }
+    return -1;   // return -1 if no previous word found
+  },
+
+  /**
+    Get the previous word in the reference line to be aligned with the cursor in the current line; if the cursor is in Text line, then the reference line is Twext line; if the cursor is in Twext line, then the reference line is Text line.
+    Create <span> where the cursor is positioned and get its left position. Loop over reference line words, put word in <span>, get its left position and compare it with the cursor span postion, return the word index if its position is less than the cursor span position.
+    Params: 'el' the input div element (textEl[0]).
+            'currentLine' the line number where the cursor is positioned
+            'refLine' the reference line number contains the previous word to be found
+            'cursorPos' the position of the cursor.
+  */
+  previousWordToCursor: function(el, currentLine, refLine, cursorPos) {
+    var i, currentWordPos, refWordPos;
+    // Get the current and reference nodes
+    var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
+    var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
+    // Get reference node value, words and positions
+    var refValue = cleanText(refNode.nodeValue);
+    var refWords = getWords(refValue);
+    var refWordsPos = getWordsIndices(refValue);
+    // Create <span> where the cursor is positioned, get its left position and remove the span tag
+    SpanUtils.putWordInSpan(currentNode, cursorPos, "", "tempWord");
+    currentWordPos = parseInt($('#tempWord').position().left);
+    SpanUtils.removeSpanNode(currentNode.parentElement, "tempWord", false, true);
+    // Loop over reference words to look for the word with position less than the cursor span position
+    for(i=refWordsPos.length-1; i<refWordsPos.length; i--) {
+      SpanUtils.putWordInSpan(refNode, refWordsPos[i], refWords[i], "testWord");  // Put word on <span>
+      refWordPos = parseInt($('#testWord').position().left);  // Get word left position
+      SpanUtils.removeSpanNode(refNode.parentElement, "testWord", i == 0, i == refWords.length-1);  // remove span tag
+      if(refWordPos < currentWordPos) return i; // return reference word index if its position is less than cursor span potition
+    }
+    return -1;
+  },
+
+  /**
+    Get the position of the start of a word.
+    Put the word in <span>, get its left position, remove span tag, return the position.
+    Params: 'el' the input div element (textEl[0]).
+            'lineNumber' the number of line
+            'word' the word number, start index is 0
+  */
+  wordStartPos: function(el, lineNumber, word) {
+    // Get the node with the specified line number
+    var node = el.childNodes[lineNumber].childNodes.length > 0 ? el.childNodes[lineNumber].childNodes[0] : el.childNodes[lineNumber];
+    // Get node value
+    var nodeValue = cleanText(node.nodeValue);
+    // Get line words and words' positions
+    var words = getWords(nodeValue);
+    var wordsPos = getWordsIndices(nodeValue);
+    // Put word in <span>, get its left position and remove the span tag
+    SpanUtils.putWordInSpan(node, wordsPos[word], words[word], "word");
+    var pos = parseInt($('#word').position().left);
+    SpanUtils.removeSpanNode(node.parentElement, "word", word == 0, word == words.length-1);
+    return pos; // return position
+  },
+
+  /**
+    Get the position of the end of a word.
+    Put the space after the word (represents the end of the word) in <span>, get its left position, remove span tag, return the position.
+    Params: 'el' the input div element (textEl[0]).
+            'lineNumber' the number of line
+            'word' the word number, start index is 0
+  */
+  wordEndPos: function(el, lineNumber, word) {
+    // Get the node with the specified line number
+    var node = el.childNodes[lineNumber].childNodes.length > 0 ? el.childNodes[lineNumber].childNodes[0] : el.childNodes[lineNumber];
+    // Get node value
+    var nodeValue = cleanText(node.nodeValue);
+    // Get line words and words' positions
+    var wordsPos = getWordsIndices(nodeValue);
+    // Get the index of space after the word
+    var spaceAfterWordIx = wordsPos[word] + nodeValue.slice(wordsPos[word]).indexOf(' ');
+    // Put the space in <span>, get its left position and remove the span tag
+    SpanUtils.putWordInSpan(node, spaceAfterWordIx, ' ', "word");
+    var pos = parseInt($('#word').position().left);
+    SpanUtils.removeSpanNode(node.parentElement, "word", word == 0, word == wordsPos.length-1);
+    return pos; // return position
   }
 });
