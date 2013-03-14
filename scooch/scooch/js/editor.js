@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-$(function(){
+/*$(function(){
 
     var editor = $('#editor');
 
@@ -23,7 +23,7 @@ $(function(){
 
     $("body, #editor").bind('keydown','f3',function(){
         alert("line pos: "+spaceEditor.getLinePos());
-    });
+    });*/
 
     /*$("body, #editor").bind('keydown','f4',function(){
         var line = spaceEditor.getLinePos();
@@ -31,7 +31,7 @@ $(function(){
         alert("line pos: "+spaceEditor.getPreviousLine(line));
     });*/
 
-    $("body, #editor").bind('keydown','f4',function(){
+    //$("body, #editor").bind('keydown','f4',function(){
             /*var line = spaceEditor.getLinePos();
             if(line < 2) alert("Can't get previous line");
             alert("line pos: "+spaceEditor.getPreviousLine(line));
@@ -39,7 +39,7 @@ $(function(){
 
             //console.log(spaceEditor.getLineWordPositions("Jason is so cool"));
 
-            if(console && console.log) console.log(spaceEditor.getLineCaretPos());
+           /* if(console && console.log) console.log(spaceEditor.getLineCaretPos());
     });
 
-});
+});*/

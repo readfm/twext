@@ -1,28 +1,31 @@
 
+/*
+  This file is not used in twext, will be removed
+*/
 
-ScoochEditError = function (message) {  
+/*ScoochEditError = function (message) {  
     this.name = "MyError";  
     this.message = message || "Scooch Edit Error";  
 }
 ScoochEditError.prototype = new Error();
 ScoochEditError.prototype.name = "ScoochEditError";
-ScoochEditError.prototype.constructor = ScoochEditError;
+ScoochEditError.prototype.constructor = ScoochEditError;*/
 
 
-window.ScoochEdit = Class.$extend({
+//window.ScoochEdit = Class.$extend({
 	
-	__init__: function(editor){
+	/*__init__: function(editor){
 		this.editor = editor;
     	$(editor).bind("keydown","space",$.proxy(this.onSpace,this));
     	$(editor).bind("keydown",'backspace',$.proxy(this.onBackspace,this));
-	},
+	},*/
 
 	/**
      * Insert myValue at current cursor position
      *
      * @param {String} myValue
      */
-    insertAtCaret: function(myValue){
+   /* insertAtCaret: function(myValue){
         var sel,editor = this.editor;
 
         if (document.selection) {
@@ -40,12 +43,12 @@ window.ScoochEdit = Class.$extend({
             editor.selectionEnd = startPos + myValue.length;
             editor.scrollTop = scrollTop;
         }
-    },
+    },*/
 
     /**
     * Insert value at  position. Cursor is not handled in this function
     */
-    insertAtPos: function(pos,value){
+  /*  insertAtPos: function(pos,value){
         var editor = this.editor;
         var val = editor.value;
 
@@ -69,36 +72,36 @@ window.ScoochEdit = Class.$extend({
         editor.value = val.substring(0,start) + val.substring(end,val.length);
         this.caretPos(start);
         editor.focus();
-    },
+    },*/
 
     /**
      * Get editor contents
      */
-    value: function(text){
+  /*  value: function(text){
         if(text){
             return this.editor.value = text;
         }else{
             return this.editor.value;
         }
-    },
+    },*/
 
     /**
     * Optionally sets caret position and then returns position
     */
-    caretPos: function(pos){
+   /* caretPos: function(pos){
         if(pos){
             return this._setCaretPos(pos);
         }else{
             return this._getCaretPos();
         }
-    },
+    },*/
 
     /**
      * Get current caret position
      *
      * @return {int} Number of character to caret position
      */
-    _getCaretPos: function(){
+    /*_getCaretPos: function(){
         var sel, editor = this.editor;
         var caretpos = 0;
         if (document.selection) {
@@ -110,14 +113,14 @@ window.ScoochEdit = Class.$extend({
             caretpos = editor.selectionStart;
         }
         return caretpos;
-    },
+    },*/
 
     /**
      * Function to manually set the caret position.
      *
      * @param {int} pos Number of characters to put Caret starting from beginning of string.
      */
-    _setCaretPos: function(pos){
+   /* _setCaretPos: function(pos){
         var sel, editor = this.editor;
         if(editor.setSelectionRange){
             editor.focus();
@@ -130,23 +133,23 @@ window.ScoochEdit = Class.$extend({
             range.select();
         }
         return pos;
-    },
+    },*/
 
     /**
      * Normalize the line breaks. For counting chars I need to make sure all string are using "\n" type of line breaks.
      *
      * @param string
      */
-    _normalize_linebreaks: function(string){
+   /* _normalize_linebreaks: function(string){
         return string.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
-    },
+    },*/
 
     /**
      * Get the current line where the caret is positioned
      *
      * @return {int} Line number. Starting at 1.
      */
-    getLinePos: function(){
+    /*getLinePos: function(){
         var caretpos = this.caretPos();
         var value = this.editor.value;
         var sub;
@@ -157,14 +160,14 @@ window.ScoochEdit = Class.$extend({
             sub = value.substring(0,caretpos);
         }
         return this._normalize_linebreaks(sub).split("\n").length;
-    },
+    },*/
 
     /**
      * Gets the line number, caret position on that line starting from beginning of line, and the line text.
      *
      * @return {Array}
      */
-    getLineCaretPos: function(doSub){
+    /*getLineCaretPos: function(doSub){
         var caretpos = this.caretPos();
         var value = this._normalize_linebreaks(this.editor.value);
         if(caretpos >= value.length){
@@ -185,12 +188,12 @@ window.ScoochEdit = Class.$extend({
         }
 
         return doSub ? [line,pcount,value.split("\n")[line-1]] : [line,pcount];
-    },
+    },*/
 
     /**
     * Get start position of line
     */
-    getLineStartPos: function(line){
+    /*getLineStartPos: function(line){
         
         if(line==0) return 0;
 
@@ -207,17 +210,17 @@ window.ScoochEdit = Class.$extend({
         }
 
         return false;
-    },
+    },*/
 
     /**
      * Gets the stating position of each word for a line and return it in an Array of numbers
      *
      * @param {int} line Line Number
      */
-    getLineWordPositions: function(line){
+    /*getLineWordPositions: function(line){
         var s = new ScoochEditorLine(line);
         return s.wordPositions();
-    },
+    },*/
 
     /**
      * Get the text for the previous line. This is used to quickly grab the previous line and calculate word positions.
@@ -225,21 +228,21 @@ window.ScoochEdit = Class.$extend({
      * @param {int} line Line Number
      * @return {string} the text for the previous line
      */
-    getPreviousLine_old: function(line){
+    /*getPreviousLine_old: function(line){
         if(line < 2) return false;
         var value = this._normalize_linebreaks(this.editor.value);
         return value.split("\n")[line-2];
-    },
+    },*/
 
     /**
      * This is a helper function that gets the word start positions from the previous line.
      *
      * @param {int} line Optional, the line number. if not given, will use current line.
      */
-    getWordPositionsForPreviousLine: function(line){
+   /* getWordPositionsForPreviousLine: function(line){
         var cline = line || this.getLinePos();
         return this.getLineWordPositions(this.getPreviousLine(cline));
-    },
+    },*/
 
 
     /**
@@ -249,7 +252,7 @@ window.ScoochEdit = Class.$extend({
     * @param {bool} If you know this is the current line set this to true so it adds line number and cursor position.
     * @return {ScoochEditorLine} Return ScoochEditorLine object with text set.
     */
-    getLine: function(line,isCurrent){
+   /* getLine: function(line,isCurrent){
         var value = this._normalize_linebreaks(this.editor.value);
         var lines = value.split("\n");
         if(line > lines.length) throw new ScoochEditError("can't get line that does not exist");
@@ -264,12 +267,12 @@ window.ScoochEdit = Class.$extend({
         }
         
         return line;
-    },
+    },*/
 
     /**
     * Gets current line and returns ScoochEditorLine object
     */
-    getCurrentLine: function(){
+    /*getCurrentLine: function(){
         var pos = this.getLineCaretPos();
         if(!pos) throw new ScoochEditError("Can't get current line");
         var value = this._normalize_linebreaks(this.editor.value);
@@ -279,7 +282,7 @@ window.ScoochEdit = Class.$extend({
         line.cursorPos(pos[1]);
         line.lineNumber(pos[0]);
         return line;
-    },
+    },*/
 
     /**
     * Get a line pair starting at startLine param and the next line.
@@ -287,7 +290,7 @@ window.ScoochEdit = Class.$extend({
     * @param {int} the first line in the pair.
     * @return {Array} array of ScoochEditorLine objects.
     */
-    getLinePair: function(startLine){
+    /*getLinePair: function(startLine){
         var value = this._normalize_linebreaks(this.editor.value);
         var lines = value.split("\n");
         if(startLine > lines.length) throw new ScoochEditError("can't get line that does not exist");
@@ -351,7 +354,7 @@ window.ScoochEdit = Class.$extend({
         var sp = this.getLineStartPos(cmd.line || line);
         sp = sp + cmd.pos;
         this.removeRange(sp,sp+cmd.length);
-    },
+    },*/
 
     //---------------------------------------------------------------------------------------------------------
 
@@ -359,7 +362,7 @@ window.ScoochEdit = Class.$extend({
      * This function is called everytime the space bar is used. If there is more then one space it looks
      * at previous line to see if it can jump to the next word start.
      */
-    onSpace: function(event){
+   /* onSpace: function(event){
         var count = 0;
         var i = 1;
         var editor = this.editor;
@@ -374,9 +377,6 @@ window.ScoochEdit = Class.$extend({
         var lines = this.getLinePair(pos[0]);
 
         var cmds = lines.pushChunk(1,pos[1],0);
-
-        /*console.log([1,pos[1],0]);
-        console.log(cmds);*/
 
         //if(cmds === 0 || cmds === -1) return;
 
@@ -415,5 +415,5 @@ window.ScoochEdit = Class.$extend({
             this.run(cmds,pos[0]);
         }
     }
-
-})
+*/
+//})
