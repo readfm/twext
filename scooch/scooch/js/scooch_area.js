@@ -497,7 +497,7 @@ window.ScoochArea = Class.$extend({
 
         var line_1 = new ScoochEditorLine( this.text_lines[pair_index] );
         line_1.lineNumber(pair_index);
-        var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
+        var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1]);
         line_2.lineNumber(pair_index + 1);
         var lines = new ScoochEditorLines();
         lines.setLine( 0, line_1);
@@ -548,7 +548,7 @@ window.ScoochArea = Class.$extend({
 
         var line_1 = new ScoochEditorLine( this.text_lines[pair_index] );
         line_1.lineNumber(pair_index);
-        var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1], 2 );
+        var line_2 = new ScoochEditorLine( this.text_lines[pair_index + 1]);
         line_2.lineNumber(pair_index+1);
         var lines = new ScoochEditorLines();
         lines.setLine( 0, line_1);

@@ -1,4 +1,6 @@
-
+/**
+  This class is used to do handle two lines of text (Text and Twext)
+*/
 window.ScoochEditorLines = Class.$extend({
   /**
     Initilize class variables (classy.js is used for class creation)
@@ -12,7 +14,7 @@ window.ScoochEditorLines = Class.$extend({
 
   /**
     Set line value.
-    Params: 'num' the line number to set
+    @param 'num' the line number to set
             'line' the new line value
   */
 	setLine: function(num, line){
@@ -23,7 +25,7 @@ window.ScoochEditorLines = Class.$extend({
   /**
     Get the next reference word for the current cursor position, this is used to move the cursor to the next word.
     Get the next word using spans, a spanaligner function call.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'currentLine' current line number where the cursor positioned
             'cursorPos' the position of the cursor
   */
@@ -35,7 +37,7 @@ window.ScoochEditorLines = Class.$extend({
   /**
     Get the next reference word for the current word, this is used to move current word to the next reference word.
     Try to get the next word from chunks array, if not found then get it using spans; a spanaligner function call.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'currentLine' current line number containing the word to be moved.
             'wordNumber' number of the current word to be moved to the next word in the ref line, start index is 0.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
@@ -53,7 +55,7 @@ window.ScoochEditorLines = Class.$extend({
   /**
     Get the next reference word for the current word from chunks array of the current lines pair.
     Look for the current word number in chunks array; if found return its pair word number incremented by 1 to represent next word not the current.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'wordNum' number of the current word to be moved to the next word in the ref line, start index is 1.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
   */
@@ -72,10 +74,10 @@ window.ScoochEditorLines = Class.$extend({
 
   /**
     Check if the current word is a chunk (has an entry in chunks array).
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'wordNum' number of the current word to be moved to the next word in the ref line, start index is 1.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
-    Return: key of the chunk if found, -1 otherwise
+    @return key of the chunk if found, -1 otherwise
   */
   busyChunk: function(first, wordNum, chunks) {
     if(first) { // Text is the current line, current word number is a 'N', check equality with chunk pair 'value'
@@ -92,7 +94,7 @@ window.ScoochEditorLines = Class.$extend({
 
   /**
     Reformat chunks from the form key/value array to the form of n:N string array; the reformatted array will be sent to spanAligner to align chunks
-    Params: 'chunks' the chunks of the current Text/Twext lines pair.
+    @param 'chunks' the chunks of the current Text/Twext lines pair.
   */
   getnN: function(chunks) {
     var nN = new Array();
@@ -104,7 +106,7 @@ window.ScoochEditorLines = Class.$extend({
 
   /**
     Move 'align' cursor to the next reference word.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'current_word' number of the current word to be moved to the next word in the ref line, start index is 1.
             'current_line' current line number
             'cursor_pos' the position of the cursor
@@ -131,7 +133,7 @@ window.ScoochEditorLines = Class.$extend({
     Add the new chunk created when pushing chunk(hitting a space) to the chunks array.
     If the next reference word is busy(aligned with another word), delete this pair to create a new pair containing current word and next ref word.
     If the current word is busy(aligned with another word), delete this pair to create a new pair containing current word and next ref word.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'current_word' number of the current word to be moved to the next word in the ref line, start index is 1.
             'next_word' number of the next reference word, start index is 1.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
@@ -155,7 +157,7 @@ window.ScoochEditorLines = Class.$extend({
 
 	/**
     Move 'align' the current word to the next reference word.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'cursor_pos' the position of the cursor
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
 	*/
@@ -189,7 +191,7 @@ window.ScoochEditorLines = Class.$extend({
     }
 
     // Get current and reference word numbers, start index is 0
-    var current_word_ix = current_line.wordAtCaret(cursor_pos); // current word index (moving word)
+    var current_word_ix = current_line.wordNumber(cursor_pos); // current word index (moving word)
     var next_word_ix = this.nextWord(first, current_line.lineNumber(), current_word_ix, chunks);  // reference word index (moving to word)
 
     // Check if next word is out of the reference line boundries
@@ -216,7 +218,7 @@ window.ScoochEditorLines = Class.$extend({
   /**
     Get the previous reference word for the current cursor position, this is used to move the cursor to the previous word.
     Get the previous word using spans, a spanaligner function call.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'currentLine' current line number where the cursor positioned
             'cursorPos' the position of the cursor
   */
@@ -228,7 +230,7 @@ window.ScoochEditorLines = Class.$extend({
   /**
     Get the previous reference word for the current word, this is used to move current word to the previous reference word.
     Try to get the previous word from chunks array, if not found then get it using spans; a spanaligner function call.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'currentLine' current line number containing the word to be moved.
             'wordNumber' number of the current word to be moved to the previous word in the ref line, start index is 0.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
@@ -246,7 +248,7 @@ window.ScoochEditorLines = Class.$extend({
   /**
     Get the previous reference word for the current word from chunks array of the current lines pair.
     Look for the current word number in chunks array; if found return its pair word number decremented by 1 to represent previous word not current.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'wordNum' number of the current word to be moved to the previous word in the ref line, start index is 1.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
   */
@@ -265,7 +267,7 @@ window.ScoochEditorLines = Class.$extend({
 
   /**
     Move 'align' cursor to the previous reference word.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'current_word' number of the current word to be moved to the previous word in the ref line, start index is 1.
             'current_line' current line number
             'cursor_pos' the position of the cursor
@@ -292,7 +294,7 @@ window.ScoochEditorLines = Class.$extend({
     Add the new chunk created when pulling chunk(hitting a backspace) to the chunks array.
     If the current word is busy(aligned with another word), delete this pair to merge.
     If the position where the current word should move to contains space (there is a room to move), delete previous ref word chunk pair (if previous word is busy) and create a new pair containing current word and previous ref word.
-    Params: 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'current_word' number of the current word to be moved to the previous word in the ref line, start index is 1.
             'previous_word' number of the previous reference word, start index is 1.
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
@@ -323,7 +325,7 @@ window.ScoochEditorLines = Class.$extend({
     Move 'align' the current word to the previous reference word.
     If there is a space in the current word moving position (position where the current word should move to), then current word will be moved to it,
     If not, then just delete the current chunk pair (if any) to merge.
-    Params: 'on_first' boolean to detect if the current line is Text or Twext, true if current line is Text.
+    @param 'on_first' boolean to detect if the current line is Text or Twext, true if current line is Text.
             'cursor_pos' the position of the cursor
             'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
 	*/
@@ -357,7 +359,7 @@ window.ScoochEditorLines = Class.$extend({
     }
 
     // Get current and reference word numbers, start index is 0
-    var current_word_ix = current_line.wordAtCaret(cursor_pos); // current word index (moving word)
+    var current_word_ix = current_line.wordNumber(cursor_pos); // current word index (moving word)
     var previous_word_ix = this.previousWord(first, current_line.lineNumber(), current_word_ix, chunks); // reference word index (moving to word)
     
     // Check if previous word is out of the reference line boundries
@@ -386,7 +388,7 @@ window.ScoochEditorLines = Class.$extend({
     Check if current chunk can be moved backward. The idea of 'pull' is to move the word backward only if it will be moved to an empty position (contains space); this method check if the moving position contains space. 
     This method first check if number of spaces are exceeding or equal 2, return false if less than 2 (chunk can not be moved backward if only one space before the word).
     If 2 spaces or more, get the position of the reference word using spans, get the position of the space after the word before the current(end of previous word), return true if the position of the space is less than the position of the reference word (space is placed before the ref word)
-    Params: 'currentWord' The current word number (start index is 0)
+    @param 'currentWord' The current word number (start index is 0)
             'refWord' The reference word number (starts index is 0)
             'current_line' The current line (type is Scooch_edit_line)
             'ref_line' The reference line (type is Scooch_edit_line)

@@ -1,176 +1,120 @@
-
 /**
 * This class is used to do handle one line of text
 */
 window.ScoochEditorLine = Class.$extend({
-	
-	__init__: function(lineText, ratio){
-		this.lineText = lineText;
-		//this.ratio = /*ratio?ratio:*/1;
-    this.lineNum = -1;
-//    	this.cursor = cursor || false;
-    	this._cache_wordpos = false;
+
+  /**
+  * Initilize class variables (classy.js is used for class creation)
+  */
+	__init__: function(lineText){
+		this.lineText = lineText; // The line text value
+    this.lineNum = -1;  // The line number
+    this._cache_wordpos = false;  // cached words' positions (indices) of the line text value; used for not recalulating words positions
 	},
 
-    /**
-    * Get or Set the text for this line of text
-    * 
-    * @param {string} the line text (optional)
-    * @return {string} the line text
-    */
-	text: function(str){
-        if(str && typeof str == 'string'){
-            this.lineText = str;
-            this._cache_wordpos = false;
+  /**
+  * Get or Set the text value for this line of text. 
+  * @param 'str' the line text value to be set(optional)
+  * @return the line text value
+  */
+	text: function(str) {
+    // If there is a value sent with the function call, set the line text value; else keep the current value
+    if(str && typeof str == 'string') {
+      this.lineText = str;  // set the line text value with the new value
+      this._cache_wordpos = false;  // the line text changed, clear the cached words (of the old line text value)
+    }
+    return this.lineText; // return the line text value
+  },
+
+  /**
+  * Get or Set the line number for this line of text.
+  * @param 'line' the line number to be set(optional); start index is 0
+  * @return the line number
+  */
+  lineNumber: function(line){
+    // If there is a valid value sent with the function call, set the line number; else keep the current line number
+    if(line >= 0) this.lineNum = line;  // set the line number with new value
+    return this.lineNum;  // return the line number
+  },    
+
+  /**
+  * Get all words start positions in a line of text.
+  * This method is under test, should be replaced by clean text and regular expression detection if any mismatch with span aligner has been occured
+  * @return Array of words start positions
+  */
+  words: function() {
+    var i, chr, t;
+    // If there are cached positions, then return them; else calulate the positions
+    if(this._cache_wordpos) return this._cache_wordpos; // return cached positions
+    var line = this.lineText; // the text of the line
+    var len = line.length;  // text line length
+    var lastCharSpace = true; //boolean to detect if the previous char was a space,used for word start detection;initially true to detect first word
+    var wordPositions = [];
+    //if(len == 0 || this._trim(line) == '') return false;
+
+    for(i = 0 ; i < len ; i++) {  // loop over line characters
+      chr = line.charAt(i); // get current character
+      if(!(/\s/.test(chr))  && lastCharSpace) { // if the current char is not a space and the previous char was a space
+        t = i - 2;
+        lastCharSpace = false;
+        // If there is no char before previous space(first word) or the char before space is not - (to detect syllables)
+        if(t < 0 || line.charAt(t) != '-') {
+          wordPositions.push(i);  // push the word position
         }
-        return this.lineText;
-    },
-
-    /**
-    * set or get the line number for this line of text
-    */
-    lineNumber: function(line){
-        if(line >= 0) this.lineNum = line;
-        return this.lineNum;
-    },
-
-    /**
-     * Trims whitespace from before and after string
-     *
-     * @param {string} str
-     * @return {string}
-     */
-    _trim: function(str){
-        if(typeof str != 'string') return str;
-        var str = str.replace(/^\s\s*/, ''),
-                ws = /\s/,
-                i = str.length;
-        while (ws.test(str.charAt(--i)));
-        return str.slice(0, i + 1);
-    },
-
-
-    maxLength: function(){
-        return this._rtrim(this.lineText).length;
-    },
-
-    /**
-    * This currently not being used but might be transformed to find another type of chunk method
-    */
-    chucks: function(){
-        var line = this.lineText;
-        var len = line.length;
-        var i,chr,lastCharSpace=true;
-        var wordPositions = [];
-
-        if(len==0 || this._trim(line)=='') return false;
-
-        for(i = 0 ; i < len ; i++){
-            chr = line.charAt(i);
-
-            if(chr != ' ' && lastCharSpace){
-                wordPositions.push(i);
-                lastCharSpace = false;
-            }else if(chr==' '){
-                lastCharSpace = true;
-            }else{
-                lastCharSpace = false;
-            }
-        }
-
-        return wordPositions;
-    },
-
-    /**
-    * This finds all work start positions in a line of text. This function understand syllables chunks
-    *
-    * @return {Array} Array of start positions
-    */
-    words: function(){
-      if(this._cache_wordpos)
-        return this._cache_wordpos;
-        var line = this.lineText;
-        var len = line.length;
-        var i,chr,lastCharSpace=true,t;
-        var wordPositions = [];
-
-        if(len==0 || this._trim(line)=='') return false;
-
-        for(i = 0 ; i < len ; i++){
-            chr = line.charAt(i);
-            if( !(/\s/.test(chr))  && lastCharSpace){
-                t = i - 2;
-                lastCharSpace = false;
-                if(t < 0 || line.charAt(t) != '-'){
-                    wordPositions.push(i);
-                }
-            }else {
-                lastCharSpace = /\s/.test(chr);
-            }
-        }
-        this._cache_wordpos = wordPositions;
-        return wordPositions;
-    },
-
-    prev_word_ix:function(cursor_pos){
-      if(!this._cache_wordpos) this.words();
-      for(var i=this._cache_wordpos.length-1; i>=0; i--){
-        if(this._cache_wordpos[i] < cursor_pos){
-          return i;
-        }
+      } else {  // the current char is a space or the previous char is not a space (then it's not a word)
+        lastCharSpace = /\s/.test(chr);
       }
-      return -1;
-    },
+    }
+    this._cache_wordpos = wordPositions;  // set the cached positions
+    return wordPositions; // return words positions
+  },
 
-    next_word_ix:function(cursor_pos){
-      if(!this._cache_wordpos) this.words();
-      for(var i=0; i<this._cache_wordpos.length; i++){
-        if(this._cache_wordpos[i] > cursor_pos){
-          return i;
-        }
+  /**
+  * Get the next available word position after the cursor is placed.
+  * @param 'cursor_pos' the position of the cursor
+  * @return the index of the next word after the cursor position
+  */
+  next_word_pos:function(cursor_pos) {
+    if(!this._cache_wordpos) this.words();  // Get line words positions if no cached 
+    for(var i=0; i<this._cache_wordpos.length; i++) {  // loop over the words' positions
+      if(this._cache_wordpos[i] > cursor_pos) { // If the position of word is greater than the position of cursor (next word)
+        return this._cache_wordpos[i];  // return the word position
       }
-      return -1;
-    },
+    }
+    return -1;  // return -1 if no word found
+  },
 
-    next_word_pos:function(cursor_pos){
-      if(!this._cache_wordpos) this.words();
-      for(var i=0; i<this._cache_wordpos.length; i++){
-        if(this._cache_wordpos[i] > cursor_pos){
-          return this._cache_wordpos[i];
-        }
+  /**
+  * Get the word number where the cursor points at its start or any character of it.
+  * @param 'cursor_pos' the position of the cursor
+  * @return the word number, start index is 0
+  */
+  wordNumber: function(cursor_pos) {
+    if(!this._cache_wordpos) this.words();  // Get line words positions if no cached 
+    var startPos, endPos;
+    for(var i=0; i<this._cache_wordpos.length; i++){  // loop over the words positions
+      startPos = this._cache_wordpos[i];  // start position of word
+      endPos = this._cache_wordpos[i] + this.lineText.slice(this._cache_wordpos[i]).indexOf(' '); // end position of word(index of space after word)
+      // if the cursor is at the start of the word, or points to any character of it
+      if(this._cache_wordpos[i] == cursor_pos || (cursor_pos < endPos && cursor_pos > startPos)) {
+        return i; // return word number
       }
-      return -1;
-    },
-    
-    /*to_ratio:function(value){
-      return Math.round(this.ratio * value);
-    },
-    
-    ratio_substring:function(initial, end){
-      return this.lineText.substring( this.to_ratio(initial), !isNaN(end)?this.to_ratio(end):this.lineText.length);
-    },*/
-
-    raw_substring:function(initial, end){
-      return this.lineText.substring( initial, !isNaN(end)?end:this.lineText.length);
-    },
-
-    /**
-      Get the word number where the cursor points at its start.
-    */
-    wordAtCaret: function(cursor_pos) {
-      if(!this._cache_wordpos) this.words();
-      for(var i=0; i<this._cache_wordpos.length; i++){
-        if(this._cache_wordpos[i] == cursor_pos){
-          return i;
-        }
+    }
+    return -1;  // return -1 if no word found
+  },
+  /**
+    Get the word number where the cursor points. 
+  */
+  /*wordAtCaret: function(cursor_pos) {
+    if(!this._cache_wordpos) this.words();
+    for(var i=0; i<this._cache_wordpos.length; i++){
+      if(this._cache_wordpos[i] == cursor_pos){
+        return i;
       }
-      return -1;
-    },
-
-    /**
-      Get the word number where the cursor points at any character of it. This function is used to detect 'make' cases.
-    */
-    wordNumber: function(cursor_pos) {
+    }
+    return -1;
+  },*/
+   /* wordNumber: function(cursor_pos) {
       if(!this._cache_wordpos) this.words();
       for(var i=0; i<this._cache_wordpos.length; i++){
         if(!/\s/.test(this.lineText.charAt(cursor_pos-1)) && !/\s/.test(this.lineText.charAt(cursor_pos+1)) && this._cache_wordpos[i] < cursor_pos && (this._cache_wordpos[i+1] && this._cache_wordpos[i+1] > cursor_pos)){
@@ -178,13 +122,70 @@ window.ScoochEditorLine = Class.$extend({
         }
       }
       return -1;
-    },
+    },*/
+   /*  maxLength: function(){
+        return this._rtrim(this.lineText).length;
+    },*/
+  /**
+  * This currently not being used but might be transformed to find another type of chunk method
+  */
+  /*chucks: function(){
+      var line = this.lineText;
+      var len = line.length;
+      var i,chr,lastCharSpace=true;
+      var wordPositions = [];
 
+      if(len==0 || this._trim(line)=='') return false;
+
+      for(i = 0 ; i < len ; i++){
+          chr = line.charAt(i);
+
+          if(chr != ' ' && lastCharSpace){
+              wordPositions.push(i);
+              lastCharSpace = false;
+          }else if(chr==' '){
+              lastCharSpace = true;
+          }else{
+              lastCharSpace = false;
+          }
+      }
+
+      return wordPositions;
+  },*/
+  /*to_ratio:function(value){
+      return Math.round(this.ratio * value);
+    },
+    
+    ratio_substring:function(initial, end){
+      return this.lineText.substring( this.to_ratio(initial), !isNaN(end)?this.to_ratio(end):this.lineText.length);
+    },*/
+    /*prev_word_ix:function(cursor_pos){
+      if(!this._cache_wordpos) this.words();
+      for(var i=this._cache_wordpos.length-1; i>=0; i--){
+        if(this._cache_wordpos[i] < cursor_pos){
+          return i;
+        }
+      }
+      return -1;
+    },*/
+
+    /*next_word_ix:function(cursor_pos){
+      if(!this._cache_wordpos) this.words();
+      for(var i=0; i<this._cache_wordpos.length; i++){
+        if(this._cache_wordpos[i] > cursor_pos){
+          return i;
+        }
+      }
+      return -1;
+    },*/
+    /*raw_substring:function(initial, end){
+      return this.lineText.substring( initial, !isNaN(end)?end:this.lineText.length);
+    },*/
     /**
     * This create a [start position, stop position] array list for every word in a line of text.
     * This is used to caclulate stuff
     */
-    wordIndex: function(){
+    /*wordIndex: function(){
     	var line = this.lineText;
       var len = line.length;
       var wordIdx = [];
@@ -232,16 +233,15 @@ window.ScoochEditorLine = Class.$extend({
     		}
     	}
     	return wordIdx;
-    },
-
-    /**
+    },*/
+  /**
     * This function can be used to see if i chunk can be move. if it can it will return a position to move chunk or false
     * 
     * @param {string} Current Line Text
     * @param {int} Cursor position
     * @param {string} Direction: 'b' for back and 'f' for forward.
     */
-    moveChunk: function(curline,pos,direction){
+    /*moveChunk: function(curline,pos,direction){
         var wordPos = this._cache_wordpos || this.wordPositions();
         var beforePos = 0,i=0;
         var dir = direction || 'b';
@@ -284,6 +284,19 @@ window.ScoochEditorLine = Class.$extend({
         
         return false;
         
-    }
-
+    },*/
+    /**
+   * Trims whitespace from before and after string
+   *
+   * @param {string} str
+   * @return {string}
+   */
+  //_trim: function(str){
+    //  if(typeof str != 'string') return str;
+      //var str = str.replace(/^\s\s*/, ''),
+        //      ws = /\s/,
+          //    i = str.length;
+      //while (ws.test(str.charAt(--i)));
+      //return str.slice(0, i + 1);
+  //},
 });
