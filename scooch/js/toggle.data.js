@@ -138,11 +138,11 @@
           var lines = meld_twext_lines(toggle_data.source_text, verLines);
           area.language = language;
           area.version = version;
-          area.setCurrentChunks();
+          //area.setCurrentChunks();
           area.render_html(lines);
-          area.savedLines = toggle_data.getLines(language, version);
+          area.orgLines = toggle_data.getLines(language, version);
           set_language_name();
-          set_version_name();
+          set_version_name();console.log("switch versions");
           // Align twexts
           area.realign();
           // Save previous chunks into firebase
@@ -175,7 +175,7 @@
     /**
       Save twexts into firebase if edited by the user.
     */
-    function saveTwexts(text, lang, ver) {
+    /*function saveTwexts(text, lang, ver) {
       var currentTwext = "", savedTwext = "", line = "", words = null, i, j;
       var textLines = text.split('\n');
       var savedLines = toggle_data.getLines(lang, ver);
@@ -195,7 +195,7 @@
           }
         }
       }
-    }
+    }*/
 
     var targets = ["fr", "it", "es", "en"];
     var lang_names = ["French", "Italian", "Spanish", "English"];
@@ -347,9 +347,9 @@
       $("#main").show();
       area.language = language;
       area.version = version;
-      area.setCurrentChunks();
+      //area.setCurrentChunks();
       area.render_html(lines);
-      area.savedLines = toggle_data.getLines(language, version);
+      area.orgLines = toggle_data.getLines(language, version);console.log("display twexts")
       // Align twexts
       area.realign();
     }

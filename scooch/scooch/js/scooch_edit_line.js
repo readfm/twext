@@ -39,7 +39,7 @@ window.ScoochEditorLine = Class.$extend({
 
   /**
   * Get all words start positions in a line of text.
-  * This method is under test, should be replaced by clean text and regular expression detection if any mismatch with span aligner has been occured
+  * TODO:This method is under test, should be replaced by clean text and regular expression detection if mismatch with span aligner has been occured
   * @return Array of words start positions
   */
   words: function() {

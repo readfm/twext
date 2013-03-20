@@ -13,13 +13,11 @@ window.ScoochEditorLines = Class.$extend({
 	},
 
   /**
-    Set line value.
-    @param 'num' the line number to set
-            'line' the new line value
+    Set lines (Text/Twext pair)
+    @param 'lines' the lines values (Text/Twext lines)
   */
-	setLine: function(num, line){
-		if(line instanceof ScoochEditorLine) this.lines[num] = line;  // Set line value if it's instanceof ScoochEditorLine
-		else throw "The line needs to be an instanceof ScoochEditorLine";
+  setLines: function(lines){
+		this.lines = lines;
 	},
 
   /**
@@ -396,7 +394,7 @@ window.ScoochEditorLines = Class.$extend({
   */
   canMoveChunk: function(currentWord, refWord, current_line, ref_line, cursorPos) {
     // Check if there is more than 1 space before the current word, a must to be moved backward.
-    var spaces = this.countPreviousSpaces(current_line.text(), cursorPos);  // count spaces befor current word
+    var spaces = countPreviousSpaces(current_line.text(), cursorPos);  // count spaces befor current word
     if(spaces < 2) return false;  // no moving backward if less than 2 spaces
 
     // Get space aftar word(before current word) and reference word positions 
@@ -405,24 +403,17 @@ window.ScoochEditorLines = Class.$extend({
 
     if(endSpacePos < refWordPos) return true;
     return false;
-  },
-
-  /**
-    Count the number of spaces between the specified position and the nonspace previous caharacter.
-  */
-  countPreviousSpaces: function(str, pos){
-    var spaces = 0;
-    // check the characters before the pos one at a time, break when a nonspace char is found
-    while(pos > spaces && /\s/.test(str.charAt(pos-1-spaces) ) ){
-      spaces++; // if space, increment spaces count
-    }
-    return spaces;
   }
 
-  /*setLines: function(lines){
-		this.lines = lines;
+  /**
+    Set line value.
+    @param 'num' the line number to set
+            'line' the new line value
+  */
+	/*setLine: function(num, line){
+		if(line instanceof ScoochEditorLine) this.lines[num] = line;  // Set line value if it's instanceof ScoochEditorLine
+		else throw "The line needs to be an instanceof ScoochEditorLine";
 	},*/
-
 	/*words: function(lineNum){
 		if(this.lines[lineNum] instanceof ScoochEditorLine){
 			return this.lines[lineNum].words();

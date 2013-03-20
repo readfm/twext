@@ -17,7 +17,7 @@ var SpanAligner = Class({
   /**
     Align all text/twext rows of the input element.
     Params: 'textEl' the contenteditable element.
-            'nNs' key/value array contains nNs pairs for text/twext rows. The key is the Text line number, the value is nN array '["1:1","2:2",...]'
+            'nNs' array or key/value object contains nNs pairs for text/twext rows. key is Text line number, value is nN array '["1:1","2:2",...]'
   */
   align: function(textEl, nNs) {
     var i;

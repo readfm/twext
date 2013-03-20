@@ -42,6 +42,45 @@ Object.size = function(obj) {
   return size;
 };
 
+String.prototype.toArray = function(sep) {
+  if(this == "") return new Array();
+  return this.split(sep);
+};
+
+/**
+  Clean text from possible html characters
+*/
+function cleanText(text) {
+  var re, str = "", i;
+  var spaces = [String.fromCharCode(160), '&nbsp;'];  // Possible html spaces
+  for (i = 0; i < spaces.length; i++) {
+    str += spaces[i] + "|";
+  }
+  re = new RegExp(str.substring(0, str.length-1), 'g'); // Create regular expression of possible html spaces
+  text = text.replace(re, ' '); // replace html spaces by text spaces
+  return text;
+}
+
+/**
+  Extract words from string.
+*/
+function getStrWords(str) {
+  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words, any non space char
+  return str.match(re);  // return array of all words in the text
+}
+
+/**
+  Count the number of spaces between the specified position and the nonspace previous caharacter.
+*/
+function countPreviousSpaces(str, pos) {
+  var spaces = 0;
+  // check the characters before the pos one at a time, break when a nonspace char is found
+  while(pos > spaces && /\s/.test(str.charAt(pos-1-spaces) ) ){
+    spaces++; // if space, increment spaces count
+  }
+  return spaces;
+}
+
 Twext.Utils.TextToLines = function(t){
     var sp = /\s\s+/i;
     t = trim(t);
