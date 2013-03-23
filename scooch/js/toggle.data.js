@@ -1,427 +1,565 @@
 /**
- Demo to show toggle features
- */
-
-
+* Toggle features
+*/
 !function(d){
-
-    var sampleData = null;
+    //var sampleData = null;
     var document = null;
-    var language = 0;
-    var version = 0;
-    var area = null;
-    var toggle_data = null;
-    var firebaseRef = "https://readfm.firebaseio.com/foo";
-    var gTranslatedText = {};
-    var firebaseTranslations = []; // index=line number, value=firebase entry contains language/versions/translated text and chunks
+    var language = 0; // current language
+    var version = 0;  // current version
+    var area = null;  // ScoochArea object to represent input element
+    var toggle_data = null; // object to carry all languages information (languages, versions, translations, chunks)
+    var firebaseRef = "https://readfm.firebaseio.com/foo";  // firebase url
+    var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
+    var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
 
-    function toggleLangDown(){
-        console.log("KEYev: left");
-        language_switch(-1);
+  // language translations data
+  var targets = ["fr", "it", "es", "en"]; // languages' codes
+  var lang_names = ["French", "Italian", "Spanish", "English"]; // languages' names
+  //var lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
+  var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
 
+  /**
+  * Attach key events.
+  */
+  function register_keys(){
+    console.log("register keys");
+    $(d).bind("keydown","f2", check_translations);  // F2 key down event, Get translations of area text lines
+    $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
+    $(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
+    $(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
+    $(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
+    $(d).bind("keydown","alt+F9",toggleLangVerDown);  // Alt+F9 keys down event, Switch to previous language/version
+    $(d).bind("keydown","F9",toggleLangVerUp);  // F9 key down event, Switch to next language/version
+  }
+
+  /**
+  * Switch to previous language; this method is called on 'Alt+F8' key down event.
+  */
+  function toggleLangDown() {
+    console.log("KEY: alt+f8"); // log pressed key/s
+    switch_language(-1);  // Switch to previous language, subtract 1 from the current language
+  }
+
+  /**
+  * Switch to next language; this method is called on 'F8' key down event.
+  */
+  function toggleLangUp() {
+    console.log("KEY: f8"); // log pressed key/s
+    switch_language(1); // Switch to next language, add 1 to the current language
+  }
+
+  /**
+  * Switch to previous version of the current language; this method is called on 'Alt+F7' key down event.
+  */
+  function toggleVerDown() {
+    console.log("KEY: alt+f7"); // log pressed key/s
+    // Switch to previous version, subtract 1 from the current version
+    if(!switch_version(-1)) { // no previous version found
+      display_error("No more versions");  // Display error, no more versions
     }
+  }
 
-    function toggleLangUp(){
-        console.log("KEYev: right");
-        language_switch(1);
+  /**
+  * Switch to next version of the current language; this method is called on 'F7' key down event.
+  */
+  function toggleVerUp() {
+    console.log("KEY: f7"); // log pressed key/s
+    // Switch to next version, add 1 to the current version
+    if(!switch_version(1)) {  // no next version found
+      display_error("No more versions");  // Display error, no more versions
     }
+  }
 
-    function toggleVerDown(){
-        console.log("KEYev: up");
-        if(!switch_versions(-1)) {
-          display_error("No more versions");
-        }
-    }
+  /**
+  * Switch to previous language/version of the current language/version; this method is called on 'Alt+F9' key down event.
+  * Switch to previous version of the current language; If no more versions, then switch to previous language.
+  */
+  function toggleLangVerDown() {
+    console.log("KEY: alt+f9"); // log pressed key/s
+    switch_language_version(-1);  // Switch to previous language/version, subtract 1 from the current language/version
+  }
 
-    function toggleVerUp(){
-        console.log("KEYev: down");
-        if(!switch_versions(1)) {
-          display_error("No more versions");
-        }
-    }
+  /**
+  * Switch to next language/version of the current language/version; this method is called on 'F9' key down event.
+  * Switch to next version of the current language; If no more versions, then switch to next language.
+  */
+  function toggleLangVerUp() {
+    console.log("KEY: f9"); // log pressed key/s
+    switch_language_version(1); // Switch to next language/version, add 1 to the current language/version
+  }
 
-    function toggleLangVerUp() {
-      language_version_switch(1);
+  /**
+  * Display current language name.
+  */
+  function set_language_name() {
+    var lang = toggle_data.languageName(language);  // get current language name
+    if(lang) {  // valid language
+      $('#data-bar-language').html(lang); // Display language name (French, English..)
+    } else {  // not a valid language
+      $('#data-bar-language').html('Unknown');  // Display "Unknown"
     }
-    
-    function toggleLangVerDown() {
-      language_version_switch(-1);
-    }
+  }
 
-    function register_keys(){
-        console.log("register keys")
-        $(d).bind("keydown","f2", check_translations);
-        $(d).bind("keydown","alt+F8",toggleLangDown);
-        $(d).bind("keydown","F8",toggleLangUp);
-        $(d).bind("keydown","alt+F7",toggleVerDown);
-        $(d).bind("keydown","F7",toggleVerUp);
-        $(d).bind("keydown","F9",toggleLangVerUp);
-        $(d).bind("keydown","alt+F9",toggleLangVerDown);
+  /**
+  * Display current version name.
+  */
+  function set_version_name() {
+    var ver = toggle_data.languageVersion(language, version).version; // get current version name
+    if(ver) { // valid version
+      $('#data-bar-version').html(ver); // Display version name
+    } else {  // not a valid version
+      $('#data-bar-version').html("Unknown"); // Display "Unknown"
     }
+  }
 
-    function load_data(){
-      var data =  "We're connecting ourselves with everyone else on earth,\n"+
-    "with all human knowledge, and in all kinds of languages.\n"+
-    "How can we learn each others' words?";
-        return data;
+  /**
+  * Round Switch to previous/next language (move to first version of the previous/next language)
+  * @param 'add' amount to subtract/add from/to current language
+           'ver' version of language, set only when switching both language and version (F9, Alt+F9)
+  */
+  function switch_language(add, ver) {
+    // Data before language switch, save data later into firebase(save after render new language data,so that ui is not slowed by firebase requests)
+    var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
+
+    var nl = language+add;  // new language
+    var lcount = toggle_data.languageCount(); // number of existing languages
+    if(nl < 0) {  // if current language is the first language, switch to last one
+      nl = lcount-1;  // switch to last language
+    } else if(nl >= lcount) { // if current language is the last language, switch to first one
+      nl = 0; // switch to first language
     }
+    place_twext(nl, ver); // display Text/Twext lines
+    //language = nl;  // set current language to the new one
+    //version = ver?ver:0;  // set version, default is the first version
 
-    function display_document(doc){
-        var lines = Twext.Utils.TextToLines(doc.data);
-        //var html = Twext.Output.Html(t);
-        area.render_html(lines);
-    }
+    //area.initLanguagesChunks(lcount);
+    // Render data of new language TODO
+    //var doc = toggle_data.languageVersion(language, version);
+    //display_twext(doc);
+    //set_language_name();
+    //set_version_name();
 
-    function set_language_name(){
-        var lang = toggle_data.languageName(language);
-        if(lang){
-            $('#data-bar-language').html(lang);
-        }else{
-            $('#data-bar-language').html('Unknown');
-        }
-    }
+    // Save data (text edits and chunks) before language switch into firebase
+    var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // Save data into firebase
+    toggle_data.updateVersion({lines:saved}, oldVer, oldLang);  // update old language version with the saved data (chunks)
+    //area.saveChunks(oldLang, oldVer);
+    //saveTwexts(oldText, oldLang, oldVer);
+    //place_twext();
+  }
 
-    function set_version_name(){
-        var ver = toggle_data.languageVersion(language, version).version;
-        if(ver){
-            $('#data-bar-version').html(ver);
-        }else{
-            $('#data-bar-version').html("Unknown");
-        }
-    }
+  /**
+  * Switch to previous/next version of the current language; if no version found, display error to the user.
+  * @param 'add' amount to subtract/add from/to current version
+  * @return true if version switch completed, false if no version found (display error)
+  */
+  function switch_version(add){
+    // Data before version switch, save data later into firebase(save after render new version data, so that ui is not slowed by firebase requests)
+    var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
 
-    function language_switch(add, ver){
-        var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
-        var nl = language+add;
-        var lcount = toggle_data.languageCount();
-        if(nl<0){
-            nl = lcount-1;
-        }else if(nl>=lcount){
-            nl=0;
-        }
-        version = ver?ver:0;
-        language = nl;
-        //area.initLanguagesChunks(lcount);
-        var doc = toggle_data.languageVersion(language, version);
-        display_twext(doc);
-        set_language_name();
-        set_version_name();
-        // Save previous chunks into firebase
-        var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText);
-        toggle_data.updateVersion({lines:saved}, oldVer, oldLang);
-        //area.saveChunks(oldLang, oldVer);
-        //saveTwexts(oldText, oldLang, oldVer);
-        //place_twext();
-    }
-
-    function switch_versions(add){
-      var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
-        var nv = version+add;
-        if(nv<0){
-            //display_error("No more versions");
-            return false;
-        }
-        var doc = toggle_data.languageVersion(language,nv);
-        if(doc) {
-          version = nv;
-          var verLines = doc.data.lines;
-          var sourceLines = toggle_data.source_text.split("\n").clean();
-          if(Object.size(verLines) < Object.size(sourceLines)) { // Not all lines have this version
-            var firstVerLines = toggle_data.first_version(language).data.lines;
-            for(var i=0; i<sourceLines.length; i++) {
-              if(!verLines[i]) {
-                verLines[i] = {nN: "", value: firstVerLines[i].value};
-              }
-            }
-            
-          }
-          var lines = meld_twext_lines(toggle_data.source_text, verLines);
-          area.language = language;
-          area.version = version;
-          //area.setCurrentChunks();
-          area.render_html(lines);
-          area.orgLines = toggle_data.getLines(language, version);
-          set_language_name();
-          set_version_name();console.log("switch versions");
-          // Align twexts
-          area.realign();
-          // Save previous chunks into firebase
-          var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText);
-          toggle_data.updateVersion({lines:saved}, oldVer, oldLang);
-          //area.saveChunks(oldLang, oldVer);
-          //saveTwexts(oldText, oldLang, oldVer);
-        } else {
-          return false;//display_error("No more versions");
-        }
-        return true;
-    }
-
-    function language_version_switch(add) {
-      if(!switch_versions(add)) {
-        toggle_data.language(language+add);
-        var latest = add<0?toggle_data.versionCount()-1:0;
-        language_switch(add, latest);
-      }
-    }
-
-    function display_error(msg){
-        $error = $('#data-bar-error');
-        $error.html(msg).show();
-        setTimeout(function(){
-            $error.fadeOut();
-        },400);
-    }
-
-    /**
-      Save twexts into firebase if edited by the user.
-    */
-    /*function saveTwexts(text, lang, ver) {
-      var currentTwext = "", savedTwext = "", line = "", words = null, i, j;
-      var textLines = text.split('\n');
-      var savedLines = toggle_data.getLines(lang, ver);
-      var theLanguage = lang_abrs[toggle_data.languageName(lang)];
-      var theVersion = toggle_data.versionName(ver, lang);
-      for(i=0,j=0; i<textLines.length; i=i+2,j++) {
-        currentTwext = cleanText(textLines[i+1]).replace(/\ +/g, ' '); // get the current twext, remove any extra spaces that may be put to align
-        savedTwext = savedLines[j].value;
-        if(currentTwext != savedTwext) {
-          console.log("Save twext into firebase....");
-          words = textLines[i]?getWords(textLines[i]):null;
-          line = words?$.trim(words.join('-')):null;
-          if(line) {
-            savedLines[j].value = currentTwext;
-            toggle_data.updateVersion({lines:savedLines}, ver, lang);
-            new Firebase(firebaseRef+"/"+line+"/"+theLanguage+"/"+theVersion+"/value").set(currentTwext);
+    var nv = version+add; // new version
+    var doc = toggle_data.languageVersion(language, nv);  // get version with new version number
+    if(doc) { // version found
+      version = nv; // set current version to new version
+      // version may not contain all lines, if line not found in this version, then load the first version of the line
+      var verLines = doc.data.lines;  // lines in this version
+      var sourceLines = toggle_data.source_text.split("\n").clean();  // get source text lines
+      // Compare the sizes of version lines and source text lines, if less then version doesn't contain all lines
+      if(Object.size(verLines) < Object.size(sourceLines)) { // version doesn't contain all lines
+        var firstVerLines = toggle_data.first_version(language).data.lines; // get the first version lines
+        for(var i=0; i<sourceLines.length; i++) { // loop over first version lines
+          if(!verLines[i]) {  // If line not included in current version
+            verLines[i] = {nN: "", value: firstVerLines[i].value};  // load the first version of the line, with empty chunks
           }
         }
+        
       }
-    }*/
+      display_twexts(verLines); // display Text/Twext lines
 
-    var targets = ["fr", "it", "es", "en"];
-    var lang_names = ["French", "Italian", "Spanish", "English"];
-    var lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
-    var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8");
-
-    function trim(str) {
-      str = str.replace(/^\s+|\s+$/g, "");
-      return str.replace(/^\n+|\n+$/g, "");
+      // Save data (text edits and chunks) before version switch into firebase
+      var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // save data into firebase
+      toggle_data.updateVersion({lines:saved}, oldVer, oldLang);  // update old language version with the saved data (chunks)
+      //area.saveChunks(oldLang, oldVer);
+      //saveTwexts(oldText, oldLang, oldVer);
+    } else {  // version not found, error will be displayed
+      return false;
     }
+    return true;  // version switch completed
+  }
 
-    function check_translations() {
-      //if(current_display_mode != SOURCE_MODE)
-        //return;
-      if($('.twext').length == 0){
-        var text = trim(area.area.innerText);
-        get_translations(text);
-      }    
-      area.setCaretPos(0,0);
+  /**
+  * Switch to previous/next language/version of the current language/version.
+  * Switch to previous/next version of the current language; If no more versions, then switch to previous/next language.
+  * If switch to next language, move to first version of the language; if switch to previous language, move to last version of the language.
+  * @param 'add' amount to subtract/add from/to current language/version
+  */
+  function switch_language_version(add) {
+    // Switch version
+    if(!switch_version(add)) {  // no version found to switch, then switch language
+      toggle_data.language(language+add); // set to new language
+      var latest = add<0?toggle_data.versionCount()-1:0;  // get language version number to move to
+      switch_language(add, latest); // switch language
     }
+  }
 
-    /**
-      Get firebase entry value.
-      Params: 'ref' the firebase url
-              'callback' the callback function
-    */
-    function getFirebaseEntryValue(ref, lineNum, callback) {
-      new Firebase(ref).once('value', function(dataSnapshot) {
-        callback(dataSnapshot.val(), lineNum);
+  /**
+  * Display error to the user.
+  * @param 'msg' message to be displayed
+  */
+  function display_error(msg){
+    $error = $('#data-bar-error');  // error element
+    $error.html(msg).show();  // render error message
+    setTimeout(function() { // display the error message for an exact period then hide it
+      $error.fadeOut();
+    },400);
+  }
+
+  /**
+  * Remove spaces/new lines from the start and end of string
+  * @param 'str' string to be trimmed
+  * @return trimmed string
+  */
+  function trim(str) {
+    str = str.replace(/^\s+|\s+$/g, "");  // remove spaces from start and end of the string
+    return str.replace(/^\n+|\n+$/g, ""); // remove new lines from star and end of the string, return trimmed string
+  }
+
+  /**
+  * Get and display twexts(translations) if twexts are not already displayed.
+  * Check if no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
+  */
+  function check_translations() {
+    if($('.twext').length == 0) { // no twexts are displayed
+      var text = trim(area.area.innerText); // area text to be translated
+      get_translations(text); // get translations of text from firebase of google
+    }    
+    area.setCaretPos(0,0);  // set cursor position at the start of area text
+  }
+
+  /**
+  * Get translations of text from either firebase or google translate.
+  * Retrieve all translations of all lines from firebase, then transfer the data into toggle_data object.
+  * While data transfer to toggle_data object, if any entry is null(not found in firebase), then translate text using google translate.
+  * @param 'text' text to be translated
+  */
+  function get_translations(text) {
+    var line = "", j;
+
+    // Create toggle_data object to carry all languages information (languages, versions, translations, chunks)
+    toggle_data = new Twext.ToggleData();
+    toggle_data.source_text = text; // set source text
+    toggle_data.source_lang = "en"; // set default source language, default is english
+
+    // TODO put in separate method
+    var lines = text.split("\n"); // get text lines
+    lines = lines.clean();  // remove empty lines
+    for(j=0; j<lines.length; j++) { // loop over text lines
+      line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
+      console.log(firebaseRef+"/"+line);  // log firebase url
+      // Send request to firebase to get data(translations and chunks of all languages/versions) of this line
+      getFirebaseEntryValue(firebaseRef+"/"+line, j, function(data, lineNum) {  // callback
+        firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
+        if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
+          fillTranslations(text); // load translations data retrieved to toggle_data object
+        }
       });
     }
+  }
 
-    function get_translations(text) {
-      gTranslatedText = {};
-      firebaseTranslations = [];
-      toggle_data = new Twext.ToggleData();
-      toggle_data.source_text = text;
-      toggle_data.source_lang = "en";
-      var line="";
-      var lines = text.split("\n");
-      lines = lines.clean();
-      var j;
-      for(j=0; j<lines.length; j++) {
-        line = getWords(lines[j]).join('-');  //  Firebase entry
-        console.log(firebaseRef+"/"+line);
-        getFirebaseEntryValue(firebaseRef+"/"+line, j, function(data, lineNum) {
-          firebaseTranslations[lineNum] = data;
-          if(Object.size(firebaseTranslations) == lines.length) { // All lines loaded
-            fillTranslations(text);
-          }
-        });
-      }
-    }
+  /**
+  * Send request to firebase and get required data value.
+  * @param 'ref' the firebase url (request)
+            'lineNum' line number (in area text) to be loaded from firebase
+            'callback' the callback function
+  */
+  function getFirebaseEntryValue(ref, lineNum, callback) {
+    // Send request to firebase
+    new Firebase(ref).once('value', function(dataSnapshot) {  //callback
+      callback(dataSnapshot.val(), lineNum);  // callback with data retrieved
+    });
+  }
 
-    function addVersions(versions, lineNum, lang_ix) {
-      for(var key in versions) {
-        toggle_data.addLine(lang_ix, key, lineNum, versions[key]);
-      }
-    }
+  /**
+  * Fill toggle_data object with data retrieved from firebase.
+  * If a language translation of a line is not retrieved from firebase(not found), then translate line using google translate(send request and return, continue loading(fill) operation after returning from google (request callback))
+  * @param 'text' area text lines
+           'lineIx' text line index; If set, start loading from this line index
+           'langIx' language index; If set, start loading from this language index
+  */
+  function fillTranslations(text, lineIx, langIx) {
+    var lang_ix;
+    var i = lineIx ? lineIx : 0;  // lines counter
+    var j = langIx?langIx:0; // languages counter
+    var lines = text.split("\n"); // get text lines
+    lines = lines.clean();  // remove empty lines
+    for(; i<firebaseTranslations.length; i++) {  // Loop over lines (retrieved from firebase)
+      for(; j<targets.length; j++) {  // loop over languages
+        if(firebaseTranslations[i] && firebaseTranslations[i][targets[j]]) {  // Firebase entry has been loaded
+          // add language to toggle_data object
+          lang_ix = addLanguage(lang_names[j]);
+          // Load this language data(versions, lines translations, chunks) to toggle_data object 
+          addVersions(firebaseTranslations[i][targets[j]], i, lang_ix);
+        } else {  // Firebase entry not found, load from google (translate all lines of text in one request, to save time)
+          // Check if the text has been translated to this language before(request sent in another line through the lines loop)
+          if(gTranslatedText[targets[j]]) {  // The text has been translated to this language with google before
+            // add language to toggle_data object
+            lang_ix = addLanguage(lang_names[j]);
+            // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version) 
+            var translatedLine = $.trim(gTranslatedText[targets[j]].split("\n")[i]);
+            var data = {value: translatedLine, nN: ""}; // translation data(translated line and chunks)
+            // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version)
+            toggle_data.addLine(lang_ix, "1-0", i, data);  // add this translation to toggle_data object
 
-    function fillTranslations(text, lineIx, langIx) {
-      var i = lineIx?lineIx:0, j = langIx?langIx:0, lang_ix;
-      var lines = text.split("\n");
-      lines = lines.clean();
-      for(; i<firebaseTranslations.length; i++) {  // Loop over lines
-        for(; j<targets.length; j++) {
-          if(firebaseTranslations[i] && firebaseTranslations[i][targets[j]]) {  // Firebase entry loaded
-            lang_ix = toggle_data.find_by_language_name(lang_names[j]);
-            if(lang_ix != -1) { // language added before
-              toggle_data.language(lang_ix);  // Set to current language
-            } else {
-              lang_ix = toggle_data.addLanguage(lang_names[j]);
-            }
-            addVersions(firebaseTranslations[i][targets[j]], i, lang_ix);
-          } else {  // Entry not found in firebase, load from google
-            if(gTranslatedText[targets[j]]) {  // The text is translated with google before
-              lang_ix = toggle_data.find_by_language_name(lang_names[j]);
-              if(lang_ix != -1) { // language added before
-                toggle_data.language(lang_ix);  // Set to current language
-              } else {
-                lang_ix = toggle_data.addLanguage(lang_names[j]);
-              }
-              var translatedLine = $.trim(gTranslatedText[targets[j]].split("\n")[i]);
-              toggle_data.addLine(lang_ix, "1-0", i, {value: translatedLine, nN: ""});
-
-              // Save text/translation into firebase db
-              var line = $.trim(getWords(lines[i]).join('-'));
-              new Firebase(firebaseRef+"/"+line+"/"+targets[j]+"/1-0").set({"nN":"", "value":translatedLine});
-            } else {  // First google translate request
-              translate_html(text, targets[j], lang_names[j], targets.length, trans, i, j); // translate the whole text, faster than translate each line
-              return;
-            }
+            // Save data into firebase db
+            var line = $.trim(getStrWords(lines[i]).join('-')); // construct Firebase entry (line words separated by -)
+            new Firebase(firebaseRef+"/"+line+"/"+targets[j]+"/1-0").set(data); // save data request
+          } else {  // text not translated before, send request to google translate api for text translation (all lines in one request)
+            // translate the whole text to this language (translation will be saved in gTranslatedText object for later use in next text lines)
+            translate_html(text, targets[j], lang_names[j], trans, i, j);
+            return; // return, translate request callback will call this method(to continue load after text is translated)
           }
         }
-        j = 0;
       }
-      var first_lang = toggle_data.source_lang=="en"?"Spanish":"English";
-      var lang = toggle_data.find_by_language_name(first_lang);
-      version = 0;
-      language = lang;
-      area.loadChunks(toggle_data.data.languages);
-      place_twext();
+      j = 0; // reset languages counter for next line
     }
+    // Display Text/Twext lines
+    var first_lang = toggle_data.source_lang=="en"?"Spanish":"English"; // get initial language (first to display)
+    var lang = toggle_data.find_by_language_name(first_lang); // get language number to be displayed
+    area.loadChunks(toggle_data.data.languages);  // load retrieved chunks into lang_chunks object in area
+    place_twext(lang, 0); // Twexts display
+  }
 
-    function translate_html(text_source, target_lang, target_name, total_langs, translator, lineIx, langIx){ 
-      translator.translateWithFormat(text_source, null, target_lang, function(data){
-            if(data.data && data.data.translations){
-                var translated_text = data.data.translations[0].translatedText;
-                var source_lang = data.data.translations[0].detectedSourceLanguage;
-                toggle_data.source_lang = source_lang;
-                var lang_ix = toggle_data.find_by_language_name(target_name);
-                if(lang_ix != -1) { // language added before
-                  toggle_data.language(lang_ix);  // Set to current language
-                } else {
-                  lang_ix = toggle_data.addLanguage(target_name);
-                }
-                var translatedLine = $.trim(translated_text.split("\n")[lineIx]);
-                toggle_data.addLine(lang_ix, "1-0", lineIx, {nN:"", value:translatedLine});
-                gTranslatedText[target_lang] = translated_text;
-                fillTranslations(text_source, lineIx, langIx);
-
-                // Save text/translation into firebase db
-                var lines = text_source.split("\n");
-                lines = lines.clean();
-                var line = $.trim(getWords(lines[lineIx]).join('-'));
-                new Firebase(firebaseRef+"/"+line+"/"+target_lang+"/1-0").set({nN:"", value:translatedLine});
-            }
-        },function(){
-            console.log("error: " + target_lang + " " + lang_name);
-        });
+  /**
+  * Add all versions/data to toggle_data object.
+  * @param 'versions' versions(contains translation lines and chunks) to be added
+           'lineNum' the line number in which the data will be loaded
+           'lang_ix' the language index in which the data will be loaded
+  */
+  function addVersions(versions, lineNum, lang_ix) {
+    for(var key in versions) {  // loop over versions
+      // add line/data (translated text and chunks) to toggle_data object(add version too if not already exist)
+      toggle_data.addLine(lang_ix, key, lineNum, versions[key]);
     }
+  }
 
-    function place_twext(){
-      //if(new_lang != undefined){
-        //save_current_lang();
-        //language = new_lang;
-      //}
-      var doc = toggle_data.first_version(language);
-      display_twext(doc);
-      //current_display_mode = TWEXT_MODE;
-      set_language_name();
-      set_version_name();
-    }
+  /**
+  * Translate text to the sepcified language.
+  * @param 'text_source' the text to be transalted
+           'target_lang' the target language code (en, fr, it, es...)
+           'target_name' the target language name (english, french, italian, spanish...)
+           'translator' translate object used for sending request to google translate api
+           'lineIx' line index where translation request is sent(in fillTranslations), used to call fillTranslations() and continue from this line
+           'langIx' language where translation request is sent(in fillTranslations),used to call fillTranslations() and continue from this language
+  */
+  function translate_html(text_source, target_lang, target_name, translator, lineIx, langIx) {
+    // Use translator to send google translate request for text translation
+    translator.translateWithFormat(text_source, null, target_lang, function(data) { // callback
+      if(data.data && data.data.translations) { // If translation data retrieved
+        var translated_text = data.data.translations[0].translatedText; // translated text
+        var source_lang = data.data.translations[0].detectedSourceLanguage; // detected source language
+        toggle_data.source_lang = source_lang;   // set source language in toggle_data object to the detected one
 
-    function display_twext(doc) {
-      var lines = meld_twext_lines(toggle_data.source_text, doc.data.lines);
-      //area.enable_twext();
-      //area.enable_scooching();
-      $("#main").show();
-      area.language = language;
-      area.version = version;
-      //area.setCurrentChunks();
-      area.render_html(lines);
-      area.orgLines = toggle_data.getLines(language, version);console.log("display twexts")
-      // Align twexts
-      area.realign();
-    }
+        // Add this language to toggle_data object
+        var lang_ix = addLanguage(target_name);
+        // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version) 
+        var translatedLine = $.trim(translated_text.split("\n")[lineIx]);
+        var data = {nN:"", value:translatedLine}; // translation data(translated line and chunks)
+        toggle_data.addLine(lang_ix, "1-0", lineIx, data); // add translation data of line to toggle_data object
 
-    function meld_twext_lines(main, lang){
-      var nl = /\n/g, main = main.split(nl);
-      var l = main.length, i = 0, j=0, text_lines = [];
-      for(; i<l ; i++,j++){
-          if(main[i].length > 0 || (lang[j] && lang[j].value.length > 0)) {
-            text_lines.push(main[i]);
-            text_lines.push(lang[j].value);
-          } else {
-            text_lines.push(null);
-            j--;
-          }
+        // Add this language translation to gTranslatedText object for later use in rest of text lines(so that the text is retranslated)
+        gTranslatedText[target_lang] = translated_text;
+        // Continue translations data loading into toggle_data object, fillTranslations with start lineIx and langIx
+        fillTranslations(text_source, lineIx, langIx);
+
+        // Save text translation data into firebase db
+        var lines = text_source.split("\n");  // get text lines
+        lines = lines.clean();  // remove empty lines
+        var line = $.trim(getStrWords(lines[lineIx]).join('-'));  // construct Firebase entry (line words separated by -)
+        new Firebase(firebaseRef+"/"+line+"/"+target_lang+"/1-0").set(data);
       }
-      return text_lines;
+    }, function() { // error callback
+      console.log("error: " + target_lang + " " + target_name); // log error
+    });
+  }
+
+  /**
+  * Add language to toggle_data object; If language is already added, then set it to the current language and return its index.
+  * @param 'target_name' the langauge name to be added
+  * @return index of added language
+  */
+  function addLanguage(target_name) {
+    // Add language to toggle_data object
+    var lang_ix = toggle_data.find_by_language_name(target_name); // get language from toggle_data object
+    // check if this language has been loaded to toggle_data before
+    if(lang_ix != -1) { // language found, language already added
+      toggle_data.language(lang_ix);  // Set current language to this language
+    } else {  // language not found, add it to toggle_data object
+      lang_ix = toggle_data.addLanguage(target_name); // add language
     }
+    return lang_ix; // return index of added language
+  }
 
-    function init(){
-        register_keys();
-        area = new ScoochArea( this.getElementById('data-show') );
+  /**
+  * Display Text/Twext lines (text/translation) and align each pair.
+  * Get the language version, get Text/Twext lines, align and render lines, set langauge and version display names.
+  * @param 'lang' the language to be dispalyed
+           'ver' the language version to be displayed
+  */
+  function place_twext(lang, ver) {
+    language = lang;
+    version = ver?ver:0;
+    var doc = toggle_data.languageVersion(language, version);
+    display_twext(doc.data.lines);
+  }
 
-        var data = load_data();
-        console.log(data);
-        get_translations(data)
-        //doc = data.languageVersion(language,version);
-        //display_document(doc);
-        //set_language_name();
-        //setTimeout(set_version_name,200);
+  /**
+  * Display Text/Twext lines (text/translation) and align each pair.
+  * Get Text/Twext lines, align and render lines, set langauge and version display names.
+  * @param 'lines' translations (twexts) to be displayed
+  */
+  function display_twext(lines) {
+    var lines = meld_twext_lines(toggle_data.source_text, lines); // Get Text/Twext lines
+    $("#main").show();  // show the input area
+    renderLines(lines); // render Text/Twext lines
+    set_language_name();  // display language name
+    set_version_name(); // display version name
+    /*area.language = language;
+    area.version = version;
+    //area.setCurrentChunks();
+    area.render_html(lines);
+    area.orgLines = toggle_data.getLines(language, version);console.log("display twexts")
+    // Align twexts
+    area.realign();*/
+  }
+
+  /**
+  * Get Text/Twext lines.
+  * @param 'main' source text
+           'lang' transalted lines
+  * @return Text/Twext lines
+  */
+  function meld_twext_lines(main, lang) {
+    var i = 0, j = 0, text_lines = [];
+    var nl = /\n/g; // new line regular expression, used for text split
+    var main = main.split(nl);  // get source text lines
+    var l = main.length;  // source text lines length
+    for(; i<l ; i++,j++) {  // loop over source text lines
+      if(main[i].length > 0 || (lang[j] && lang[j].value.length > 0)) { // Text line has value and has been translated
+        text_lines.push(main[i]); // add Text line
+        text_lines.push(lang[j].value); // add Twext line
+      } else {  // Text line has no value or not translated
+        text_lines.push(null);  // add null
+        j--;  // return to current translated text to recompare with next Text line
+      }
     }
+    return text_lines;  // return Text/Twext lines
+  }
 
-    console.log("Init");
-    $(init);
+  /**
+  * Render Text/Twext lines (text/translation) and align each pair.
+  * Align and render lines, set langauge and version display names.
+  * @param 'lines' Text/Twext lines to be displayed
+  */
+  function renderLines(lines) {
+    area.language = language; // set current language in the area
+    area.version = version; // set current version in the area
+    area.render_html(lines);  // render the lines
+    area.orgLines = toggle_data.getLines(language, version);  // set current displayed lines in the area
+    area.realign(); // align Text/Twext lines
+  }
 
-    /** OK EXTRA GOOGLE TRANSLATE STUFF HERE **/
+  /**
+  * Load some initial text into the input area.
+  */
+  function load_data() {
+    // Initiate some sample data
+    var data =  "We're connecting ourselves with everyone else on earth,\n"+
+                "with all human knowledge, and in all kinds of languages.\n"+
+                "How can we learn each others' words?";
+    return data;  // return data, for display on input area
+  }
 
-    function trans_(targetname,target){
-        var data = $useForTrans;
-        var source = 'en';
-        var trans = new Twext.Translation("AIzaSyBJS-lM8aiUARre-cZwUXyVHdCJ_TXv4Gs");
-        trans.translateWithFormat(data,source,target,function(data){
-            if(data.data && data.data.translations){
-                data = data.data;
-                var l = sampleData.addLanguage(targetname);
-                var v = sampleData.addVersion('1.0',meldLines($useForTrans,data.translations[0].translatedText));
-                version = 0;
-                language = l;
-                var doc = sampleData.languageVersion(language,version);
-                console.log(doc);
-                display_document(doc);
-                set_language_name();
-                set_version_name();
-            }
-        },function(){
-            alert("error");
-        })
-    }
+  /**
+  * Init display; Register keys events, Load initial(sample) data and get its translations, render Text/Twext lines
+  */
+  function init(){
+    register_keys();  // Attach keys events
+    area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
+    var data = load_data(); // load sample text
+    get_translations(data); // get sample text translations and render Text/Twext lines
+    //doc = data.languageVersion(language,version);
+    //display_document(doc);
+    //set_language_name();
+    //setTimeout(set_version_name,200);
+  }
 
-    function trans_init(){
-        var $tswedish = $('#tswedish');
-        var $tczech = $('#tczech');
-        var $tjapanese = $('#tjapanese');
-        var $tkorean = $('#tkorean');
-        $tswedish.click(function(){trans_("Swedish","sv");});
-        $tczech.click(function(){trans_("Czech","cs");});
-        $tjapanese.click(function(){trans_("Japanese","ja");});
-        $tkorean.click(function(){trans_("Korean","ko");});
-    }
-
-    $(trans_init);
+  // Init sample data display
+  console.log("Init");  // log start init operation
+  $(init);
 
 }(document);
 
+/*function display_document(doc){
+    var lines = Twext.Utils.TextToLines(doc.data);
+    //var html = Twext.Output.Html(t);
+    area.render_html(lines);
+  }*/
 
+  /** OK EXTRA GOOGLE TRANSLATE STUFF HERE **/
+  /*function trans_(targetname,target){
+      var data = $useForTrans;
+      var source = 'en';
+      var trans = new Twext.Translation("AIzaSyBJS-lM8aiUARre-cZwUXyVHdCJ_TXv4Gs");
+      trans.translateWithFormat(data,source,target,function(data){
+          if(data.data && data.data.translations){
+              data = data.data;
+              var l = sampleData.addLanguage(targetname);
+              var v = sampleData.addVersion('1.0',meldLines($useForTrans,data.translations[0].translatedText));
+              version = 0;
+              language = l;
+              var doc = sampleData.languageVersion(language,version);
+              console.log(doc);
+              display_document(doc);
+              set_language_name();
+              set_version_name();
+          }
+      },function(){
+          alert("error");
+      })
+  }*/
+
+  /*function trans_init(){
+      var $tswedish = $('#tswedish');
+      var $tczech = $('#tczech');
+      var $tjapanese = $('#tjapanese');
+      var $tkorean = $('#tkorean');
+      $tswedish.click(function(){trans_("Swedish","sv");});
+      $tczech.click(function(){trans_("Czech","cs");});
+      $tjapanese.click(function(){trans_("Japanese","ja");});
+      $tkorean.click(function(){trans_("Korean","ko");});
+  }*/
+
+  //$(trans_init);
+/**
+  Save twexts into firebase if edited by the user.
+*/
+/*function saveTwexts(text, lang, ver) {
+  var currentTwext = "", savedTwext = "", line = "", words = null, i, j;
+  var textLines = text.split('\n');
+  var savedLines = toggle_data.getLines(lang, ver);
+  var theLanguage = lang_abrs[toggle_data.languageName(lang)];
+  var theVersion = toggle_data.versionName(ver, lang);
+  for(i=0,j=0; i<textLines.length; i=i+2,j++) {
+    currentTwext = cleanText(textLines[i+1]).replace(/\ +/g, ' '); // get the current twext, remove any extra spaces that may be put to align
+    savedTwext = savedLines[j].value;
+    if(currentTwext != savedTwext) {
+      console.log("Save twext into firebase....");
+      words = textLines[i]?getWords(textLines[i]):null;
+      line = words?$.trim(words.join('-')):null;
+      if(line) {
+        savedLines[j].value = currentTwext;
+        toggle_data.updateVersion({lines:savedLines}, ver, lang);
+        new Firebase(firebaseRef+"/"+line+"/"+theLanguage+"/"+theVersion+"/value").set(currentTwext);
+      }
+    }
+  }
+}*/
