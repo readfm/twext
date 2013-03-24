@@ -141,7 +141,7 @@
 
     // Save data (text edits and chunks) before language switch into firebase
     var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // Save data into firebase
-    toggle_data.updateVersion({lines:saved}, oldVer, oldLang);  // update old language version with the saved data (chunks)
+    toggle_data.updateVersion(saved, oldVer, oldLang);  // update old language version with the saved data (chunks)
     //area.saveChunks(oldLang, oldVer);
     //saveTwexts(oldText, oldLang, oldVer);
     //place_twext();
@@ -161,11 +161,11 @@
     if(doc) { // version found
       version = nv; // set current version to new version
       // version may not contain all lines, if line not found in this version, then load the first version of the line
-      var verLines = doc.data.lines;  // lines in this version
+      var verLines = doc.lines;  // lines in this version
       var sourceLines = toggle_data.source_text.split("\n").clean();  // get source text lines
       // Compare the sizes of version lines and source text lines, if less then version doesn't contain all lines
       if(Object.size(verLines) < Object.size(sourceLines)) { // version doesn't contain all lines
-        var firstVerLines = toggle_data.first_version(language).data.lines; // get the first version lines
+        var firstVerLines = toggle_data.first_version(language).lines; // get the first version lines
         for(var i=0; i<sourceLines.length; i++) { // loop over first version lines
           if(!verLines[i]) {  // If line not included in current version
             verLines[i] = {nN: "", value: firstVerLines[i].value};  // load the first version of the line, with empty chunks
@@ -177,7 +177,7 @@
 
       // Save data (text edits and chunks) before version switch into firebase
       var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // save data into firebase
-      toggle_data.updateVersion({lines:saved}, oldVer, oldLang);  // update old language version with the saved data (chunks)
+      toggle_data.updateVersion(saved, oldVer, oldLang);  // update old language version with the saved data (chunks)
       //area.saveChunks(oldLang, oldVer);
       //saveTwexts(oldText, oldLang, oldVer);
     } else {  // version not found, error will be displayed
@@ -256,7 +256,7 @@
       line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
       console.log(firebaseRef+"/"+line);  // log firebase url
       // Send request to firebase to get data(translations and chunks of all languages/versions) of this line
-      getFirebaseEntryValue(firebaseRef+"/"+line, j, function(data, lineNum) {  // callback
+      getFirebaseEntryValue(firebaseRef+"/"+line, j*2, function(data, lineNum) {  // callback
         firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
         if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
           fillTranslations(text); // load translations data retrieved to toggle_data object
@@ -291,7 +291,7 @@
     var j = langIx?langIx:0; // languages counter
     var lines = text.split("\n"); // get text lines
     lines = lines.clean();  // remove empty lines
-    for(; i<firebaseTranslations.length; i++) {  // Loop over lines (retrieved from firebase)
+    for(; i<firebaseTranslations.length; i=i+2) {  // Loop over lines (retrieved from firebase)
       for(; j<targets.length; j++) {  // loop over languages
         if(firebaseTranslations[i] && firebaseTranslations[i][targets[j]]) {  // Firebase entry has been loaded
           // add language to toggle_data object
@@ -408,7 +408,7 @@
     language = lang;
     version = ver?ver:0;
     var doc = toggle_data.languageVersion(language, version);
-    display_twext(doc.data.lines);
+    display_twext(doc.lines);
   }
 
   /**
@@ -442,13 +442,13 @@
     var nl = /\n/g; // new line regular expression, used for text split
     var main = main.split(nl);  // get source text lines
     var l = main.length;  // source text lines length
-    for(; i<l ; i++,j++) {  // loop over source text lines
+    for(; i<l ; i++, j=j+2) {  // loop over source text lines
       if(main[i].length > 0 || (lang[j] && lang[j].value.length > 0)) { // Text line has value and has been translated
         text_lines.push(main[i]); // add Text line
         text_lines.push(lang[j].value); // add Twext line
       } else {  // Text line has no value or not translated
         text_lines.push(null);  // add null
-        j--;  // return to current translated text to recompare with next Text line
+        j = j-2;  // return to current translated text to recompare with next Text line
       }
     }
     return text_lines;  // return Text/Twext lines

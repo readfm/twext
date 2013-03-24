@@ -107,14 +107,13 @@ window.ScoochArea = Class.$extend({
           this.lang_chunks[i].versions[j] = {version: languages[i].versions[j].version, lines:[]};
         }
         //this.versions[j] = languages[i].versions[j].version;
-        // TODO edit counter to match data.lines when edit the index in toggle file
-        for(k=0; k<languages[i].versions[j].data.lines.length; k++) { // loop over lines
-          if(!this.lang_chunks[i].versions[j].lines[k*2]) { // if this line is not yet loaded
-            this.lang_chunks[i].versions[j].lines[k*2] = {chunksChanged: false, chunks:{}};
+        for(k=0; k<languages[i].versions[j].lines.length; k=k+2) { // loop over lines
+          if(!this.lang_chunks[i].versions[j].lines[k]) { // if this line is not yet loaded
+            this.lang_chunks[i].versions[j].lines[k] = {chunksChanged: false, chunks:{}};
           }
-          if(languages[i].versions[j].data.lines[k]) {  // if there are chunks for this line
+          if(languages[i].versions[j].lines[k]) {  // if there are chunks for this line
             // get chunks in the form of key/value object and set it to the line chunks; k*2 represents the Text line number
-            this.lang_chunks[i].versions[j].lines[k*2].chunks = this.getChunks(languages[i].versions[j].data.lines[k].chunks.toArray(' '));
+            this.lang_chunks[i].versions[j].lines[k].chunks = this.getChunks(languages[i].versions[j].lines[k].chunks.toArray(' '));
           }
         }
       }
@@ -141,12 +140,12 @@ window.ScoochArea = Class.$extend({
   * Save chunks and edits of lines into firebase.
   * @param 'lang' the language number
             'ver' the version number
-            'orgLines' the unchanged text lines (original text); 
-            'text' the changed text to be saved (won't be saved if not changed)
+            'orgLines' the unchanged text lines (array contains Twexts, index = Text line number); 
+            'text' the changed text(Text/Twext lines array) to be saved (won't be saved if not changed)
   * @return 'orgLines' after update
   */
   saveData: function(lang, ver, orgLines, changedText) {
-    var i, j, saveTwexts = false, saveChunks = false, words = null, line = "", changedTwext = "", orgTwext = "", nNString = "";
+    var i, saveTwexts = false, saveChunks = false, words = null, line = "", changedTwext = "", orgTwext = "", nNString = "";
 
     changedText = cleanText(changedText); // clean text from html characters
     var changedLines = changedText.split('\n'); // get changed text lines
@@ -155,15 +154,14 @@ window.ScoochArea = Class.$extend({
     // Get the version name
     var theVersion = this.lang_chunks[lang].versions[ver].version;  // the version name, eg: 1-0, 2-0,...
     var chunksLines = this.lang_chunks[lang].versions[ver].lines;
-    // TODO edit counter j to match data.lines when edit the index in toggle file
-    for(i=0,j=0; i<changedLines.length; i=i+2,j++) { //i is counter for changedLines(Text line:0,2,..), j is counter for orgLines(Text line:0,1,2..)
+    for(i=0; i<changedLines.length; i=i+2) { //i is counter for lines (i=Text line number)
       // Prepare to save twexts
       changedTwext = changedLines[i+1].replace(/\ +/g, ' '); // get the Twext value, remove any extra spaces that may be added for alignment
-      orgTwext = orgLines[j].value; // original twext (value before changing)
+      orgTwext = orgLines[i].value; // original twext (value before changing)
       if(changedTwext != orgTwext) {  // twext has been changed
         console.log("Save twext into firebase....");
         saveTwexts = true;  // save this twext
-        orgLines[j].value = changedTwext; // update the orgLines with the new Twext value
+        orgLines[i].value = changedTwext; // update the orgLines with the new Twext value
       } else {  // Twext not changed
         saveTwexts = false; // do not save this twext
       }
@@ -171,7 +169,7 @@ window.ScoochArea = Class.$extend({
       // Prepare to save chunks
       saveChunks = chunksLines[i].chunksChanged;  // chunks has been changed
       nNString = saveChunks?this.getnN(chunksLines[i].chunks).join(' '):""; // get chunks string, eg: "1:1 2:2 3:3"
-      orgLines[j].chunks = saveChunks?nNString:orgLines[j].chunks; // update the orgLines chunks with the new chunks
+      orgLines[i].chunks = saveChunks?nNString:orgLines[i].chunks; // update the orgLines chunks with the new chunks
 
       // Get firebase entry (Text line words separated by -)
       words = changedLines[i]?getStrWords(changedLines[i]):null; // Get words of the Text line
