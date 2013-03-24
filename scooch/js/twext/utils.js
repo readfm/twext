@@ -1,10 +1,89 @@
-Twext.Utils = {};
+/**
+* Remove empty elements from the array.
+* @return the array after removing empty entries
+*/
+Array.prototype.clean = function() {
+  for (var i = 0; i < this.length; i++) { // loop over array elements
+    if (this[i] == undefined || this[i] == "") {  // if empty entry
+      this.splice(i, 1);  // remove entry
+      i--;
+    }
+  }
+  return this;  // return array after removing empty entries
+};
+
+/**
+* Get the size of an object
+* @param 'obj' the object
+* @return object size
+*/
+Object.size = function(obj) {
+  var size = 0, key;
+  for (key in obj) {  // loop over object elements
+    if (obj.hasOwnProperty(key)) size++;  // count object elements
+  }
+  return size;  // return object size
+};
+
+/**
+* Convert string to array; split array with the specified separator
+* @param 'sep' string separator
+* @return array of substrings that were separated by sep in the string
+*/
+String.prototype.toArray = function(sep) {
+  if(this == "") return new Array();  // return empty array if the string is empty
+  return this.split(sep); // return array of substrings that were separated by sep in the string
+};
+
+/**
+* Remove any html characters form text.
+* @param 'text' text to be cleaned
+* @return cleaned text
+*/
+function cleanText(text) {
+  var re, str = "", i;
+  var spaces = [String.fromCharCode(160), '&nbsp;'];  // html spaces
+  // construct regular expression with html spaces
+  for (i = 0; i < spaces.length; i++) { // loop over html spaces
+    str += spaces[i] + "|";
+  }
+  re = new RegExp(str.substring(0, str.length-1), 'g'); // Create regular expression html spaces
+  text = text.replace(re, ' '); // replace html spaces by text spaces
+  return text;  // return cleaned text
+}
+
+/**
+* Extract words from string.
+* @param 'str' the string
+* @return array of words of the string
+*/
+function getStrWords(str) {
+  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words(including non english characters)
+  return str.match(re);  // return array of all words of the text
+}
+
+/**
+* Count the number of spaces between the specified position and the nonspace previous caharacter.
+* @param 'str' the str
+         'pos' position where previous spaces counted
+* @return number of spaces before the pos until reach to non space character
+*/
+function countPreviousSpaces(str, pos) {
+  var spaces = 0;
+  // check the characters before the pos one at a time, break when a nonspace char is found
+  while(pos > spaces && /\s/.test(str.charAt(pos-1-spaces) ) ){
+    spaces++; // if space, increment spaces count
+  }
+  return spaces;  // return spaces
+}
+
+//Twext.Utils = {};
 
 // This is a quick fix until I rename those functions.
-trim = Twext.String.Trim;
-str_pad = Twext.String.Pad;
+//trim = Twext.String.Trim;
+//str_pad = Twext.String.Pad;
 
-function empty (v) {
+/*function empty (v) {
     var key;
     if (v === "" || v === 0 || v === "0" || v === null || v === false || typeof v === 'undefined') {
         return true;
@@ -19,69 +98,8 @@ function empty (v) {
         return true;
     }
     return false;
-}
-
-/**
-  Remove empty elements from the array.
-*/
-Array.prototype.clean = function() {
-  for (var i = 0; i < this.length; i++) {
-    if (this[i] == undefined || this[i] == "") {         
-      this.splice(i, 1);
-      i--;
-    }
-  }
-  return this;
-};
-
-Object.size = function(obj) {
-  var size = 0, key;
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) size++;
-  }
-  return size;
-};
-
-String.prototype.toArray = function(sep) {
-  if(this == "") return new Array();
-  return this.split(sep);
-};
-
-/**
-  Clean text from possible html characters
-*/
-function cleanText(text) {
-  var re, str = "", i;
-  var spaces = [String.fromCharCode(160), '&nbsp;'];  // Possible html spaces
-  for (i = 0; i < spaces.length; i++) {
-    str += spaces[i] + "|";
-  }
-  re = new RegExp(str.substring(0, str.length-1), 'g'); // Create regular expression of possible html spaces
-  text = text.replace(re, ' '); // replace html spaces by text spaces
-  return text;
-}
-
-/**
-  Extract words from string.
-*/
-function getStrWords(str) {
-  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words, any non space char
-  return str.match(re);  // return array of all words in the text
-}
-
-/**
-  Count the number of spaces between the specified position and the nonspace previous caharacter.
-*/
-function countPreviousSpaces(str, pos) {
-  var spaces = 0;
-  // check the characters before the pos one at a time, break when a nonspace char is found
-  while(pos > spaces && /\s/.test(str.charAt(pos-1-spaces) ) ){
-    spaces++; // if space, increment spaces count
-  }
-  return spaces;
-}
-
-Twext.Utils.TextToLines = function(t){
+}*/
+/*Twext.Utils.TextToLines = function(t){
     var sp = /\s\s+/i;
     t = trim(t);
 
@@ -199,12 +217,12 @@ Twext.Utils.ArrayToText = function(s, text){
     }
 
     return nt.join('');
-};
+};*/
 
 /**
  * Taking from http://www.strictly-software.com/htmlencode and used with google translation
  */
-Twext.Utils.Encoder = {
+/*Twext.Utils.Encoder = {
 
     // When encoding do we convert characters into html or numerical entities
     EncodeType : "entity",  // entity OR numerical
@@ -413,5 +431,5 @@ Twext.Utils.Encoder = {
         return -1;
     }
 
-}
+}*/
 

@@ -1,19 +1,17 @@
-
-Twext.String = {};
-
+//Twext.String = {};
 
 /**
  *Trim white spaces from front and back of string
  */
-Twext.String.Trim = function (aString){
-    if(typeof aString == 'string' && aString.length > 0){
-        var	str = aString.replace(/^\s\s*/, ''),ws = /\s/,i = str.length;
-        while (ws.test(str.charAt(--i))){}
-        return str.slice(0, i + 1);
-    }else{
-        return aString;
-    }
-};
+//Twext.String.Trim = function (aString){
+  //  if(typeof aString == 'string' && aString.length > 0){
+    //    var	str = aString.replace(/^\s\s*/, ''),ws = /\s/,i = str.length;
+      //  while (ws.test(str.charAt(--i))){}
+      //  return str.slice(0, i + 1);
+    //}else{
+      //  return aString;
+    //}
+//};
 
 /**
  * Custom string replace function the works like PHP str_replace.
@@ -23,7 +21,7 @@ Twext.String.Trim = function (aString){
  * @param {integer} count
  * @return {string}
  */
-Twext.String.Replace = function (search, replace, subject) {
+/*Twext.String.Replace = function (search, replace, subject) {
     var s = subject;
     var f = [].concat(search);
     var r = [].concat(replace);
@@ -36,7 +34,7 @@ Twext.String.Replace = function (search, replace, subject) {
     }
 
     return s;
-};
+};*/
 
 /**
  * Pads a string
@@ -46,7 +44,7 @@ Twext.String.Replace = function (search, replace, subject) {
  * @param {string} pad_type
  * @return {string}
  */
-Twext.String.Pad = function( input, pad_length, pad_string, pad_type ) {
+/*Twext.String.Pad = function( input, pad_length, pad_string, pad_type ) {
     var half = '', pad_to_go;
     var str_pad_repeater = function(s, len) {
         var collect = '', i;
@@ -66,15 +64,15 @@ Twext.String.Pad = function( input, pad_length, pad_string, pad_type ) {
         }
     }
     return input;
-};
+};*/
 
-Twext.String.ConvertUrlsToLinks = function(text){
+/*Twext.String.ConvertUrlsToLinks = function(text){
     if( !text || typeof text != 'string') return text;
     text = result=text.replace(/(http\:\/\/[\w\.\#\-\?\!\&\=]+)/g,'<a href="$1" target="_blank" >$1</a>');
     return text;
-};
+};*/
 
-Twext.String.NewLines2BR = function(str, is_xhtml) {
+/*Twext.String.NewLines2BR = function(str, is_xhtml) {
     // *     example 1: nl2br('Kevin\nvan\nZonneveld');
     // *     returns 1: 'Kevin<br />\nvan<br />\nZonneveld'
     // *     example 2: nl2br("\nOne\nTwo\n\nThree\n", false);
@@ -83,8 +81,8 @@ Twext.String.NewLines2BR = function(str, is_xhtml) {
     // *     returns 3: '<br />\nOne<br />\nTwo<br />\n<br />\nThree<br />\n'
     var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
     return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
-}
+}*/
 
-Twext.String.BR2NewLines = function(str) {
+/*Twext.String.BR2NewLines = function(str) {
     return str.replace(/<br\s*\/?>/mg,"\n");
-};
+};*/

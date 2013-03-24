@@ -1,8 +1,8 @@
-if(typeof Twext.Output != "object") Twext.Output = {};
+//if(typeof Twext.Output != "object") Twext.Output = {};
 
-window.str_replace = Twext.String.Replace;
+//window.str_replace = Twext.String.Replace;
 
-Twext.Output.Html = function(s){
+/*Twext.Output.Html = function(s){
     var tpl_box="{paras}";
     var tpl_line= "{chunks}<div class=\"line-break\"></div><div id=\"line_num{linenum}\"></div>";
     var tpl_paras= "{lines}<div class=\"para-break\"></div>";
@@ -49,4 +49,4 @@ Twext.Output.Html = function(s){
     }
 
     return str_replace('{paras}',html.join(' '),tpl_box);
-}
+}*/
