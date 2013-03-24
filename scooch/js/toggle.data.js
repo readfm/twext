@@ -256,7 +256,7 @@
       line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
       console.log(firebaseRef+"/"+line);  // log firebase url
       // Send request to firebase to get data(translations and chunks of all languages/versions) of this line
-      getFirebaseEntryValue(firebaseRef+"/"+line, j*2, function(data, lineNum) {  // callback
+      getFirebaseEntryValue(firebaseRef+"/"+line, j, function(data, lineNum) {  // callback
         firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
         if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
           fillTranslations(text); // load translations data retrieved to toggle_data object
@@ -291,13 +291,13 @@
     var j = langIx?langIx:0; // languages counter
     var lines = text.split("\n"); // get text lines
     lines = lines.clean();  // remove empty lines
-    for(; i<firebaseTranslations.length; i=i+2) {  // Loop over lines (retrieved from firebase)
+    for(; i<firebaseTranslations.length; i++) {  // Loop over lines (retrieved from firebase)
       for(; j<targets.length; j++) {  // loop over languages
         if(firebaseTranslations[i] && firebaseTranslations[i][targets[j]]) {  // Firebase entry has been loaded
           // add language to toggle_data object
           lang_ix = addLanguage(lang_names[j]);
           // Load this language data(versions, lines translations, chunks) to toggle_data object 
-          addVersions(firebaseTranslations[i][targets[j]], i, lang_ix);
+          addVersions(firebaseTranslations[i][targets[j]], i*2, lang_ix);
         } else {  // Firebase entry not found, load from google (translate all lines of text in one request, to save time)
           // Check if the text has been translated to this language before(request sent in another line through the lines loop)
           if(gTranslatedText[targets[j]]) {  // The text has been translated to this language with google before
@@ -307,7 +307,7 @@
             var translatedLine = $.trim(gTranslatedText[targets[j]].split("\n")[i]);
             var data = {value: translatedLine, nN: ""}; // translation data(translated line and chunks)
             // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version)
-            toggle_data.addLine(lang_ix, "1-0", i, data);  // add this translation to toggle_data object
+            toggle_data.addLine(lang_ix, "1-0", i*2, data);  // add this translation to toggle_data object
 
             // Save data into firebase db
             var line = $.trim(getStrWords(lines[i]).join('-')); // construct Firebase entry (line words separated by -)
@@ -352,7 +352,7 @@
   */
   function translate_html(text_source, target_lang, target_name, translator, lineIx, langIx) {
     // Use translator to send google translate request for text translation
-    translator.translateWithFormat(text_source, null, target_lang, function(data) { // callback
+    translator.translateWithFormat(text_source, target_lang, function(data) { // callback
       if(data.data && data.data.translations) { // If translation data retrieved
         var translated_text = data.data.translations[0].translatedText; // translated text
         var source_lang = data.data.translations[0].detectedSourceLanguage; // detected source language
