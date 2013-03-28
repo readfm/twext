@@ -23,7 +23,7 @@ window.ScoochArea = Class.$extend({
     this.lang_chunks = [];
     this.language = 0; // The current language number
     this.version = 0; // The current version number
-    this.lang_codes = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
+    this.lang_codes = lang_names_codes;  // key/value array contains lang name/abbreviation(eg: {"French": "fr", "Italian": "it", "Spanish": "es"})
     this.orgLines = []; // The unchanged text lines (either loaded from gtranslate or firebase)
     this.ignore_BR = false; // boolean to ignore new lines, set to true when needing to append node values into one value
 

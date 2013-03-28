@@ -12,10 +12,9 @@
     var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
     var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
 
-  // language translations data
-  var targets = ["fr", "it", "es", "en"]; // languages' codes
-  var lang_names = ["French", "Italian", "Spanish", "English"]; // languages' names
-  //var lang_abrs = {"French": "fr", "Italian": "it", "Spanish": "es", "English": "en"};  // key/value array contains lang name/abreviation
+  // language translations data. To add/delete a language, go to languages.js
+  var targets = languages.codes; // languages' codes(eg: ["fr", "it", "es", "en"])
+  var lang_names = languages.names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
   var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
 
   /**
