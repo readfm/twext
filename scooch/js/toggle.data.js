@@ -8,14 +8,15 @@
     var version = 0;  // current version
     var area = null;  // ScoochArea object to represent input element
     var toggle_data = null; // object to carry all languages information (languages, versions, translations, chunks)
-    var firebaseRef = "https://readfm.firebaseio.com/foo";  // firebase url
+    var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
     var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
     var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
 
   // language translations data. To add/delete a language, go to languages.js
   var targets = languages.codes; // languages' codes(eg: ["fr", "it", "es", "en"])
   var lang_names = languages.names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
-  var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
+  //var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
+  var trans = new Twext.Translation(); // Create translator object for text translation
 
   /**
   * Attach key events.
@@ -251,14 +252,16 @@
     toggle_data.source_text = text; // set source text
     toggle_data.source_lang = "en"; // set default source language, default is english
 
+    detectTextLanguage(text, trans); // detect the source language of the text
+
     // TODO put in separate method
     var lines = text.split("\n"); // get text lines
     lines = lines.clean();  // remove empty lines
     for(j=0; j<lines.length; j++) { // loop over text lines
       line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
-      console.log(firebaseRef+"/"+line);  // log firebase url
+      console.log(firebaseRef+"foo/"+line);  // log firebase url
       // Send request to firebase to get data(translations and chunks of all languages/versions) of this line
-      getFirebaseEntryValue(firebaseRef+"/"+line, j, function(data, lineNum) {  // callback
+      getFirebaseEntryValue(firebaseRef+"foo/"+line, j, function(data, lineNum) {  // callback
         firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
         if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
           fillTranslations(text); // load translations data retrieved to toggle_data object
@@ -313,7 +316,7 @@
 
             // Save data into firebase db
             var line = $.trim(getStrWords(lines[i]).join('-')); // construct Firebase entry (line words separated by -)
-            new Firebase(firebaseRef+"/"+line+"/"+targets[j]+"/1-0").set(data); // save data request
+            new Firebase(firebaseRef+"foo/"+line+"/"+targets[j]+"/1-0").set(data); // save data request
           } else {  // text not translated before, send request to google translate api for text translation (all lines in one request)
             // translate the whole text to this language (translation will be saved in gTranslatedText object for later use in next text lines)
             translate_html(text, targets[j], lang_names[j], trans, i, j);
@@ -348,39 +351,62 @@
   * @param 'text_source' the text to be transalted
            'target_lang' the target language code (en, fr, it, es...)
            'target_name' the target language name (english, french, italian, spanish...)
-           'translator' translate object used for sending request to google translate api
+           'translator' translate object used for sending request to Bing translate api
            'lineIx' line index where translation request is sent(in fillTranslations), used to call fillTranslations() and continue from this line
            'langIx' language where translation request is sent(in fillTranslations),used to call fillTranslations() and continue from this language
   */
   function translate_html(text_source, target_lang, target_name, translator, lineIx, langIx) {
-    // Use translator to send google translate request for text translation
-    translator.translateWithFormat(text_source, target_lang, function(data) { // callback
-      if(data.data && data.data.translations) { // If translation data retrieved
-        var translated_text = data.data.translations[0].translatedText; // translated text
-        var source_lang = data.data.translations[0].detectedSourceLanguage; // detected source language
-        toggle_data.source_lang = source_lang;   // set source language in toggle_data object to the detected one
+    // Get the access token for translation
+    new Firebase("https://readfm.firebaseio.com/AccessToken").once('value', function(dataSnapshot) {  //callback
+      translator.setAccessToken(dataSnapshot.val());  // set access token in translator
+      // Use translator to send request to Bing translate api for text translation
+      translator.translateWithFormat(text_source, target_lang, function(translated_text) { // success callback
+        if(translated_text) { // If translation data retrieved
+          //var translated_text = data; // translated text
+          //var source_lang = data.data.translations[0].detectedSourceLanguage; // detected source language
+          //toggle_data.source_lang = source_lang;   // set source language in toggle_data object to the detected one
 
-        // Add this language to toggle_data object
-        var lang_ix = addLanguage(target_name);
-        // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version) 
-        var translatedLine = $.trim(translated_text.split("\n")[lineIx]);
-        var data = {nN:"", value:translatedLine}; // translation data(translated line and chunks)
-        toggle_data.addLine(lang_ix, "1-0", lineIx, data); // add translation data of line to toggle_data object
+          // Add this language to toggle_data object
+          var lang_ix = addLanguage(target_name);
+          // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version) 
+          var translatedLine = $.trim(translated_text.split("\n")[lineIx]);console.log("Line: "+translatedLine+" ,lang: "+target_lang);
+          var data = {nN:"", value:translatedLine}; // translation data(translated line and chunks)
+          toggle_data.addLine(lang_ix, "1-0", lineIx, data); // add translation data of line to toggle_data object
 
-        // Add this language translation to gTranslatedText object for later use in rest of text lines(so that the text is retranslated)
-        gTranslatedText[target_lang] = translated_text;
-        // Continue translations data loading into toggle_data object, fillTranslations with start lineIx and langIx
-        fillTranslations(text_source, lineIx, langIx);
+          // Add this language translation to gTranslatedText object for later use in rest of text lines(so that the text is retranslated)
+          gTranslatedText[target_lang] = translated_text;
+          // Continue translations data loading into toggle_data object, fillTranslations with start lineIx and langIx
+          fillTranslations(text_source, lineIx, langIx);
 
-        // Save text translation data into firebase db
-        var lines = text_source.split("\n");  // get text lines
-        lines = lines.clean();  // remove empty lines
-        var line = $.trim(getStrWords(lines[lineIx]).join('-'));  // construct Firebase entry (line words separated by -)
-        new Firebase(firebaseRef+"/"+line+"/"+target_lang+"/1-0").set(data);
-      }
-    }, function() { // error callback
-      console.log("error: " + target_lang + " " + target_name); // log error
-    });
+          // Save text translation data into firebase db
+          var lines = text_source.split("\n");  // get text lines
+          lines = lines.clean();  // remove empty lines
+          var line = $.trim(getStrWords(lines[lineIx]).join('-'));  // construct Firebase entry (line words separated by -)
+          new Firebase(firebaseRef+"foo/"+line+"/"+target_lang+"/1-0").set(data);
+        } // end if
+      }, function(msg) {  // error callback
+        console.log("Translate Error: " + msg + "\tlanguage: " + target_name);
+      }); // end translate request
+    }); // end firebase request
+  }
+
+  /**
+  * Detect text language using Bing api.
+  * @param 'text' the text used to detect its language
+           'translator' translate object used for sending request to Bing api
+  */
+  function detectTextLanguage(text, translator) {
+    // Get the access token for bing api detect request
+    new Firebase(firebaseRef+"AccessToken").once('value', function(dataSnapshot) {  //callback
+      translator.setAccessToken(dataSnapshot.val());  // set access token in translator
+      // Use translator to send request to Bing api for text language detection
+      translator.detectTextLanguage(text, function(response) {  // success callback
+        toggle_data.source_lang = response; // set the text source language
+      }, function(msg) {  // error callback
+        toggle_data.source_lang = "en"; // set source language to English by default
+        console.log("Detect Error: " + msg);  // log error message
+      }); // end detect request
+    }); // end firebase request
   }
 
   /**
