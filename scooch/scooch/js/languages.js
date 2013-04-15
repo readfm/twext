@@ -4,8 +4,8 @@
 * To delete a langauge, you have to delete its code from 'codes' array, and its name from 'names' array.
 */
 var languages = {
-  codes: ["fr", "it", "es", "en"],  // languages codes(abbreviations)
-  names: ["French", "Italian", "Spanish", "English"]  // languages names
+  codes: ["fr", "it", "es", "en", "pt"],  // languages codes(abbreviations)
+  names: ["French", "Italian", "Spanish", "English", "Portugues"]  // languages names
 };
 
 /**

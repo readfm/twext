@@ -1,24 +1,24 @@
 
 body {
-    padding: 15px;
+    padding: 2px;
     background-color: #f5f5dc;
 }
 
 #data-show {
-    width: 1220px;
-    height: 200px;
+    width: 800px;
+    height: 800px;
     border: 2px solid gray;
-    border-radius: 7px;
+    border-radius: 2px;
     background-color: white;
-    padding: 12px;
+    padding: 48px;
     overflow: auto;
     white-space: nowrap;
-    font-family: 'Liberation Mono', 'Courier New', Courier, monospace;
+    font-family: 'liberation mono', monospace;
 }
 
 #data-bar {
     font-family: arial;
-    font-size: 14px;
+    font-size: 4px;
     padding-left: 15px;
 }
 
