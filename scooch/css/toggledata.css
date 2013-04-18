@@ -16,17 +16,32 @@ body {
     font-family: 'liberation mono', monospace;
 }
 
-#data-bar {
+#control_data-bar {
+  font-family: arial;
+  font-size: 15px;
+  padding-left: 15px;
+}
+
+#control_data-bar .controls {
+  margin-right: 1px;
+  color: blue;
+  float: left;
+}
+
+#control_data-bar .data {
+  margin-right: 5px;
+  color: grey;
+  float: left;
+}
+
+.clear {
+  clear: both;
+}
+
+/*#data-bar {
     font-family: arial;
     font-size: 4px;
     padding-left: 15px;
-}
-
-#data-bar-language {
-    margin-right: 5px;
-    text-transform: capitalize;
-    color: #333;
-    float: left;
 }
 
 #data-bar-version {
@@ -41,13 +56,9 @@ body {
     padding-left: 15px;
 }
 
-.clear {
-    clear: both;
-}
-
 #instructions{
     font: monospace;
     font-size: 10px;
     color: gray;
     padding-left: 15px;
-}
+}*/

@@ -23,13 +23,40 @@
   */
   function register_keys(){
     console.log("register keys");
-    $(d).bind("keydown","f2", check_translations);  // F2 key down event, Get translations of area text lines
-    $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
-    $(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
-    $(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
-    $(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
-    $(d).bind("keydown","alt+F9",toggleLangVerDown);  // Alt+F9 keys down event, Switch to previous language/version
-    $(d).bind("keydown","F9",toggleLangVerUp);  // F9 key down event, Switch to next language/version
+    $(d).bind("keydown","f2", showLanguageMenu);  // F2 key down event, Show languages selection menu
+    $(d).bind("keydown","f4", switchTwextState);  // F4 key down event, Turn twexts on/off
+    $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
+    //$(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
+    //$(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
+    //$(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
+    //$(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
+    //$(d).bind("keydown","alt+F9",toggleLangVerDown);  // Alt+F9 keys down event, Switch to previous language/version
+    //$(d).bind("keydown","F9",toggleLangVerUp);  // F9 key down event, Switch to next language/version
+  }
+
+  /**TODO
+  * Show language selection menu. The menu is used to select(include/exclude) languages to be displayed.
+  */
+  function showLanguageMenu() {
+  }
+
+  /**
+  * Show/Hide twexts(Turn on/off).
+  */
+  function switchTwextState() {
+    if(isTwextOn()) { // Twexts are dispalyed, hide twexts
+      removeTwexts();
+      set_twext_state(false); // set state to twext off
+    } else {  // Twexts not dispalyed, show twexts
+      place_twext(language, version);
+    }
+  }
+
+  /**
+  * Remove twexts lines.
+  */
+  function removeTwexts() {
+    $('.twext').remove();
   }
 
   /**
@@ -109,6 +136,18 @@
       $('#data-bar-version').html(ver); // Display version name
     } else {  // not a valid version
       $('#data-bar-version').html("Unknown"); // Display "Unknown"
+    }
+  }
+
+  /**
+  * Display twext current state(on/off).
+  * @param 'state' the current twext state; true if twext on, false if twext off
+  */
+  function set_twext_state(state) {
+    if(state) { // twext on
+      $('#data-bar-Twext').html("twext");
+    } else {  // twext off
+      $('#data-bar-Twext').html("text");
     }
   }
 
@@ -224,11 +263,22 @@
   }
 
   /**
-  * Get and display twexts(translations) if twexts are not already displayed.
-  * Check if no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
+  * Check if twexts are displayed.
+  * @return true if twexts are displayed, false if not
+  */
+  function isTwextOn() {
+    return $('.twext').length > 0;
+  }
+
+  /**
+  * Get and display twexts(translations) if twexts are not already displayed. If twexts already exist, toggle languages of the existing twexts.
+  * If no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
+  * If twexts are displayed, toggle languages.
   */
   function check_translations() {
-    if($('.twext').length == 0) { // no twexts are displayed
+    if(isTwextOn()) { // twexts are displayed, toggle language
+      toggleLangUp(); // toggle languages
+    } else { // no twexts are displayed, translate text
       var text = trim(area.area.innerText); // area text to be translated
       get_translations(text); // get translations of text from firebase of google
     }    
@@ -450,6 +500,7 @@
     renderLines(lines); // render Text/Twext lines
     set_language_name();  // display language name
     set_version_name(); // display version name
+    set_twext_state(true); // set state to twext on
     /*area.language = language;
     area.version = version;
     //area.setCurrentChunks();
