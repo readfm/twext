@@ -1,4 +1,24 @@
 /**
+* Sort key/value object elements by keys.
+* @return the sorted object
+*/
+Object.sortAssoc = function(obj) {
+  var i, keys = new Array(), sortedObj = {};
+  // separate the keys into an array
+  for(i in obj) {
+    keys.push(i);
+  }
+  // sort the keys
+  keys.sort();
+
+  //build the sorted object
+  for(i=0; i < keys.length; i++) {
+    sortedObj[keys[i]] = obj[keys[i]];
+  }
+  return sortedObj;
+}
+
+/**
 * Remove empty elements from the array.
 * @return the array after removing empty entries
 */

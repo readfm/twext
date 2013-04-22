@@ -38,6 +38,17 @@ body {
   clear: both;
 }
 
+#language_menu_container {
+  display: none;
+  position: fixed;
+  top: 25px;
+  left:25px;
+}
+
+#language_menu {
+  min-width: 50px;
+  min-height: 250px;
+}
 /*#data-bar {
     font-family: arial;
     font-size: 4px;

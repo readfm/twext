@@ -2,19 +2,23 @@
 * Toggle features
 */
 !function(d){
-    //var sampleData = null;
-    var document = null;
-    var language = 0; // current language
-    var version = 0;  // current version
-    var area = null;  // ScoochArea object to represent input element
-    var toggle_data = null; // object to carry all languages information (languages, versions, translations, chunks)
-    var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
-    var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
-    var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
+  //var sampleData = null;
+  var document = null;
+  var language = 0; // current language
+  var version = 0;  // current version
+  var area = null;  // ScoochArea object to represent input element
+  var toggle_data = null; // object to carry all languages information (languages, versions, translations, chunks)
+  var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
+  var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
+  var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
 
   // language translations data. To add/delete a language, go to languages.js
-  var targets = languages.codes; // languages' codes(eg: ["fr", "it", "es", "en"])
-  var lang_names = languages.names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
+  var selectedLanguages = { // selected languages in the menu, initial value is all languages.
+    targets: languages_codes, // languages' codes(eg: ["fr", "it", "es", "en"])
+    lang_names: languages_names // languages' names(eg: ["French", "Italian", "Spanish", "English"])
+  };
+  //var targets = languages_codes; // languages' codes(eg: ["fr", "it", "es", "en"])
+  //var lang_names = languages_names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
   //var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
   var trans = new Twext.Translation(); // Create translator object for text translation
 
@@ -23,7 +27,7 @@
   */
   function register_keys(){
     console.log("register keys");
-    $(d).bind("keydown","f2", showLanguageMenu);  // F2 key down event, Show languages selection menu
+    $(d).bind("keydown","f2", languageMenu);  // F2 key down event, Show/Hide languages selection menu
     $(d).bind("keydown","f4", switchTwextState);  // F4 key down event, Turn twexts on/off
     $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
     //$(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
@@ -34,10 +38,50 @@
     //$(d).bind("keydown","F9",toggleLangVerUp);  // F9 key down event, Switch to next language/version
   }
 
-  /**TODO
-  * Show language selection menu. The menu is used to select(include/exclude) languages to be displayed.
+  /**
+  * Attach events to elements.
   */
-  function showLanguageMenu() {
+  function attachEvents() {
+    // hide menu when clicked outside
+    $('body').click(function(e) {
+      //$('#language_menu_container').hide("slow", updateSelectedLanguages()); // get selected languages when hide menu
+      $('#language_menu_container').hide();
+    });
+    $('#language_menu_container').click(function(e) {
+      e.stopPropagation();
+    });
+
+    // Get selected languages when list is changed
+    $('#language_menu').change(function() {
+      updateSelectedLanguages();
+    });
+  }
+
+  /**
+  * Update the selectedLanguages object value with the updated selected options in languages menu.
+  */
+  function updateSelectedLanguages() {
+    var i, names = [], codes = [];
+    var selectedOptions = $('#language_menu')[0].selectedOptions;
+    for(i=0; i<selectedOptions.length; i++) {
+      codes.push(selectedOptions[i].value); // add language code
+      names.push(selectedOptions[i].text);  // add language name
+    }
+    selectedLanguages.targets = codes;  // update selected languages codes
+    selectedLanguages.lang_names = names; // update selected languages names
+  }
+
+  /**
+  * Show/Hide language selection menu. The menu is used to select(include/exclude) languages to be displayed.
+  */
+  function languageMenu() {
+    var element = $('#language_menu_container');
+    if(element.is(":visible")) {  // If menu opened
+      //element.hide("slow", getSelectedLanguages()); // hide menu
+      element.hide();
+    } else {  // menu closed
+      element.show(); // show menu
+    }
   }
 
   /**
@@ -69,10 +113,33 @@
 
   /**
   * Switch to next language; this method is called on 'F8' key down event.
+  * Check if text is translated to all selected languages in the menu before switch to next language(in case new language is included from the menu)
+  * If one or more language is not yet translated, then get translations of these languages first befor displaying next language translations.
   */
   function toggleLangUp() {
-    console.log("KEY: f8"); // log pressed key/s
-    switch_language(1); // Switch to next language, add 1 to the current language
+    var languages = getAddedLanguages(); // get list of new languages that not yet used to translate text.
+    if(languages) {  // one or more language translations not found, translate text to these languages and display next language
+      pull_translations(toggle_data.source_text, languages, language+1);  // translate text to these languages
+    } else {  // all selected languages translations found, switch to next language
+      switch_language(1); // Switch to next language, add 1 to the current language
+    }
+  }
+
+  /**
+  * Check if all selected languages translations included in toggle_data.
+  * @return object of languages codes and names that are not found in toggle_data object (text not translated to these languages), false if all languages already added to toggle_data
+  */
+  function getAddedLanguages() {
+    var i, lang_ix = -1, result = false;
+    var codes = [], names = [];
+    for(i=0; i<selectedLanguages.lang_names.length; i++) {  // loop over selected languages
+      lang_ix = toggle_data.find_by_language_name(selectedLanguages.lang_names[i]); // get language from toggle_data object
+      if(lang_ix == -1) { // language not found
+        names.push(selectedLanguages.lang_names[i]);  // add language name to the list
+        codes.push(selectedLanguages.targets[i]); // add language code to the list
+      }
+    }
+    return names.length > 0 ? {targets: codes, lang_names: names} : false; // return languages object, false if all languages already in toggle_data
   }
 
   /**
@@ -167,7 +234,15 @@
     } else if(nl >= lcount) { // if current language is the last language, switch to first one
       nl = 0; // switch to first language
     }
-    place_twext(nl, ver); // display Text/Twext lines
+
+    // Check if the language to switch is in the selected language list, if not then switch to the language after it.
+    var lang_name = toggle_data.language(nl).language;  // get new language name
+    if($.inArray(lang_name, selectedLanguages.lang_names) == -1) {  // if language not included in selected language list, switch to the one after
+      language = nl;
+      switch_language(1, ver); // switch to next language
+    } else {  // language included in selected languages, switch to this language
+      place_twext(nl, ver); // display Text/Twext lines
+    }
     //language = nl;  // set current language to the new one
     //version = ver?ver:0;  // set version, default is the first version
 
@@ -286,7 +361,7 @@
   }
 
   /**
-  * Get translations of text from either firebase or google translate.
+  * Get translations of text from either firebase or Bing translate api.
   * Retrieve all translations of all lines from firebase, then transfer the data into toggle_data object.
   * While data transfer to toggle_data object, if any entry is null(not found in firebase), then translate text using google translate.
   * @param 'text' text to be translated
@@ -300,12 +375,13 @@
     // Create toggle_data object to carry all languages information (languages, versions, translations, chunks)
     toggle_data = new Twext.ToggleData();
     toggle_data.source_text = text; // set source text
-    toggle_data.source_lang = "en"; // set default source language, default is english
+    //toggle_data.source_lang = "en"; // set default source language, default is english
 
-    detectTextLanguage(text, trans); // detect the source language of the text
+    //detectTextLanguage(text, trans); // detect the source language of the text
 
-    // TODO put in separate method
-    var lines = text.split("\n"); // get text lines
+    // Get firebase translations
+    pull_translations(text, selectedLanguages, 0);
+    /*var lines = text.split("\n"); // get text lines
     lines = lines.clean();  // remove empty lines
     for(j=0; j<lines.length; j++) { // loop over text lines
       line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
@@ -315,6 +391,31 @@
         firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
         if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
           fillTranslations(text); // load translations data retrieved to toggle_data object
+        }
+      });
+    }*/
+  }
+
+  /**
+  * Pull translations of text from either firebase or Bing translate api.
+  * Retrieve all translations of all lines from firebase, then transfer the data into toggle_data object.
+  * While data transfer to toggle_data object, if any entry is null(not found in firebase), then translate text using google translate.
+  * @param 'text' text to be translated
+           'langs' the languages object for the text to be translated to. The object contains two lists: codes and names
+           'firstLanguage' number of first language to be displayed
+  */
+  function pull_translations(text, langs, firstLanguage) {
+    // Get firebase translations
+    var lines = text.split("\n"); // get text lines
+    lines = lines.clean();  // remove empty lines
+    for(j=0; j<lines.length; j++) { // loop over text lines
+      line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
+      console.log(firebaseRef+"foo/"+line);  // log firebase url
+      // Send request to firebase to get data(translations and chunks of all languages/versions) of this line
+      getFirebaseEntryValue(firebaseRef+"foo/"+line, j, function(data, lineNum) {  // callback
+        firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
+        if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
+          fillTranslations(text, langs, firstLanguage); // load translations data retrieved to toggle_data object
         }
       });
     }
@@ -337,10 +438,14 @@
   * Fill toggle_data object with data retrieved from firebase.
   * If a language translation of a line is not retrieved from firebase(not found), then translate line using google translate(send request and return, continue loading(fill) operation after returning from google (request callback))
   * @param 'text' area text lines
+           'langs' the languages object for the text to be translated to. The object contains two lists: codes and names
+           'firstLanguage' number of first language to be displayed
            'lineIx' text line index; If set, start loading from this line index
            'langIx' language index; If set, start loading from this language index
   */
-  function fillTranslations(text, lineIx, langIx) {
+  function fillTranslations(text, langs, firstLanguage, lineIx, langIx) {
+    var targets = langs.targets;  // selected targets
+    var lang_names = langs.lang_names;  // selected lang names
     var lang_ix;
     var i = lineIx ? lineIx : 0;  // lines counter
     var j = langIx?langIx:0; // languages counter
@@ -369,7 +474,7 @@
             new Firebase(firebaseRef+"foo/"+line+"/"+targets[j]+"/1-0").set(data); // save data request
           } else {  // text not translated before, send request to google translate api for text translation (all lines in one request)
             // translate the whole text to this language (translation will be saved in gTranslatedText object for later use in next text lines)
-            translate_html(text, targets[j], lang_names[j], trans, i, j);
+            translate_html(text, targets[j], lang_names[j], trans, langs, firstLanguage, i, j);
             return; // return, translate request callback will call this method(to continue load after text is translated)
           }
         }
@@ -377,10 +482,10 @@
       j = 0; // reset languages counter for next line
     }
     // Display Text/Twext lines
-    var first_lang = toggle_data.source_lang=="en"?"Spanish":"English"; // get initial language (first to display)
-    var lang = toggle_data.find_by_language_name(first_lang); // get language number to be displayed
+    //var first_lang = toggle_data.source_lang=="en"?"español":"english"; // get initial language (first to display)
+    //var lang = toggle_data.find_by_language_name(firstLanguage); // get language number to be displayed
     area.loadChunks(toggle_data.data.languages);  // load retrieved chunks into lang_chunks object in area
-    place_twext(lang, 0); // Twexts display
+    place_twext(firstLanguage, 0); // Twexts display
   }
 
   /**
@@ -405,7 +510,7 @@
            'lineIx' line index where translation request is sent(in fillTranslations), used to call fillTranslations() and continue from this line
            'langIx' language where translation request is sent(in fillTranslations),used to call fillTranslations() and continue from this language
   */
-  function translate_html(text_source, target_lang, target_name, translator, lineIx, langIx) {
+  function translate_html(text_source, target_lang, target_name, translator, langs, firstLanguage, lineIx, langIx) {
     // Get the access token for translation
     new Firebase("https://readfm.firebaseio.com/AccessToken").once('value', function(dataSnapshot) {  //callback
       translator.setAccessToken(dataSnapshot.val());  // set access token in translator
@@ -426,7 +531,7 @@
           // Add this language translation to gTranslatedText object for later use in rest of text lines(so that the text is retranslated)
           gTranslatedText[target_lang] = translated_text;
           // Continue translations data loading into toggle_data object, fillTranslations with start lineIx and langIx
-          fillTranslations(text_source, lineIx, langIx);
+          fillTranslations(text_source, langs, firstLanguage, lineIx, langIx);
 
           // Save text translation data into firebase db
           var lines = text_source.split("\n");  // get text lines
@@ -445,7 +550,7 @@
   * @param 'text' the text used to detect its language
            'translator' translate object used for sending request to Bing api
   */
-  function detectTextLanguage(text, translator) {
+  /*function detectTextLanguage(text, translator) {
     // Get the access token for bing api detect request
     new Firebase(firebaseRef+"AccessToken").once('value', function(dataSnapshot) {  //callback
       translator.setAccessToken(dataSnapshot.val());  // set access token in translator
@@ -457,7 +562,7 @@
         console.log("Detect Error: " + msg);  // log error message
       }); // end detect request
     }); // end firebase request
-  }
+  }*/
 
   /**
   * Add language to toggle_data object; If language is already added, then set it to the current language and return its index.
@@ -562,6 +667,8 @@
   */
   function init(){
     register_keys();  // Attach keys events
+    loadLanguageList(); // load languages to the menu
+    attachEvents(); // attach elements events
     area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
     var data = load_data(); // load sample text
     get_translations(data); // get sample text translations and render Text/Twext lines
@@ -569,6 +676,30 @@
     //display_document(doc);
     //set_language_name();
     //setTimeout(set_version_name,200);
+  }
+
+  /**
+  * Load all languages to the select menu.
+  */
+  function loadLanguageList() {
+    var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"english":"en", ....}) sorted by keys
+    $.each(selectValues, function(key, value) {  // loop languages
+      $('#language_menu')
+         .append($("<option></option>")
+         .attr("value",value) // set the value of the option to language code
+         .text(key)); // set the text of the option to language name
+    });
+    selectAll($('#language_menu')[0]);  // select all options
+  }
+
+  /**
+  * Select all options in the select box.
+  * @param 'selectBox' the select box element
+  */
+  function selectAll(selectBox) {
+    for(var i=0; i<selectBox.options.length; i++) { // loop over options
+      selectBox.options[i].selected = true; // select option
+    } 
   }
 
   // Init sample data display

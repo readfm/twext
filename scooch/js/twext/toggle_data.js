@@ -15,7 +15,7 @@ Twext.ToggleData = Class.$extend({
       //title: "",
       languages: [] // languages array; index=language number, value= versions array
     };
-    this.source_language = null;  // text source language
+    //this.source_language = null;  // text source language
     this.source_text = null;  // source text
     this.currentLang = false; // current language
     this.currentVersion = false;  // current version
