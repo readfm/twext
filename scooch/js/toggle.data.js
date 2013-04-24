@@ -27,7 +27,6 @@
   */
   function register_keys(){
     console.log("register keys");
-    $(d).bind("keydown","f2", languageMenu);  // F2 key down event, Show/Hide languages selection menu
     $(d).bind("keydown","f4", switchTwextState);  // F4 key down event, Turn twexts on/off
     $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
     //$(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
@@ -44,8 +43,7 @@
   function attachEvents() {
     // hide menu when clicked outside
     $('body').click(function(e) {
-      //$('#language_menu_container').hide("slow", updateSelectedLanguages()); // get selected languages when hide menu
-      $('#language_menu_container').hide();
+      if($('#language_menu_container').is(":visible")) $('#language_menu_container').hide();
     });
     $('#language_menu_container').click(function(e) {
       e.stopPropagation();
@@ -54,6 +52,15 @@
     // Get selected languages when list is changed
     $('#language_menu').change(function() {
       updateSelectedLanguages();
+    });
+
+    // show/hide menu when press f2 key, hide when press esc
+    $('body').keydown(function(e) {
+      if(e.keyCode == 113) { // If F2 is pressed
+        languageMenu(); // show/hide menu
+      } else if(e.keyCode == 27) {  // If esc is pressed
+        if($('#language_menu_container').is(":visible")) $('#language_menu_container').hide();  // hide menu
+      }
     });
   }
 
@@ -77,7 +84,6 @@
   function languageMenu() {
     var element = $('#language_menu_container');
     if(element.is(":visible")) {  // If menu opened
-      //element.hide("slow", getSelectedLanguages()); // hide menu
       element.hide();
     } else {  // menu closed
       element.show(); // show menu
