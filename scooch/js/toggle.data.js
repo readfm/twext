@@ -13,9 +13,9 @@
   var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
 
   // language translations data. To add/delete a language, go to languages.js
-  var selectedLanguages = { // selected languages in the menu, initial value is all languages.
-    targets: languages_codes, // languages' codes(eg: ["fr", "it", "es", "en"])
-    lang_names: languages_names // languages' names(eg: ["French", "Italian", "Spanish", "English"])
+  var selectedLanguages = { // selected languages in the menu, initial value is the first 5 languages of the list.
+    targets: languages_codes.slice(0, 5), // the first 5 languages' codes(eg: ["fr", "it", "es", "en"])
+    lang_names: languages_names.slice(0, 5) // the first 5 languages' names(eg: ["French", "Italian", "Spanish", "English"])
   };
   //var targets = languages_codes; // languages' codes(eg: ["fr", "it", "es", "en"])
   //var lang_names = languages_names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
@@ -236,13 +236,14 @@
     }
 
     // Check if the language to switch is in the selected language list, if not then switch to the language after it.
-    var lang_name = toggle_data.language(nl).language;  // get new language name
+    /*var lang_name = toggle_data.language(nl).language;  // get new language name
     if($.inArray(lang_name, selectedLanguages.lang_names) == -1) {  // if language not included in selected language list, switch to the one after
       language = nl;
       switch_language(1, ver); // switch to next language
     } else {  // language included in selected languages, switch to this language
       place_twext(nl, ver); // display Text/Twext lines
-    }
+    }*/
+    display_language(nl, ver);
     //language = nl;  // set current language to the new one
     //version = ver?ver:0;  // set version, default is the first version
 
@@ -259,6 +260,22 @@
     //area.saveChunks(oldLang, oldVer);
     //saveTwexts(oldText, oldLang, oldVer);
     //place_twext();
+  }
+
+  /**
+  * Display twexts of the given language. If the language to display is not in the selected languages, the switch to the language after it.
+  * @param 'lang' the language to display
+           'ver' the language version to display
+  */
+  function display_language(lang, ver) {
+    // Check if the language to display is in the selected language list, if not then switch to the language after it.
+    var lang_name = toggle_data.language(lang).language;  // get language name
+    if($.inArray(lang_name, selectedLanguages.lang_names) == -1) {  // if language not included in selected language list, switch to the one after
+      language = lang;
+      switch_language(1, ver); // switch to next language
+    } else {  // language included in selected languages, switch to this language
+      place_twext(lang, ver); // display Text/Twext lines
+    }
   }
 
   /**
@@ -485,7 +502,8 @@
     //var first_lang = toggle_data.source_lang=="en"?"español":"english"; // get initial language (first to display)
     //var lang = toggle_data.find_by_language_name(firstLanguage); // get language number to be displayed
     area.loadChunks(toggle_data.data.languages);  // load retrieved chunks into lang_chunks object in area
-    place_twext(firstLanguage, 0); // Twexts display
+    display_language(firstLanguage, 0);
+    //place_twext(firstLanguage, 0); // Twexts display
   }
 
   /**
@@ -689,16 +707,19 @@
          .attr("value",value) // set the value of the option to language code
          .text(key)); // set the text of the option to language name
     });
-    selectAll($('#language_menu')[0]);  // select all options
+    select($('#language_menu')[0], selectedLanguages.targets);  // select the options included in the selectedLanguages object
   }
 
   /**
-  * Select all options in the select box.
+  * Select options in the select box that included in the given array.
   * @param 'selectBox' the select box element
+           'arr' array contains values needed to be selected
   */
-  function selectAll(selectBox) {
+  function select(selectBox, arr) {
     for(var i=0; i<selectBox.options.length; i++) { // loop over options
-      selectBox.options[i].selected = true; // select option
+      if($.inArray(selectBox.options[i].value, arr) != -1) {
+        selectBox.options[i].selected = true; // select option
+      }
     } 
   }
 
