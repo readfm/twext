@@ -386,9 +386,6 @@
   function get_translations(text) {
     var line = "", j;
 
-    // initialize objects
-    firebaseTranslations = []; // initialize firebase translations
-    gTranslatedText = []; // initialize google translations of text
     // Create toggle_data object to carry all languages information (languages, versions, translations, chunks)
     toggle_data = new Twext.ToggleData();
     toggle_data.source_text = text; // set source text
@@ -422,6 +419,10 @@
            'firstLanguage' number of first language to be displayed
   */
   function pull_translations(text, langs, firstLanguage) {
+    // initialize objects
+    firebaseTranslations = []; // initialize firebase translations
+    gTranslatedText = []; // initialize google translations of text
+
     // Get firebase translations
     var lines = text.split("\n"); // get text lines
     lines = lines.clean();  // remove empty lines
