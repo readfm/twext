@@ -3,7 +3,7 @@
 */
 !function(d){
   //var sampleData = null;
-  var document = null;
+  //var document = null;
   var language = 0; // current language
   var version = 0;  // current version
   var area = null;  // ScoochArea object to represent input element
@@ -13,10 +13,11 @@
   var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
 
   // language translations data. To add/delete a language, go to languages.js
-  var selectedLanguages = { // selected languages in the menu, initial value is the first 5 languages of the list.
+  /*var selectedLanguages = { // selected languages in the menu, initial value is the first 5 languages of the list.
     targets: languages_codes.slice(0, 5), // the first 5 languages' codes(eg: ["fr", "it", "es", "en"])
     lang_names: languages_names.slice(0, 5) // the first 5 languages' names(eg: ["French", "Italian", "Spanish", "English"])
-  };
+  };*/
+  var selectedLanguages = getUserLanguages(); // Get user prefernces from the browser, if not found then set to the first 5 languages
   //var targets = languages_codes; // languages' codes(eg: ["fr", "it", "es", "en"])
   //var lang_names = languages_names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
   //var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
@@ -49,9 +50,10 @@
       e.stopPropagation();
     });
 
-    // Get selected languages when list is changed
+    // Change event of the languages menu
     $('#language_menu').change(function() {
-      updateSelectedLanguages();
+      var selected = updateSelectedLanguages();  // Update selected languages when list is changed
+      saveLangToBrowser(selected); // Save the user languages selection to the browser
     });
 
     // show/hide menu when press f2 key, hide when press esc
@@ -65,7 +67,82 @@
   }
 
   /**
+  * Save languages codes and names into the browser.
+  * The codes and names arrays are converted into strings and saved in two different cookies in the browser.
+  * @param 'langObj' the languages object that carry codes and names
+  */
+  function saveLangToBrowser(langObj) {
+    var codesStr = langObj.targets.toString();  // put codes array in a string
+    var namesStr = langObj.lang_names.toString(); // put names array in a string
+    setCookie("twext_lang_codes", codesStr, 365);  // save languages codes to the browser for a year
+    setCookie("twext_lang_names", namesStr, 365);  // save languages names to the browser for a year
+  }
+
+  /**
+  * Get the languages list saved in the browser.
+  * If no list found, return the first 5 languages ("French", "Italian", "Spanish", "English", "Portuguese")
+  * @return languages list
+  */
+  function getUserLanguages() {
+    var list = {};
+    var codes = getCookie("twext_lang_codes"); // get lang codes
+    var names = getCookie("twext_lang_names"); // get lang names
+    if(codes != null && codes.length > 0 && names != null && names.length > 0) { // cookies are found
+      // Set the selected languages to the user languages saved in the browser.
+      list = {
+        targets: codes.split(","), // languages codes array of user preferences
+        lang_names: names.split(",") // languages names array of user preferences
+      };
+    } else {  // cookies not found, initialize list with the first 5 entries of the languages object
+      // Set the selected languages to the first 5 languages.
+      list = {
+        targets: languages_codes.slice(0, 5), // the first 5 languages' codes(["fr", "it", "es", "en", "pt"])
+        lang_names: languages_names.slice(0, 5) // the first 5 languages' names(["French", "Italian", "Spanish", "English", "Portuguese"])
+      };
+    }
+    return list;  // return languages list
+  }
+
+  /**
+  * Retrieve cookie from the browser.
+  * @param 'c_name' the cookie name to be retrieved
+  * @return the cookie value
+  */
+  function getCookie(c_name) {
+    var c_value = document.cookie;  // get the document cookie
+    var c_start = c_value.indexOf(" " + c_name + "=");  //find cookie with sepcified name "with a space before,if there are other cookies before it"
+    if (c_start == -1) {  // cookie not found
+      c_start = c_value.indexOf(c_name + "=");  // find cookie with sepcified name "without a space before,if it's the first cookie"
+    }
+    if (c_start == -1) {  // cookie not found
+      c_value = null; // value is null
+    } else {  // cookie found
+      c_start = c_value.indexOf("=", c_start) + 1;
+      var c_end = c_value.indexOf(";", c_start);
+      if (c_end == -1) {
+        c_end = c_value.length;
+      }
+      c_value = unescape(c_value.substring(c_start,c_end));
+    }
+    return c_value;
+  }
+
+  /**
+  * Set/Add cookie value in the browser.
+  * @param 'c_name' the cookie name to be set
+           'value' cookie value needed to set
+           'exdays' number of days before cookie expire
+  */
+  function setCookie(c_name, value, exdays) {
+    var exdate = new Date();
+    exdate.setDate(exdate.getDate() + exdays);
+    var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+    document.cookie = c_name + "=" + c_value;
+  }
+
+  /**
   * Update the selectedLanguages object value with the updated selected options in languages menu.
+  * @return the selected languages object after the update
   */
   function updateSelectedLanguages() {
     var i, names = [], codes = [];
@@ -76,6 +153,7 @@
     }
     selectedLanguages.targets = codes;  // update selected languages codes
     selectedLanguages.lang_names = names; // update selected languages names
+    return selectedLanguages;
   }
 
   /**
