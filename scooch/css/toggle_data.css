@@ -39,14 +39,14 @@ body {
 
 #language_menu_container {
   display: none;
-  position: fixed;
+  position: absolute;
   top: 25px;
   left:25px;
 }
 
 #language_menu {
-  min-width: 50px;
-  min-height: 417px;
+  min-width: 120px;
+  min-height: 445px;
   outline: none;
 }
 /*#data-bar {
