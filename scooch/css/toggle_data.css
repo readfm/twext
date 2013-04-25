@@ -1,24 +1,23 @@
-
 body {
-    padding: 2px;
-    background-color: #f5f5dc;
+  padding: 2px;
+  background-color: white;
 }
 
 #data-show {
-    width: 800px;
-    height: 800px;
-    border: 2px solid gray;
-    border-radius: 2px;
-    background-color: white;
-    padding: 48px;
-    overflow: auto;
-    white-space: nowrap;
-    font-family: 'liberation mono', monospace;
+  width: 800px;
+  height: 800px;
+  background-color: white;
+  padding-left: 15px;
+  padding-top: 5px;
+  overflow: auto;
+  white-space: nowrap;
+  font-family: 'liberation mono', monospace;
+  outline: none;
 }
 
 #control_data-bar {
   font-family: arial;
-  font-size: 15px;
+  font-size: 10px;
   padding-left: 15px;
 }
 
@@ -47,7 +46,8 @@ body {
 
 #language_menu {
   min-width: 50px;
-  min-height: 250px;
+  min-height: 417px;
+  outline: none;
 }
 /*#data-bar {
     font-family: arial;

@@ -218,7 +218,7 @@
   */
   function set_twext_state(state) {
     if(state) { // twext on
-      $('#data-bar-Twext').html("twext");
+      $('#data-bar-Twext').html("twxt");
     } else {  // twext off
       $('#data-bar-Twext').html("text");
     }
