@@ -97,6 +97,7 @@ window.ScoochArea = Class.$extend({
   */
   loadChunks: function(languages) {
     var i, j, k;
+    this.lang_chunks = [];  // initialize lang_chunks object to load all languages
     for(i=0; i<languages.length; i++) { // loop over languages
       if(!this.lang_chunks[i]) {  // if this language is not yet loaded
         this.lang_chunks[i] = {language: this.lang_codes[languages[i].language], versions:{}};
