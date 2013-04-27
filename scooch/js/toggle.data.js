@@ -429,6 +429,20 @@
   }
 
   /**
+  * Display "translating" msg to user while getting bing translations.
+  */
+  function display_translating() {
+    $('#translating').show();
+  }
+
+  /**
+  * Hide "translating" msg to user after getting bing translations.
+  */
+  function hide_translating() {
+    $('#translating').hide();
+  }
+
+  /**
   * Remove spaces/new lines from the start and end of string
   * @param 'str' string to be trimmed
   * @return trimmed string
@@ -506,6 +520,8 @@
     // initialize objects
     firebaseTranslations = []; // initialize firebase translations
     gTranslatedText = []; // initialize google translations of text
+
+    display_translating();  // display translating msg while get text translations
 
     // Get firebase translations
     var lines = text.split("\n"); // get text lines
@@ -588,6 +604,7 @@
     //var lang = toggle_data.find_by_language_name(firstLanguage); // get language number to be displayed
     area.loadChunks(toggle_data.data.languages);  // load retrieved chunks into lang_chunks object in area
     display_language(firstLanguage, 0);
+    hide_translating(); // hide translating msg after getting text translations
     //place_twext(firstLanguage, 0); // Twexts display
   }
 

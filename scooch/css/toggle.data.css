@@ -49,6 +49,12 @@ body {
   min-height: 445px;
   outline: none;
 }
+
+#translating {
+  color: #f47835;
+  display: none;
+  margin-left: 10px;
+}
 /*#data-bar {
     font-family: arial;
     font-size: 4px;
