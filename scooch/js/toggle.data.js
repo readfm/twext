@@ -309,7 +309,7 @@
   */
   function switch_language(add, ver) {
     // Data before language switch, save data later into firebase(save after render new language data,so that ui is not slowed by firebase requests)
-    var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
+    var oldLang = language, oldVer = version, oldText = trim(area.area.innerText), displayedLangName = $('#data-bar-language').text();;
 
     var nl = language+add;  // new language
     var lcount = toggle_data.languageCount(); // number of existing languages
@@ -339,8 +339,11 @@
     //set_version_name();
 
     // Save data (text edits and chunks) before language switch into firebase
-    var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // Save data into firebase
-    toggle_data.updateVersion(saved, oldVer, oldLang);  // update old language version with the saved data (chunks)
+    var oldLangName = toggle_data.language(oldLang).language;
+    if(displayedLangName == oldLangName) { // displayed language is the old language, then save its data
+      var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // Save data into firebase
+      toggle_data.updateVersion(saved, oldVer, oldLang);  // update old language version with the saved data (chunks)
+    }
     //area.saveChunks(oldLang, oldVer);
     //saveTwexts(oldText, oldLang, oldVer);
     //place_twext();
@@ -642,11 +645,11 @@
           //toggle_data.source_lang = source_lang;   // set source language in toggle_data object to the detected one
 
           // Add this language to toggle_data object
-          var lang_ix = addLanguage(target_name);
+          //var lang_ix = addLanguage(target_name);
           // Add translation of line to toggle_data object, with empty chunks and version 1-0(first version) 
-          var translatedLine = $.trim(translated_text.split("\n")[lineIx]);console.log("Line: "+translatedLine+" ,lang: "+target_lang);
-          var data = {nN:"", value:translatedLine}; // translation data(translated line and chunks)
-          toggle_data.addLine(lang_ix, "1-0", lineIx, data); // add translation data of line to toggle_data object
+          //var translatedLine = $.trim(translated_text.split("\n")[lineIx]);console.log("Line: "+translatedLine+" ,lang: "+target_lang);
+          //var data = {nN:"", value:translatedLine}; // translation data(translated line and chunks)
+          //toggle_data.addLine(lang_ix, "1-0", lineIx, data); // add translation data of line to toggle_data object
 
           // Add this language translation to gTranslatedText object for later use in rest of text lines(so that the text is retranslated)
           gTranslatedText[target_lang] = translated_text;
@@ -654,10 +657,10 @@
           fillTranslations(text_source, langs, firstLanguage, lineIx, langIx);
 
           // Save text translation data into firebase db
-          var lines = text_source.split("\n");  // get text lines
-          lines = lines.clean();  // remove empty lines
-          var line = $.trim(getStrWords(lines[lineIx]).join('-'));  // construct Firebase entry (line words separated by -)
-          new Firebase(firebaseRef+"foo/"+line+"/"+target_lang+"/1-0").set(data);
+          //var lines = text_source.split("\n");  // get text lines
+          //lines = lines.clean();  // remove empty lines
+          //var line = $.trim(getStrWords(lines[lineIx]).join('-'));  // construct Firebase entry (line words separated by -)
+          //new Firebase(firebaseRef+"foo/"+line+"/"+target_lang+"/1-0").set(data);
         } // end if
       }, function(msg) {  // error callback
         console.log("Translate Error: " + msg + "\tlanguage: " + target_name);
