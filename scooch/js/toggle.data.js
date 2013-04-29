@@ -779,9 +779,9 @@
   */
   function load_data() {
     // Initiate some sample data
-    var data =  "We're connecting ourselves with everyone else on earth,\n"+
-                "with all human knowledge, and in all kinds of languages.\n"+
-                "How can we learn each others' words?";
+    var data = "Twext is twin text,\n"+
+               "aligned between the lines,\n"+
+               "in any language you like.";
     return data;  // return data, for display on input area
   }
 
