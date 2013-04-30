@@ -45,8 +45,8 @@ body {
 }
 
 #language_menu {
-  min-width: 120px;
-  min-height: 445px;
+  /*min-width: 120px;*/
+  /*min-height: 445px;*/
   outline: none;
 }
 

@@ -64,6 +64,24 @@
         if($('#language_menu_container').is(":visible")) $('#language_menu_container').hide();  // hide menu
       }
     });
+
+    // resize language menu on window resize
+    $(window).resize(function(e) {
+      resizeLanguageMenu();
+    });
+  }
+
+  /**
+  * Change the menu width/height to fit with window width/height
+  */
+  function resizeLanguageMenu() {
+    var clientHeight = document.documentElement.clientHeight;
+    if(clientHeight < 450) {  // if client height is less than 450(approximate value to menu height which is 445), then reduce menu height
+      $('#language_menu').height(clientHeight-40);
+    } else {  // client height is greater than menu height, keep menu height to standard value(445)
+      $('#language_menu').height(445);
+    }
+    $('#language_menu').width(120); // keep menu width fixed
   }
 
   /**
