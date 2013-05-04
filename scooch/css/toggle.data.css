@@ -8,7 +8,7 @@ body {
   height: 800px;
   background-color: white;
   padding-left: 15px;
-  padding-top: 5px;
+  padding-top: 3px;
   overflow: auto;
   white-space: nowrap;
   font-family: 'liberation mono', monospace;
@@ -17,7 +17,7 @@ body {
 
 #control_data-bar {
   font-family: arial;
-  font-size: 10px;
+  font-size: 8px;
   padding-left: 15px;
 }
 
@@ -29,7 +29,7 @@ body {
 
 #control_data-bar .data {
   margin-right: 5px;
-  color: grey;
+  color: silver;
   float: left;
 }
 
@@ -51,7 +51,8 @@ body {
 }
 
 #translating {
-  color: #f47835;
+  /*color: #f47835;*/
+  color: orange;
   display: none;
   margin-left: 10px;
 }
