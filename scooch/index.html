@@ -47,12 +47,15 @@
 </div>
 
 <script>
+  Area_Limit = 140; // The maximum number of characters allowed to be entered in the area
   // Attach 'paste' event to document, reformat pasted text.
   document.querySelector("div[contenteditable]").addEventListener("paste", function (e) {
     e.preventDefault();
-    var text = e.clipboardData.getData("text/plain");
+    var text = e.clipboardData.getData("text/plain"); // get text to paste
     var html = textToHtml(text);
-    document.execCommand("insertHTML", false, html);
+    document.execCommand("insertHTML", false, html);  // append pasted text to element
+    text = $('#data-show')[0].innerText;  // text after paste
+    if($('.twext').length == 0 && text.length > Area_Limit) $('#data-show').html(textToHtml(text.substring(0, Area_Limit))); // drop off characters more than the limit
   });
 </script>
 </body>

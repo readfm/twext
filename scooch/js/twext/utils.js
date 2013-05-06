@@ -97,6 +97,69 @@ function countPreviousSpaces(str, pos) {
   return spaces;  // return spaces
 }
 
+/**
+* Retrieve cookie from the browser.
+* @param 'c_name' the cookie name to be retrieved
+* @return the cookie value
+*/
+function getCookie(c_name) {
+  var c_value = document.cookie;  // get the document cookie
+  var c_start = c_value.indexOf(" " + c_name + "=");  //find cookie with sepcified name "with a space before,if there are other cookies before it"
+  if (c_start == -1) {  // cookie not found
+    c_start = c_value.indexOf(c_name + "=");  // find cookie with sepcified name "without a space before,if it's the first cookie"
+  }
+  if (c_start == -1) {  // cookie not found
+    c_value = null; // value is null
+  } else {  // cookie found
+    c_start = c_value.indexOf("=", c_start) + 1;
+    var c_end = c_value.indexOf(";", c_start);
+    if (c_end == -1) {
+      c_end = c_value.length;
+    }
+    c_value = unescape(c_value.substring(c_start,c_end));
+  }
+  return c_value;
+}
+
+/**
+* Set/Add cookie value in the browser.
+* @param 'c_name' the cookie name to be set
+         'value' cookie value needed to set
+         'exdays' number of days before cookie expire
+*/
+function setCookie(c_name, value, exdays) {
+  var exdate = new Date();
+  exdate.setDate(exdate.getDate() + exdays);
+  var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+  document.cookie = c_name + "=" + c_value;
+}
+
+/**
+* Create random identifier.
+*/
+function randomId() {
+  return (((1+Math.random())*0x100000)|0).toString(36);
+}
+
+/**
+* Check if the given character code represents a typing character key.
+* @param 'code' keyboard key code
+*/
+function isTypingChar(code) {
+  if(code == 13 ||                    // enter
+     (code >= 48 && code <= 57) ||    // 0 -> 9
+     code == 59 ||                    // ;:
+     code == 61 ||                    // =+
+     (code >= 65 && code <=90) ||     // a -> z
+     (code >= 96 && code <= 107) ||   // (Num Lock) keys
+     (code >= 109 && code <= 111) ||  // (Num Lock) keys
+     code == 188 ||                   // ,<
+     (code >= 190 && code <= 192) ||  // .> /? `~
+     (code >= 219 && code <= 222))    // [{ \| ]} '"
+     return true; // is a typing character
+  return false; // not a typing character
+}
+
 //Twext.Utils = {};
 
 // This is a quick fix until I rename those functions.

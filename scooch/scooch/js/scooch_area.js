@@ -26,6 +26,7 @@ window.ScoochArea = Class.$extend({
     this.lang_codes = languages;  // key/value array contains lang name/code(eg: {"French": "fr", "Italian": "it"})
     this.orgLines = []; // The unchanged text lines (either loaded from gtranslate or firebase)
     this.ignore_BR = false; // boolean to ignore new lines, set to true when needing to append node values into one value
+    //this.limit = 10; // The maximum number of characters allowed to be entered in the area
 
     // TODO
     //this.cached_nNs = false;
@@ -43,7 +44,22 @@ window.ScoochArea = Class.$extend({
     // Attach window key events
     $(window).bind("resize", $.proxy(this.realign, this));  // window resize event
     $(window).bind("beforeunload", $.proxy(this.save, this)); // refresh/close window event
+    //$(area).keydown($.proxy(this.adjustLimit, this));  // check if exceed limit
+    $(area).keydown($.proxy(this.adjustLimit, this));
 	},
+
+  /**
+  * Ensure that the area is not over limit.
+  * Stop typing event if the number of characters reachs the limit, the key code represents a typing character and twext is off
+  * @param 'event' keydown event
+  */
+  adjustLimit: function(event) {
+    var text = this.area.innerText;
+    if($('.twext').length == 0 && isTypingChar(event.which) && !event.ctrlKey && text.length >= Area_Limit) {
+      event.stopPropagation(); // Stop the bubbling of key press event to parent elements
+      event.preventDefault(); // prevent the key press action from happening.
+    }
+  },
 
   /**
   * Realign chunks on window resize using span aligner.

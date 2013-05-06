@@ -69,6 +69,38 @@
     $(window).resize(function(e) {
       resizeLanguageMenu();
     });
+
+    // retrieve text when url hash change "when user change hash and press enter, page not reloaded(load event not called),that's why hashchange event is used"
+    $(window).bind('load hashchange', function() {
+      resizeLanguageMenu();
+      var shortcut = window.location.hash;  // get text shortcut
+      if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
+        loadTextOfURL(shortcut.slice(1)); // load text and translations from firebase
+      } else {  // no hash value in the url
+        load_sample_data(); // load sample data
+      }
+    })
+  }
+
+  /**
+  * Load Text from firebase that is referenced by the given shortcut.
+  * @param 'shortcut' the reference hash of the text
+  */
+  function loadTextOfURL(shortcut) {
+    getFirebaseEntryValue(firebaseRef+"mapping/url-text/"+shortcut, null, function(data, value) {
+      if(data) {  // if there is a mapped text with the given url
+        // init selectedLanguages to "english" and "spanish"
+        selectedLanguages.targets = ["es", "en"];
+        selectedLanguages.lang_names = ["espa\u0148ol", "english"];
+        deselectAll($('#language_menu')[0]);  // deselect all options
+        // select the options included in the selectedLanguages object
+        select($('#language_menu')[0], selectedLanguages.targets);
+        languageMenu(); // show language menu
+        get_translations(data); // get text translations
+      } else {  // no mapped text, invalid url
+        alert("The requested URL does not exist.");
+      }
+    });
   }
 
   /**
@@ -76,7 +108,7 @@
   */
   function resizeLanguageMenu() {
     var clientHeight = document.documentElement.clientHeight;
-    if(clientHeight < 450) {  // if client height is less than 450(approximate value to menu height which is 445), then reduce menu height
+    if(clientHeight < 500) {  // if client height is less than 500(approximate value near to menu height which is 445), then reduce menu height
       $('#language_menu').height(clientHeight-40);
     } else {  // client height is greater than menu height, keep menu height to standard value(445)
       $('#language_menu').height(445);
@@ -119,43 +151,6 @@
       };
     }
     return list;  // return languages list
-  }
-
-  /**
-  * Retrieve cookie from the browser.
-  * @param 'c_name' the cookie name to be retrieved
-  * @return the cookie value
-  */
-  function getCookie(c_name) {
-    var c_value = document.cookie;  // get the document cookie
-    var c_start = c_value.indexOf(" " + c_name + "=");  //find cookie with sepcified name "with a space before,if there are other cookies before it"
-    if (c_start == -1) {  // cookie not found
-      c_start = c_value.indexOf(c_name + "=");  // find cookie with sepcified name "without a space before,if it's the first cookie"
-    }
-    if (c_start == -1) {  // cookie not found
-      c_value = null; // value is null
-    } else {  // cookie found
-      c_start = c_value.indexOf("=", c_start) + 1;
-      var c_end = c_value.indexOf(";", c_start);
-      if (c_end == -1) {
-        c_end = c_value.length;
-      }
-      c_value = unescape(c_value.substring(c_start,c_end));
-    }
-    return c_value;
-  }
-
-  /**
-  * Set/Add cookie value in the browser.
-  * @param 'c_name' the cookie name to be set
-           'value' cookie value needed to set
-           'exdays' number of days before cookie expire
-  */
-  function setCookie(c_name, value, exdays) {
-    var exdate = new Date();
-    exdate.setDate(exdate.getDate() + exdays);
-    var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-    document.cookie = c_name + "=" + c_value;
   }
 
   /**
@@ -514,19 +509,6 @@
 
     // Get firebase translations
     pull_translations(text, selectedLanguages, 0);
-    /*var lines = text.split("\n"); // get text lines
-    lines = lines.clean();  // remove empty lines
-    for(j=0; j<lines.length; j++) { // loop over text lines
-      line = getStrWords(lines[j]).join('-');  // construct Firebase entry (line words separated by -)
-      console.log(firebaseRef+"foo/"+line);  // log firebase url
-      // Send request to firebase to get data(translations and chunks of all languages/versions) of this line
-      getFirebaseEntryValue(firebaseRef+"foo/"+line, j, function(data, lineNum) {  // callback
-        firebaseTranslations[lineNum] = data; // save retrieved data into firebaseTranslations object
-        if(Object.size(firebaseTranslations) == lines.length) { // All lines data are loaded (finished firebase loading)
-          fillTranslations(text); // load translations data retrieved to toggle_data object
-        }
-      });
-    }*/
   }
 
   /**
@@ -558,18 +540,73 @@
         }
       });
     }
+    generateTextShortcut(text); // create shortcut for the text to be used in the url to retrieve text
+  }
+
+  /**
+  * Generate random string as a shortcut to represent the text. This is used to retrieve the text later if requested via URL.
+  * Save this shortcut/text mapping into firebase.
+  * @param 'text' the source text
+  */
+  function generateTextShortcut(text) {
+    var textEntry = constructFbKeyFromText(text); // convert text to firebase key entry
+    getFirebaseEntryValue(firebaseRef+"mapping/text-url/"+textEntry, null, function(data, index) {
+      if(!data) { // if text not exist, generate and save shortcut
+        var id = randomId();  // create random id
+        var shortcut = id.charAt(0);  // get the first charcter
+        saveShortcut(text, id, shortcut, 0);  // save text shortcut
+      }
+    });
+  }
+
+  /**
+  * Save url-text mapping into firebase, only if text is not saved before.
+  * The url-text mappings are saved into firebase under the path: "mapping/url-text"; key is the url shortcut, value is the text
+  * The reverse mapping "text-url" is saved under the path: "mapping/text-url". This mapping is used to check duplicate text, so that same text not saved twice with different urls; text is saved as one line strings
+  */
+  function saveShortcut(text, id, shortcut, index) {
+    getFirebaseEntryValue(firebaseRef+"mapping/url-text/"+shortcut, index, function(data, index) {
+      if(!data) { // if this shortcut not used for other text
+        var textEntry = constructFbKeyFromText(text); // convert text to firebase key entry
+        new Firebase(firebaseRef+"mapping/url-text/"+shortcut).set(text); // save url-text mapping
+        new Firebase(firebaseRef+"mapping/text-url/"+textEntry).set(shortcut);  // save text-url mapping
+      } else {  // if shortcut is already in use
+        if(index == id.length-1) {  // all characters of the generated id is used, generate a new one
+          generateTextShortcut(text);
+        } else {  // some of id characters not used in the shortcut
+          index++;
+          shortcut += id.charAt(index); // append the next character of the id to the shortcut
+          saveShortcut(text, id, shortcut, index);  // repeat
+        }
+      }
+    });
+  }
+
+  /**
+  * Convert text to one line string to be a key entry in firebase.
+  * Replace new lines "\n" by two spaces, separate words by -
+  * @param 'text' the text to be converted.
+  */
+  function constructFbKeyFromText(text) {
+    var i, line, result = [];
+    var lines = text.split("\n");
+    for(i=0; i<lines.length; i++) {
+      line = getStrWords(lines[i]).join('-');
+      result.push(line);
+    }
+    return result.join('  ');
   }
 
   /**
   * Send request to firebase and get required data value.
   * @param 'ref' the firebase url (request)
-            'lineNum' line number (in area text) to be loaded from firebase
+            'callbackValue' callback value needed in the calling method
             'callback' the callback function
   */
-  function getFirebaseEntryValue(ref, lineNum, callback) {
+  function getFirebaseEntryValue(ref, callbackValue, callback) {
     // Send request to firebase
     new Firebase(ref).once('value', function(dataSnapshot) {  //callback
-      callback(dataSnapshot.val(), lineNum);  // callback with data retrieved
+      callback(dataSnapshot.val(), callbackValue);  // callback with data retrieved
     });
   }
 
@@ -793,14 +830,15 @@
   }
 
   /**
-  * Load some initial text into the input area.
+  * Load some initial sample text into the input area.
   */
-  function load_data() {
+  function load_sample_data() {
     // Initiate some sample data
     var data = "Twext is twin text,\n"+
                "aligned between the lines,\n"+
                "in any language you like.";
-    return data;  // return data, for display on input area
+    get_translations(data);
+    //return data;  // return data, for display on input area
   }
 
   /**
@@ -811,8 +849,8 @@
     loadLanguageList(); // load languages to the menu
     attachEvents(); // attach elements events
     area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
-    var data = load_data(); // load sample text
-    get_translations(data); // get sample text translations and render Text/Twext lines
+    //var data = load_data(); // load sample text
+    //get_translations(data); // get sample text translations and render Text/Twext lines
     //doc = data.languageVersion(language,version);
     //display_document(doc);
     //set_language_name();
@@ -844,6 +882,16 @@
         selectBox.options[i].selected = true; // select option
       }
     } 
+  }
+
+  /**
+  * Deselect all options in the select box.
+  * @param 'selectBox' the select box element
+  */
+  function deselectAll(selectBox) {
+    for(var i=0; i<selectBox.options.length; i++) { // loop over options
+      selectBox.options[i].selected = false; // unselect option
+    }
   }
 
   // Init sample data display
