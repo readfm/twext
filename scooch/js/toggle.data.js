@@ -524,6 +524,8 @@
     firebaseTranslations = []; // initialize firebase translations
     gTranslatedText = []; // initialize google translations of text
 
+    generateTextShortcut(text); // create shortcut for the text to be used in the url to retrieve text
+
     display_translating();  // display translating msg while get text translations
 
     // Get firebase translations
@@ -540,7 +542,6 @@
         }
       });
     }
-    generateTextShortcut(text); // create shortcut for the text to be used in the url to retrieve text
   }
 
   /**
@@ -567,6 +568,7 @@
   function saveShortcut(text, id, shortcut, index) {
     getFirebaseEntryValue(firebaseRef+"mapping/url-text/"+shortcut, index, function(data, index) {
       if(!data) { // if this shortcut not used for other text
+        window.history.pushState("", document.title, "#"+shortcut); // display new url
         var textEntry = constructFbKeyFromText(text); // convert text to firebase key entry
         new Firebase(firebaseRef+"mapping/url-text/"+shortcut).set(text); // save url-text mapping
         new Firebase(firebaseRef+"mapping/text-url/"+textEntry).set(shortcut);  // save text-url mapping
