@@ -89,13 +89,12 @@
   function loadTextOfURL(shortcut) {
     getFirebaseEntryValue(firebaseRef+"mapping/url-text/"+shortcut, null, function(data, value) {
       if(data) {  // if there is a mapped text with the given url
-        // init selectedLanguages to "english" and "spanish"
-        selectedLanguages.targets = ["es", "en"];
-        selectedLanguages.lang_names = ["espa\u0148ol", "english"];
+        // init selectedLanguages to "english", "spanish", "romanian", "catalan", "german", "french", "italian", "portuguese"
+        selectedLanguages.targets = ["es", "en", "ro", "ca", "de", "fr", "it", "pt"];
+        selectedLanguages.lang_names = ["espa\u0148ol", "english", "limba rom\u00e2n\u0103", "catal\u00E0", "deutsch", "fran\u00E7ais", "italiano", "portugu\u00eas"];
         deselectAll($('#language_menu')[0]);  // deselect all options
         // select the options included in the selectedLanguages object
         select($('#language_menu')[0], selectedLanguages.targets);
-        languageMenu(); // show language menu
         get_translations(data); // get text translations
       } else {  // no mapped text, invalid url
         alert("The requested URL does not exist.");
