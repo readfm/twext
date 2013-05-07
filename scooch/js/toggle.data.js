@@ -482,13 +482,33 @@
   * If twexts are displayed, toggle languages.
   */
   function check_translations() {
-    if(isTwextOn()) { // twexts are displayed, toggle language
+    var text = extractText(trim(area.area.innerText));
+    var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
+    if(isTwextOn() && !isNewText) { // twexts are displayed, toggle language
       toggleLangUp(); // toggle languages
     } else { // no twexts are displayed, translate text
-      var text = trim(area.area.innerText); // area text to be translated
       get_translations(text); // get translations of text from firebase of google
     }    
     area.setCaretPos(0,0);  // set cursor position at the start of area text
+  }
+
+  /**
+  * Extract text lines from area input. Text = input if twext not displayed.
+  * @param 'input' area inner text
+  * @return Text lines string
+  */
+  function extractText(input) {
+    var lines = [], i, text = "";
+    var nodes = area.area.childNodes; // area child nodes
+    if(isTwextOn()) { // if twext displayed
+      for(i=0; i<nodes.length; i++) { // loop over area childnodes
+        if(nodes[i].className == "text") lines.push(nodes[i].innerText);  // push text line
+      }
+      text = lines.join('\n');  // construct text string
+    } else {  // twext not displayed
+      text = input; // text is the input
+    }
+    return text;  // return text
   }
 
   /**
@@ -556,6 +576,8 @@
         var id = randomId();  // create random id
         var shortcut = id.charAt(0);  // get the first charcter
         saveShortcut(text, id, shortcut, 0);  // save text shortcut
+      } else {
+        window.history.pushState("", document.title, "#"+data); // display new url
       }
     });
   }
