@@ -30,7 +30,7 @@
     console.log("register keys");
     $(d).bind("keydown","f4", switchTwextState);  // F4 key down event, Turn twexts on/off
     $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
-    //$(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
+    $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
     //$(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
     //$(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
     //$(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
@@ -44,7 +44,7 @@
   function attachEvents() {
     // hide menu when clicked outside
     $('body').click(function(e) {
-      if($('#language_menu_container').is(":visible")) $('#language_menu_container').hide();
+      if($('#language_menu_container').is(":visible")) hideLangMenu();
     });
     $('#language_menu_container').click(function(e) {
       e.stopPropagation();
@@ -61,7 +61,7 @@
       if(e.keyCode == 113) { // If F2 is pressed
         languageMenu(); // show/hide menu
       } else if(e.keyCode == 27) {  // If esc is pressed
-        if($('#language_menu_container').is(":visible")) $('#language_menu_container').hide();  // hide menu
+        if($('#language_menu_container').is(":visible")) hideLangMenu();  // hide menu
       }
     });
 
@@ -172,12 +172,24 @@
   * Show/Hide language selection menu. The menu is used to select(include/exclude) languages to be displayed.
   */
   function languageMenu() {
-    var element = $('#language_menu_container');
-    if(element.is(":visible")) {  // If menu opened
-      element.hide();
+    if($('#language_menu_container').is(":visible")) {  // If menu opened
+      hideLangMenu(); // hide menu
     } else {  // menu closed
-      element.show(); // show menu
+      showLangMenu(); // show menu
     }
+  }
+
+  function hideLangMenu() {
+    $('#language_menu_container').hide(0, function(e) {
+      check_translations(null, true); // fetch translations as if F8 is pressed
+    }); // hide language menu
+  }
+
+  /**
+  * Show language menu.
+  */
+  function showLangMenu() {
+    $('#language_menu_container').show(); // show language menu
   }
 
   /**
@@ -213,11 +225,17 @@
   * If one or more language is not yet translated, then get translations of these languages first befor displaying next language translations.
   */
   function toggleLangUp() {
+    console.log("KEY: f8"); // log pressed key/s
+    switch_language(1); // Switch to next language, add 1 to the current language
+  }
+
+  /**
+  * Fetch translations of new selected languages added in the menu.
+  */
+  function translateAddedLanguages() {
     var languages = getAddedLanguages(); // get list of new languages that not yet used to translate text.
     if(languages) {  // one or more language translations not found, translate text to these languages and display next language
-      pull_translations(toggle_data.source_text, languages, language+1);  // translate text to these languages
-    } else {  // all selected languages translations found, switch to next language
-      switch_language(1); // Switch to next language, add 1 to the current language
+      pull_translations(toggle_data.source_text, languages, language);  // translate text to these languages
     }
   }
 
@@ -480,11 +498,15 @@
   * If no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
   * If twexts are displayed, toggle languages.
   */
-  function check_translations() {
+  function check_translations(e, noToggle) {
     var text = extractText(trim(area.area.innerText));
     var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
-    if(isTwextOn() && !isNewText) { // twexts are displayed, toggle language
-      toggleLangUp(); // toggle languages
+    if(isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
+      if(noToggle) {  // do not toggle, translate added languages only
+        translateAddedLanguages();  // fetch added languages translations
+      } else {  // toggle to next language
+        toggleLangUp(); // toggle languages
+      }
     } else { // no twexts are displayed, translate text
       get_translations(text); // get translations of text from firebase of google
     }    
