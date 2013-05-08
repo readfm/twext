@@ -179,6 +179,9 @@
     }
   }
 
+  /**
+  * Hide language menu; get text translations on menu hide.
+  */
   function hideLangMenu() {
     $('#language_menu_container').hide(0, function(e) {
       check_translations(null, true); // fetch translations as if F8 is pressed
@@ -196,7 +199,7 @@
   * Show/Hide twexts(Turn on/off).
   */
   function switchTwextState() {
-    if(isTwextOn()) { // Twexts are dispalyed, hide twexts
+    if(area.isTwextOn()) { // Twexts are dispalyed, hide twexts
       removeTwexts();
       set_twext_state(false); // set state to twext off
     } else {  // Twexts not dispalyed, show twexts
@@ -486,14 +489,6 @@
   }
 
   /**
-  * Check if twexts are displayed.
-  * @return true if twexts are displayed, false if not
-  */
-  function isTwextOn() {
-    return $('.twext').length > 0;
-  }
-
-  /**
   * Get and display twexts(translations) if twexts are not already displayed. If twexts already exist, toggle languages of the existing twexts.
   * If no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
   * If twexts are displayed, toggle languages.
@@ -502,7 +497,7 @@
     var text = extractText(area.area.innerText);
     text = trimStringLines(text); // trim string lines
     var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
-    if(isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
+    if(area.isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
       if(noToggle) {  // do not toggle, translate added languages only
         translateAddedLanguages();  // fetch added languages translations
       } else {  // toggle to next language
@@ -522,7 +517,7 @@
   function extractText(input) {
     var lines = [], i, text = "";
     var nodes = area.area.childNodes; // area child nodes
-    if(isTwextOn()) { // if twext displayed
+    if(area.isTwextOn()) { // if twext displayed
       for(i=0; i<nodes.length; i++) { // loop over area childnodes
         if(nodes[i].className == "text") lines.push(nodes[i].innerText);  // push text line
       }

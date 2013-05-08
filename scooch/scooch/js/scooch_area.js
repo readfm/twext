@@ -62,11 +62,21 @@ window.ScoochArea = Class.$extend({
   },
 
   /**
+  * Check if twexts are displayed.
+  * @return true if twexts are displayed, false if not
+  */
+  isTwextOn: function() {
+    return $('.twext').length > 0;
+  },
+
+  /**
   * Realign chunks on window resize using span aligner.
   */
   realign: function() {
-    var aligner = new SpanAligner();
-    aligner.align($(this.area), this.getnNs()); // align chunks with span aligner
+    if(this.isTwextOn()) {  // if twext lines are displayed
+      var aligner = new SpanAligner();
+      aligner.align($(this.area), this.getnNs()); // align chunks with span aligner
+    }
   },
 
   /**
