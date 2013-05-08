@@ -478,6 +478,8 @@ window.ScoochArea = Class.$extend({
   * @param 'event' space key down event
   */
   onSpace: function(event) {
+    if($('.twext').length == 0) return; // if no twext displayed, return
+
     this.caret_coord = this.getCaretPos();  // Get cursor coordinates (line number, position in the line)
 
     this.text_lines = new Array();  // initialize text_lines object
@@ -542,7 +544,9 @@ window.ScoochArea = Class.$extend({
   * Pull chunk to previous word when backspace key is pressed.
   * @param 'event' backspace key down event
   */
-  onBackspace: function(event){
+  onBackspace: function(event) {
+    if($('.twext').length == 0) return; // if no twext displayed, return
+
     this.caret_coord = this.getCaretPos();  // Get cursor coordinates (line number, position in the line)
     // If cursor is at line start (or whole line is selected and removed) or at end of a word, return, no pull
     if(this.caret_coord.offset == 0 || this.count_previous_blanks() == 0) return;

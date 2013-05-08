@@ -160,6 +160,19 @@ function isTypingChar(code) {
   return false; // not a typing character
 }
 
+/**
+* Remove spaces from begining and end of each line in a string.
+* Remove extra spaces between words.
+* @param 'str' string to be cleaned
+*/
+function trimStringLines(str) {
+  var lines = str.split('\n');  // string lines
+  var trimmedLines = [];
+  $.each(lines, function() {  // loop over lines
+    trimmedLines.push($.trim(this.replace(/\s+/g, ' '))); // trim line and remove extra spaces
+  });
+  return trimmedLines.join('\n'); // return trimmed string
+}
 //Twext.Utils = {};
 
 // This is a quick fix until I rename those functions.

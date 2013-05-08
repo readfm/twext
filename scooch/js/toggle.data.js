@@ -499,7 +499,8 @@
   * If twexts are displayed, toggle languages.
   */
   function check_translations(e, noToggle) {
-    var text = extractText(trim(area.area.innerText));
+    var text = extractText(area.area.innerText);
+    text = trimStringLines(text); // trim string lines
     var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
     if(isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
       if(noToggle) {  // do not toggle, translate added languages only
