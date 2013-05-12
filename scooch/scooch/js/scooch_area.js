@@ -122,7 +122,7 @@ window.ScoochArea = Class.$extend({
   * @param 'languages' object carry chunks of all languages/versions
   */
   loadChunks: function(languages) {
-    var i, j, k;
+    var i, j, k, chunksArray = [];
     this.lang_chunks = [];  // initialize lang_chunks object to load all languages
     for(i=0; i<languages.length; i++) { // loop over languages
       if(!this.lang_chunks[i]) {  // if this language is not yet loaded
@@ -140,7 +140,8 @@ window.ScoochArea = Class.$extend({
           }
           if(languages[i].versions[j].lines[k]) {  // if there are chunks for this line
             // get chunks in the form of key/value object and set it to the line chunks; k*2 represents the Text line number
-            this.lang_chunks[i].versions[j].lines[k].chunks = this.getChunks(languages[i].versions[j].lines[k].chunks.toArray(' '));
+            chunksArray = languages[i].versions[j].lines[k].chunks?languages[i].versions[j].lines[k].chunks.toArray(' '):[];
+            this.lang_chunks[i].versions[j].lines[k].chunks = this.getChunks(chunksArray);
           }
         }
       }
