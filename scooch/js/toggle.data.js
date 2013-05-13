@@ -192,16 +192,16 @@
     if(urlListState == 0) { // current state is off, move to state 1, show first 10 urls
       $('#url-sub-list').show();
       urlListState = 1;
-      $('#url-list-label').html("list NEW");
+      $('#url-list-label').html("new");
     } else if(urlListState == 1) {  // current state is first 10 urls, move to state 2, show all urls
       $('#url-sub-list').hide();
       $('#url-all-list').show();
       urlListState = 2;
-      $('#url-list-label').html("list off");
+      $('#url-list-label').html("all");
     } else if(urlListState == 2) {  // current state is all urls, move to state 0, hide list
       $('#url-all-list').hide();
       urlListState = 0;
-      $('#url-list-label').html("list all");
+      $('#url-list-label').html("off");
     }
   }
 
