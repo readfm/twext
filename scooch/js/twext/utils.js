@@ -181,7 +181,7 @@ function trimStringLines(str) {
   var lines = str.split('\n');  // string lines
   var trimmedLines = [];
   $.each(lines, function() {  // loop over lines
-    trimmedLines.push($.trim(this.replace(/\s+/g, ' '))); // trim line and remove extra spaces
+    if(this != "") trimmedLines.push($.trim(this.replace(/\s+/g, ' '))); // trim line and remove extra spaces
   });
   return trimmedLines.join('\n'); // return trimmed string
 }
