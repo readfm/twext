@@ -2,8 +2,6 @@
 * Toggle features
 */
 !function(d){
-  //var sampleData = null;
-  //var document = null;
   var language = 0; // current language
   var version = 0;  // current version
   var area = null;  // ScoochArea object to represent input element
@@ -11,17 +9,17 @@
   var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
   var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
   var firebaseTranslations = []; // object carry text line translation data loaded from firebase; index=line number, value=firebase entry contains language/versions/translated text and chunks
+  var urlList = []; // list of all texts urls, will be loaded from firebase
+  var urlListLimit = 1000; // maximum number of urls retrieved from firebase
+  var urlListState = 0; // current state of displaying urls; 0=off, 1=show first 10 urls, 2=show all
+  var subListLength = 10; // maximum number of links to be displayed in the sub list
 
   // language translations data. To add/delete a language, go to languages.js
-  /*var selectedLanguages = { // selected languages in the menu, initial value is the first 5 languages of the list.
-    targets: languages_codes.slice(0, 5), // the first 5 languages' codes(eg: ["fr", "it", "es", "en"])
-    lang_names: languages_names.slice(0, 5) // the first 5 languages' names(eg: ["French", "Italian", "Spanish", "English"])
-  };*/
   var selectedLanguages = getUserLanguages(); // Get user prefernces from the browser, if not found then set to the first 5 languages
+  var trans = new Twext.Translation(); // Create translator object for text translation
   //var targets = languages_codes; // languages' codes(eg: ["fr", "it", "es", "en"])
   //var lang_names = languages_names; // languages' names(eg: ["French", "Italian", "Spanish", "English"])
   //var trans = new Twext.Translation("AIzaSyC4S6uS_njG2lwWg004CC6ee4cKznqgxm8"); // Google translate API key
-  var trans = new Twext.Translation(); // Create translator object for text translation
 
   /**
   * Attach key events.
@@ -31,6 +29,7 @@
     $(d).bind("keydown","f4", switchTwextState);  // F4 key down event, Turn twexts on/off
     $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
     $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
+    $(d).bind("keydown", "f9", showHideUrlList);
     //$(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
     //$(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
     //$(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
@@ -70,16 +69,84 @@
       resizeLanguageMenu();
     });
 
-    // retrieve text when url hash change "when user change hash and press enter, page not reloaded(load event not called),that's why hashchange event is used"
-    $(window).bind('load hashchange', function() {
+    // attach window load event
+    $(window).bind('load', function() {
       resizeLanguageMenu();
-      var shortcut = window.location.hash;  // get text shortcut
-      if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
-        loadTextOfURL(shortcut.slice(1)); // load text and translations from firebase
-      } else {  // no hash value in the url
-        load_sample_data(); // load sample data
+      loadText(); // load text into textarea
+      loadUrlList();  // load url list from firebase to the local object urlList
+    });
+
+    // retrieve text when url hash change "when user change hash and press enter, page not reloaded(load event not called)
+    $(window).bind('hashchange', function() {
+      resizeLanguageMenu();
+      loadText(); // load text into textarea
+    });
+  }
+
+  /**
+  * Load text into textarea.
+  * If there is a hash url, load the saved text from firebase, else load sample data.
+  */
+  function loadText() {
+    var shortcut = window.location.hash;  // get text shortcut
+    if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
+      loadTextOfURL(shortcut.slice(1)); // load text and translations from firebase
+    } else {  // no hash value in the url
+      load_sample_data(); // load sample data
+    }
+  }
+
+  /**
+  * Load url-text list from firebase to urlList object.
+  */
+  function loadUrlList() {
+    var ref = new Firebase(firebaseRef+"history");  // firebase ref
+    var query = ref.endAt().limit(urlListLimit);  // query to retrieve the last limit entries
+    query.once("value", function(data) {
+      urlList = Object.toArray(data.val());
+      fillListElements(urlList);
+    });
+  }
+
+  /**
+  * Add the new created url to the top of the list.
+  * @param 'data' key/value object contains the url and text
+  */
+  function addToUrlList(data) {
+    var currentRef = window.location.href;  // current url
+    var hashIndex = currentRef.indexOf('#');  // index of '#' if exist
+    currentRef = hashIndex != -1?currentRef.substring(0, hashIndex):currentRef; // current url without # part
+    var ref = currentRef + "#" + data.url;  // new url
+    var aEl = "<br><a href='" + ref + "'>" + data.text + "</a>";  // construct <a> element represents the new url
+    // append to sub list
+    $('#url-sub-list').prepend(aEl); // append to sub list
+    if($('#url-sub-list')[0].childNodes.length >= subListLength *2) { // if list elements reaches to its limit (*2 to count <br> tags)
+      $('#url-sub-list')[0].childNodes[(subListLength*2)+1].remove(); // remove last <a> element from the list
+      $('#url-sub-list')[0].childNodes[subListLength*2].remove(); // remove last <br> element from the list
+    }
+    $('#url-all-list').prepend(aEl); // append to all list
+    urlList.push(data);  // Update urlList object
+  }
+
+  /**
+  * Create elements for urls and append them to the DOM.
+  * Append the latest 10 added urls to the "url-sub-list" element, and all urls to "url-all-list"
+  * @param 'list' array of all urls
+  */
+  function fillListElements(list) {
+    var i, aEl = "", ref = "", text = "";
+    var currentRef = window.location.href;
+    var hashIndex = currentRef.indexOf('#');
+    currentRef = hashIndex != -1?currentRef.substring(0, hashIndex):currentRef;
+    for(i=list.length-1; i>=0; i--) {
+      ref = currentRef + "#" + list[i].url;
+      text = list[i].text.replace(/\n/g, '  ');
+      aEl = "<br><a href='" + ref + "'>" + text + "</a>";
+      if(i >= list.length - 10) { // latest 10 items
+        $('#url-sub-list').append(aEl); // append to sub list
       }
-    })
+      $('#url-all-list').append(aEl); // append to all list
+    }
   }
 
   /**
@@ -113,6 +180,29 @@
       $('#language_menu').height(445);
     }
     $('#language_menu').width(120); // keep menu width fixed
+  }
+
+  /**
+  * Show/Hide url list according to current state.
+  * First key press shows first 10 urls.
+  * Second key press shows all urls.
+  * Third key press hide list, and then repeat process.
+  */
+  function showHideUrlList() {
+    if(urlListState == 0) { // current state is off, move to state 1, show first 10 urls
+      $('#url-sub-list').show();
+      urlListState = 1;
+      $('#url-list-label').html("list NEW");
+    } else if(urlListState == 1) {  // current state is first 10 urls, move to state 2, show all urls
+      $('#url-sub-list').hide();
+      $('#url-all-list').show();
+      urlListState = 2;
+      $('#url-list-label').html("list off");
+    } else if(urlListState == 2) {  // current state is all urls, move to state 0, hide list
+      $('#url-all-list').hide();
+      urlListState = 0;
+      $('#url-list-label').html("list all");
+    }
   }
 
   /**
@@ -611,6 +701,10 @@
         var textEntry = constructFbKeyFromText(text); // convert text to firebase key entry
         new Firebase(firebaseRef+"mapping/url-text/"+shortcut).set(text); // save url-text mapping
         new Firebase(firebaseRef+"mapping/text-url/"+textEntry).set(shortcut);  // save text-url mapping
+
+        var listEntry = {url: shortcut, text: text};
+        addToUrlList(listEntry);  // add new url to list
+        new Firebase(firebaseRef+"history").push(listEntry);  // push generated url to history list
       } else {  // if shortcut is already in use
         if(index == id.length-1) {  // all characters of the generated id is used, generate a new one
           generateTextShortcut(text);
@@ -631,6 +725,7 @@
   function constructFbKeyFromText(text) {
     var i, line, result = [];
     var lines = text.split("\n");
+    lines = lines.clean();
     for(i=0; i<lines.length; i++) {
       line = getStrWords(lines[i]).join('-');
       result.push(line);

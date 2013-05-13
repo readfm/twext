@@ -46,6 +46,18 @@ Object.size = function(obj) {
 };
 
 /**
+* Get array of values from a key/value object.
+* @param 'obj' the object
+* @return array of object values
+*/
+Object.toArray = function(obj) {
+  var arr = $.map(obj, function(k, v) {
+    return [k];
+  });
+  return arr;
+}
+
+/**
 * Convert string to array; split array with the specified separator
 * @param 'sep' string separator
 * @return array of substrings that were separated by sep in the string
