@@ -41,9 +41,9 @@
   * Attach events to elements.
   */
   function attachEvents() {
-    // hide menu when clicked outside
+    // hide menu when clicked outside, except clicking on F2 link
     $('body').click(function(e) {
-      if($('#language_menu_container').is(":visible")) hideLangMenu();
+      if(e.target.id != 'data-bar-f2' && e.target.id != 'data-bar-heart' && $('#language_menu_container').is(":visible")) hideLangMenu();
     });
     $('#language_menu_container').click(function(e) {
       e.stopPropagation();
@@ -80,6 +80,17 @@
     $(window).bind('hashchange', function() {
       resizeLanguageMenu();
       loadText(); // load text into textarea
+    });
+
+    // attach click events on data bar links
+    $('#data-bar-f2, #data-bar-heart').click(function() {
+      languageMenu();
+    });
+    $('#data-bar-f4, #data-bar-twext').click(function() {
+      switchTwextState();
+    });
+    $('#data-bar-f8, #data-bar-language').click(function() {
+      check_translations();
     });
   }
 
@@ -419,9 +430,9 @@
   */
   function set_twext_state(state) {
     if(state) { // twext on
-      $('#data-bar-Twext').html("twxt");
+      $('#data-bar-twext').html("twxt");
     } else {  // twext off
-      $('#data-bar-Twext').html("text");
+      $('#data-bar-twext').html("text");
     }
   }
 

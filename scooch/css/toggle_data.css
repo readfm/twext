@@ -21,6 +21,11 @@ body {
   padding-left: 15px;
 }
 
+#control_data-bar a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .controls {
   margin-right: 1px;
   color: blue;
