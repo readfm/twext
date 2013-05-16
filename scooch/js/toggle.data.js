@@ -92,6 +92,9 @@
     $('#data-bar-f8, #data-bar-language').click(function() {
       check_translations();
     });
+    $('#url-list-f9, #url-list-label').click(function() {
+      showHideUrlList();
+    });
   }
 
   /**

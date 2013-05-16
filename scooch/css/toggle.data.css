@@ -21,7 +21,7 @@ body {
   padding-left: 15px;
 }
 
-#control_data-bar a {
+#control_data-bar a, #url-list-controls a {
   text-decoration: none;
   cursor: pointer;
 }
