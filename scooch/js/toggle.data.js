@@ -5,6 +5,8 @@
   var language = 0; // current language
   var version = 0;  // current version
   var area = null;  // ScoochArea object to represent input element
+  var syllabifier = null; // Syllabifier object to handle text syllabification
+  var timing = null;  // Timing object to handle timing features
   var toggle_data = null; // object to carry all languages information (languages, versions, translations, chunks)
   var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
   var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
@@ -26,7 +28,7 @@
   */
   function register_keys(){
     console.log("register keys");
-    $(d).bind("keydown","f4", switchTwextState);  // F4 key down event, Turn twexts on/off
+    $(d).bind("keydown","f4", switchTimingState);  // F4 key down event, Turn twexts on/off
     $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
     $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
     $(d).bind("keydown", "f9", showHideUrlList);
@@ -86,8 +88,8 @@
     $('#data-bar-f2, #data-bar-heart').click(function() {
       languageMenu();
     });
-    $('#data-bar-f4, #data-bar-twext').click(function() {
-      switchTwextState();
+    $('#data-bar-f4, #data-bar-timing').click(function() {
+      switchTimingState();
     });
     $('#data-bar-f8, #data-bar-language').click(function() {
       check_translations();
@@ -300,23 +302,75 @@
   }
 
   /**
+  * Show/Hide timings(Turn on/off).
+  */
+  function switchTimingState() {
+    var text = extractText(area.area.innerText);  // get Text
+    text = trimStringLines(text);
+    if(area.isTwextOn()) { // Timings/Twexts are dispalyed, hide timings/twexts
+      var oldText = trim(area.area.innerText);
+      
+      displayText(text);  // display text only
+      set_timing_state(false); // set state to timing off
+
+      // Save timing data into firebase
+      var saved = area.saveData(language, version, toggle_data.getLines(language, version), oldText, true, false); // Save data into firebase
+      toggle_data.updateVersion(saved, version, language);  // update old language version with the saved data (chunks)
+    } else if(area.isTimingOn()) {
+      var oldText = trim(area.area.innerText);
+      
+      displayText(text);  // display text only
+      set_timing_state(false); // set state to timing off
+
+      // Save timing data into firebase
+      var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, true);
+      timing.setTimingLines(saved);  // update old timing lines with the saved ones
+    } else {  // timings not dispalyed, show timings
+      place_timing(text); // display timing slots
+      set_timing_state(true); // set state to timing on
+    }
+  }
+
+  /**
+  * Display Text/Timing lines and align each word-timing pair.
+  */
+  function place_timing(text) {
+    syllabifier.syllabifyText(text, function(hText) { // syllabify text to get segments
+      var textLines = hText.split('\n');  // hyphenated text lines
+      timing.getSegTiming(text, hText, function(timingLines) {
+        var lines = meld_timing_lines(textLines, timingLines);  // merge lines
+        renderLines(lines, 'timing'); // display Text/Timing lines
+        timing.saveTimings(text);
+      }); // timing lines
+    });
+  }
+
+  /**
+  * Display text in area.
+  * @param 'text' text to be displayed
+  */
+  function displayText(text) {
+    area.area.innerText = text;
+  }
+
+  /**
   * Show/Hide twexts(Turn on/off).
   */
-  function switchTwextState() {
+  /*function switchTwextState() {
     if(area.isTwextOn()) { // Twexts are dispalyed, hide twexts
       removeTwexts();
       set_twext_state(false); // set state to twext off
     } else {  // Twexts not dispalyed, show twexts
       place_twext(language, version);
     }
-  }
+  }*/
 
   /**
   * Remove twexts lines.
   */
-  function removeTwexts() {
+  /*function removeTwexts() {
     $('.twext').remove();
-  }
+  }*/
 
   /**
   * Switch to previous language; this method is called on 'Alt+F8' key down event.
@@ -431,11 +485,23 @@
   * Display twext current state(on/off).
   * @param 'state' the current twext state; true if twext on, false if twext off
   */
-  function set_twext_state(state) {
+  /*function set_twext_state(state) {
     if(state) { // twext on
       $('#data-bar-twext').html("twxt");
     } else {  // twext off
       $('#data-bar-twext').html("text");
+    }
+  }*/
+
+  /**
+  * Display timing current state(on/off).
+  * @param 'state' the current timing state; true if timing on, false if timing off
+  */
+  function set_timing_state(state) {
+    if(state) { // timing on
+      $('#data-bar-timing').html("timing");
+    } else {  // timing off
+      $('#data-bar-timing').html("text");
     }
   }
 
@@ -446,7 +512,8 @@
   */
   function switch_language(add, ver) {
     // Data before language switch, save data later into firebase(save after render new language data,so that ui is not slowed by firebase requests)
-    var oldLang = language, oldVer = version, oldText = trim(area.area.innerText), displayedLangName = $('#data-bar-language').text();;
+    var oldLang = language, oldVer = version, oldText = trim(area.area.innerText), displayedLangName = $('#data-bar-language').text();
+    var twextOn = area.isTwextOn(), timingOn = area.isTimingOn();
 
     var nl = language+add;  // new language
     var lcount = toggle_data.languageCount(); // number of existing languages
@@ -478,7 +545,7 @@
     // Save data (text edits and chunks) before language switch into firebase
     var oldLangName = toggle_data.language(oldLang).language;
     if(displayedLangName == oldLangName) { // displayed language is the old language, then save its data
-      var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // Save data into firebase
+      var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText, twextOn, timingOn); // Save data into firebase
       toggle_data.updateVersion(saved, oldVer, oldLang);  // update old language version with the saved data (chunks)
     }
     //area.saveChunks(oldLang, oldVer);
@@ -510,6 +577,7 @@
   function switch_version(add){
     // Data before version switch, save data later into firebase(save after render new version data, so that ui is not slowed by firebase requests)
     var oldLang = language, oldVer = version, oldText = trim(area.area.innerText);
+    var twextOn = area.isTwextOn(), timingOn = area.isTimingOn();
 
     var nv = version+add; // new version
     var doc = toggle_data.languageVersion(language, nv);  // get version with new version number
@@ -531,7 +599,7 @@
       display_twexts(verLines); // display Text/Twext lines
 
       // Save data (text edits and chunks) before version switch into firebase
-      var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText); // save data into firebase
+      var saved = area.saveData(oldLang, oldVer, toggle_data.getLines(oldLang, oldVer), oldText, twextOn, timingOn); // save data into firebase
       toggle_data.updateVersion(saved, oldVer, oldLang);  // update old language version with the saved data (chunks)
       //area.saveChunks(oldLang, oldVer);
       //saveTwexts(oldText, oldLang, oldVer);
@@ -597,19 +665,39 @@
   * If no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
   * If twexts are displayed, toggle languages.
   */
-  function check_translations(e, noToggle) {
+  function check_translations(e, fetchAdded) {
     var text = extractText(area.area.innerText);
     text = trimStringLines(text); // trim string lines
     var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
-    if(area.isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
-      if(noToggle) {  // do not toggle, translate added languages only
+    if(isNewText) {
+      get_translations(text); // get translations of text from firebase of google
+    } else {
+      if(fetchAdded) {  // do not toggle, translate added languages only
+        translateAddedLanguages();  // fetch added languages translations @TODO auto save
+      } else {  // toggle to next language
+        if(area.isTwextOn()) {
+          toggleLangUp(); // toggle languages
+        } else {  // timing displayed or textonly, display current language twexts
+          var timingOn = area.isTimingOn();
+          var oldText = trim(area.area.innerText);
+
+          place_twext(language, version); // display twexts of current language/version
+
+          // Save timing data into firebase
+          var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, timingOn);
+          timing.setTimingLines(saved);  // update old timing lines with the saved ones
+        }
+      }
+    }
+    /*if(area.isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
+      if(fetchAdded) {  // do not toggle, translate added languages only
         translateAddedLanguages();  // fetch added languages translations
       } else {  // toggle to next language
         toggleLangUp(); // toggle languages
       }
     } else { // no twexts are displayed, translate text
       get_translations(text); // get translations of text from firebase of google
-    }    
+    }*/   
     area.setCaretPos(0,0);  // set cursor position at the start of area text
   }
 
@@ -624,6 +712,11 @@
     if(area.isTwextOn()) { // if twext displayed
       for(i=0; i<nodes.length; i++) { // loop over area childnodes
         if(nodes[i].className == "text") lines.push(nodes[i].innerText);  // push text line
+      }
+      text = lines.join('\n');  // construct text string
+    } else if(area.isTimingOn()) {
+      for(i=0; i<nodes.length; i++) { // loop over area childnodes
+        if(nodes[i].className == "text") lines.push(syllabifier.unsyllabifyText(nodes[i].innerText));  // push text line after unsyllabifying
       }
       text = lines.join('\n');  // construct text string
     } else {  // twext not displayed
@@ -933,7 +1026,7 @@
     renderLines(lines); // render Text/Twext lines
     set_language_name();  // display language name
     set_version_name(); // display version name
-    set_twext_state(true); // set state to twext on
+    //set_twext_state(true); // set state to twext on
     /*area.language = language;
     area.version = version;
     //area.setCurrentChunks();
@@ -967,14 +1060,29 @@
   }
 
   /**
+  * Get Text/Timing lines.
+  * @param 'textLines' source text lines
+           'timingLines' timing of line segments
+  * @return Text/Timing lines
+  */
+  function meld_timing_lines(textLines, timingLines) {
+    var i = 0, lines = [];
+    for(i=0; i<textLines.length ; i++) {  // loop over source text lines
+      lines.push(textLines[i]); // add Text line
+      lines.push(timingLines[i]); // add Twext line
+    }
+    return lines;  // return Text/Timing lines
+  }
+
+  /**
   * Render Text/Twext lines (text/translation) and align each pair.
   * Align and render lines, set langauge and version display names.
   * @param 'lines' Text/Twext lines to be displayed
   */
-  function renderLines(lines) {
+  function renderLines(lines, secondClass) {
     area.language = language; // set current language in the area
     area.version = version; // set current version in the area
-    area.render_html(lines);  // render the lines
+    area.render_html(lines, secondClass);  // render the lines
     area.orgLines = toggle_data.getLines(language, version);  // set current displayed lines in the area
     area.realign(); // align Text/Twext lines
   }
@@ -999,12 +1107,8 @@
     loadLanguageList(); // load languages to the menu
     attachEvents(); // attach elements events
     area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
-    //var data = load_data(); // load sample text
-    //get_translations(data); // get sample text translations and render Text/Twext lines
-    //doc = data.languageVersion(language,version);
-    //display_document(doc);
-    //set_language_name();
-    //setTimeout(set_version_name,200);
+    syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
+    timing = new Timing(); // create Timing object that handles timing features
   }
 
   /**

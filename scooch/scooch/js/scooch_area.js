@@ -26,7 +26,6 @@ window.ScoochArea = Class.$extend({
     this.lang_codes = languages;  // key/value array contains lang name/code(eg: {"French": "fr", "Italian": "it"})
     this.orgLines = []; // The unchanged text lines (either loaded from gtranslate or firebase)
     this.ignore_BR = false; // boolean to ignore new lines, set to true when needing to append node values into one value
-    //this.limit = 10; // The maximum number of characters allowed to be entered in the area
 
     // TODO
     //this.cached_nNs = false;
@@ -55,7 +54,7 @@ window.ScoochArea = Class.$extend({
   */
   adjustLimit: function(event) {
     var text = this.area.innerText;
-    if($('.twext').length == 0 && isTypingChar(event.which) && !event.ctrlKey && text.length >= Area_Limit) {
+    if(!this.isTwextOn() && !this.isTimingOn() && isTypingChar(event.which) && !event.ctrlKey && text.length >= Area_Limit) {
       event.stopPropagation(); // Stop the bubbling of key press event to parent elements
       event.preventDefault(); // prevent the key press action from happening.
     }
@@ -70,10 +69,18 @@ window.ScoochArea = Class.$extend({
   },
 
   /**
+  * Check if timings are displayed.
+  * @return true if timings are displayed, false if not
+  */
+  isTimingOn: function() {
+    return $('.timing').length > 0;
+  },
+
+  /**
   * Realign chunks on window resize using span aligner.
   */
   realign: function() {
-    if(this.isTwextOn()) {  // if twext lines are displayed
+    if(this.isTwextOn() || this.isTimingOn()) {  // if twext lines are displayed
       var aligner = new SpanAligner();
       aligner.align($(this.area), this.getnNs()); // align chunks with span aligner
     }
@@ -114,7 +121,7 @@ window.ScoochArea = Class.$extend({
   * This method is called on window close or refresh(instead of direct call to saveData for any future need of event paramater)
   */
   save: function() {
-    this.saveData(this.language, this.version, this.orgLines, this.area.innerText);
+    this.saveData(this.language, this.version, this.orgLines, this.area.innerText, this.isTwextOn(), this.isTimingOn());
   },
 
   /**
@@ -165,18 +172,38 @@ window.ScoochArea = Class.$extend({
   },
 
   /**
-  * Save chunks and edits of lines into firebase.
+  * Save twexts/timings/chunks edits into firebase.
   * @param 'lang' the language number
             'ver' the version number
-            'orgLines' the unchanged text lines (array contains Twexts, index = Text line number); 
+            'orgLines' the unchanged twext/timing lines (array contains Twexts/timings, index = Text line number); 
             'text' the changed text(Text/Twext lines array) to be saved (won't be saved if not changed)
+            'twextsDisplayed' boolean detects if twexts displayed
+            'timingsDisplayed' boolean detects if timings displayed
   * @return 'orgLines' after update
   */
-  saveData: function(lang, ver, orgLines, changedText) {
-    var i, saveTwexts = false, saveChunks = false, words = null, line = "", changedTwext = "", orgTwext = "", nNString = "";
-
+  saveData: function(lang, ver, orgLines, changedText, twextsDisplayed, timingsDisplayed) {
     changedText = cleanText(changedText); // clean text from html characters
     var changedLines = changedText.split('\n'); // get changed text lines
+
+    if(twextsDisplayed) {  // Save twexts if displayed
+      return this.saveTwextData(lang, ver, orgLines, changedLines); // Save twexts if changed, return orgLines after updates
+    } else if(timingsDisplayed) {  // Save timings if displayed
+      return this.saveTimingData(orgLines, changedLines); // Save timings if changed, return orgLines after updates
+    }
+
+    return orgLines;  // return not updated orgLines
+  },
+
+  /**
+  * Save twexts/chunks edits into firebase.
+  * @param 'lang' the language number
+            'ver' the version number
+            'orgLines' the unchanged twext/timing lines (array contains Twexts/timings, index = Text line number); 
+            'changedLines' the changed Text/Twext lines to be saved (won't be saved if not changed)
+  * @return 'orgLines' after update
+  */
+  saveTwextData: function(lang, ver, orgLines, changedLines) {
+    var i, saveTwexts = false, saveChunks = false, words = null, line = "", changedTwext = "", orgTwext = "", nNString = "";
     // Get the language code; lang is language number, this.lang_chunks[lang].language is the language name
     var theLanguage = this.lang_chunks[lang].language; // the langugage code, eg: fr, en, it...
     // Get the version name
@@ -216,7 +243,36 @@ window.ScoochArea = Class.$extend({
         }
       }
     }
-    return orgLines;  // return orgLines after updates
+    return orgLines;
+  },
+
+  /**
+  * Save timings edits into firebase.
+  * @param  'orgLines' the unchanged timing lines (array contains timing lines, index = Text line number); 
+            'changedLines' the changed Text/Timing lines to be saved (won't be saved if not changed)
+  * @return 'orgLines' after update
+  */
+  saveTimingData: function(orgLines, changedLines) {
+    var i, j, words = null, line = "", changedTiming = "", orgTiming = "", changedLine = "";
+    var syllabifier = new Syllabifier();
+    for(i=0, j=0; i<changedLines.length; i=i+2, j++) { //i is counter for changed lines (i=Text line number), j counter for orgLines
+      changedLine = syllabifier.unsyllabifyText(changedLines[i]);
+      // Save Timings
+      changedTiming = changedLines[i+1].replace(/\ +/g, ' '); // get the Timing value, remove any extra spaces that may be added for alignment
+      orgTiming = orgLines[j]; // original timing (value before changing)
+      if(changedTiming != orgTiming) {  // timing has been changed
+        console.log("Save timing into firebase....");
+        // Get firebase entry (Text line words separated by -)
+        words = changedLine?getStrWords(changedLine):null; // Get words of the Text line
+        line = words?$.trim(words.join('-')):null; // Text line in the format of firebase entries(words separated by -)
+        // Save timing into firebase
+        if(line) {  // Available firebase entry (Text line)
+          new Firebase(this.firebaseRef+"/"+line+"/timing").set(changedTiming); // firebase save request
+        }
+        orgLines[j] = changedTiming; // update the orgLines with the new Timing value
+      }
+    }
+    return orgLines;
   },
 
   /**
@@ -419,10 +475,11 @@ window.ScoochArea = Class.$extend({
   * Display text lines as html content in the area
   * @param 'lines' text lines to be displayed
   */
-  render_html: function(lines){
+  render_html: function(lines, smallClass){
     var index, big = true, html_lines = new Array();
+    var small_class = smallClass?smallClass:"twext";
     var big_span = '<div class="text">';  // Text line div element
-    var small_span = '<div class="twext">'; // Twext line div element
+    var small_span = '<div class="'+small_class+'">'; // Twext line div element
 
     for(index=0; index < lines.length; index++) { // loop over text lines
       if(typeof(lines[index]) == 'string' && lines[index].trim().length > 0) {  // if line is not empty
@@ -489,7 +546,7 @@ window.ScoochArea = Class.$extend({
   * @param 'event' space key down event
   */
   onSpace: function(event) {
-    if($('.twext').length == 0) return; // if no twext displayed, return
+    if(!this.isTwextOn()) return; // if no twext displayed, return
 
     this.caret_coord = this.getCaretPos();  // Get cursor coordinates (line number, position in the line)
 
@@ -556,7 +613,7 @@ window.ScoochArea = Class.$extend({
   * @param 'event' backspace key down event
   */
   onBackspace: function(event) {
-    if($('.twext').length == 0) return; // if no twext displayed, return
+    if(!this.isTwextOn()) return; // if no twext displayed, return
 
     this.caret_coord = this.getCaretPos();  // Get cursor coordinates (line number, position in the line)
     // If cursor is at line start (or whole line is selected and removed) or at end of a word, return, no pull

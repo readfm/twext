@@ -28,8 +28,107 @@ var SpanAligner = Class({
         i--;  // only one line to skip, need to update the counter to move one step not two
         continue;
       }
-      this.alignChunks(textEl, i, i+1, nNs[i]?nNs[i]:[]); // Align chunks of the given text/twext line pair.
+      if(textEl[0].childNodes[i+1].className == 'timing') { // if second line is timing
+        this.alignTimings(textEl, i, i+1);  // align timings with words
+      } else {  // if second line is twext
+        this.alignChunks(textEl, i, i+1, nNs[i]?nNs[i]:[]); // Align chunks of the given text/twext line pair.
+      }
     }
+  },
+
+  /**
+    Align timing slots of text segments with text line words.
+    Params: 'textEl' the contenteditable element
+            'textLine' the Text line number
+            'timingLine' the Timing line number
+  */
+  alignTimings: function(textEl, textLine, timingLine) {
+    var i, segLength = 0, timingIx = 0;
+    // Clean and unalign Text/Twext nodes; get rid of html characters and remove any extra spaces
+    SpanUtils.cleanAndUnalignNode(textEl[0], textLine);
+    SpanUtils.cleanAndUnalignNode(textEl[0], timingLine);
+    // Get Text node
+    var textNode = textEl[0].childNodes[textLine].childNodes.length > 0?textEl[0].childNodes[textLine].childNodes[0]:textEl[0].childNodes[textLine];
+    // Get Text node value cleaned (convert any nbsp to normal spaces)
+    var textVal = cleanText(textNode.nodeValue);
+    // Get Text words
+    var textWords = getWords(textVal);
+    for(i=1; i<textWords.length; i++) {
+      segLength = textWords[i-1].split('-').length;
+      timingIx += segLength;
+      this.alignTiming(textEl[0], textLine, timingLine, i, timingIx);
+    }
+  },
+
+  /**
+    Align Timing slot to Text word.
+    Put words in <span> and compare their left position to detect which word to move forward to the other. The word with the less position value is the one to move to the other; Moving the word is by adding spaces before it.
+    Params: 'textEl' the input div element (textEl[0]).
+            'textLine' the Text line number
+            'timingLine' the Timing line number
+            'N' text word index; starts with index 0
+            'n' timing slot index; starts with index 0
+  */
+  alignTiming: function(textEl, textLine, timingLine, N, n) {
+    var realign = false; // realign this pair to move Timing word a little bit util aligned to Text word if text word moved further
+    // Get Text/Timing nodes
+    var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
+    var timingNode = textEl.childNodes[timingLine].childNodes.length > 0?textEl.childNodes[timingLine].childNodes[0]:textEl.childNodes[timingLine];
+    // Get Text/Timing nodes' values cleaned (convert any nbsp to normal spaces)
+    var textVal = cleanText(textNode.nodeValue);
+    var timingVal = cleanText(timingNode.nodeValue).replace(/\./g, '-'); // replace . by - to consider timing slot as one word ("1.00" not "1","00")
+    // Get Text/Timing lines' words
+    var textWords = getWords(textVal);
+    var timingWords = getWords(timingVal);
+    // Get Text/Timing lines' words indices
+    var textWordsIndices = getWordsIndices(textVal);
+    var timingWordsIndices = getWordsIndices(timingVal);
+
+    if(n >= timingWords.length || N >= textWords.length) return;
+
+    // Put Text/Timing words in span tag
+    SpanUtils.putWordInSpan(textNode, textWordsIndices[N], textWords[N], "textWord");
+    SpanUtils.putWordInSpan(timingNode, timingWordsIndices[n], timingWords[n].replace(/\-/g, '.'), "timingWord");
+    // Get words left position
+    var NPos = parseInt($('#textWord').position().left);
+    var nPos = parseInt($('#timingWord').position().left);
+    if(NPos < nPos) { // Text word has less position, move it to Timing word
+      parentEl = textNode.parentElement;
+      while(NPos < nPos) {
+        // Add space before word
+        parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
+        // Get the positions again after adding the space to recompare
+        NPos = parseInt($('#textWord').position().left);
+        nPos = parseInt($('#timingWord').position().left);
+      }
+      // Check if Text word is moved after Timing word a little bit; This may occur because the Text font size is usually bigger than timing, so 1 space of Text may equal to more than one space of Timing.
+      if(NPos > nPos) {
+        realign = true;
+        //this.alignTiming(textEl, textLine, timingLine, N, n); // realign this pair to move Timing word a little bit till aligned to Text word
+      }
+    } else if(NPos > nPos) {  // Timing word has less position, move it to Text word
+      parentEl = timingNode.parentElement;
+      while(NPos > nPos) {
+        // Add space before word
+        parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
+        // Get the positions again after adding the space to recompare
+        NPos = parseInt($('#textWord').position().left);
+        nPos = parseInt($('#timingWord').position().left);
+      }
+    } else {  // Positions are equal; Text and Twext words are already aligned, move twext one space to create a chunk 'bump align'
+      parentEl = timingNode.parentElement;
+      // Add space before Twext word
+      parentEl.innerHTML = parentEl.innerHTML.substring(0, parentEl.innerHTML.indexOf('<span')) + "&nbsp;" + parentEl.innerHTML.slice(parentEl.innerHTML.indexOf('<span'));
+    }
+    // Remove span tag from Text node; All nodes are #div elements except (sometimes) the first node, if it's a #TEXT node, use the parent element
+    if(textEl.childNodes[textLine].nodeType == 3) {
+      SpanUtils.removeSpanNode(textEl, "textWord", N == 0, N == textWords.length-1);
+    } else {
+      SpanUtils.removeSpanNode(textEl.childNodes[textLine], "textWord", N == 0, N == textWords.length-1);
+    }
+    // Remove span tag from Twext node
+    SpanUtils.removeSpanNode(textEl.childNodes[timingLine], "timingWord", n == 0, n == timingWords.length-1);
+    if(realign) this.alignTiming(textEl, textLine, timingLine, N, n); //realign this pair to move Timing word a little bit till aligned to Text word
   },
 
   /**
@@ -59,6 +158,7 @@ var SpanAligner = Class({
             'nN' twext/text word number in the form of n:N string (eg:"1:1"); word number starts with index 1
   */
   alignChunk: function(textEl, textLine, twextLine, nN) {
+    var realign = false;  // realign this pair to move Twext word a little bit util aligned to Text word if text word moved further
     // Get Text/Twext nodes
     var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
     var twextNode = textEl.childNodes[twextLine].childNodes.length > 0 ? textEl.childNodes[twextLine].childNodes[0] : textEl.childNodes[twextLine];
@@ -93,7 +193,8 @@ var SpanAligner = Class({
       }
       // Check if Text word is moved after Twext word a little bit; This may occur because the Text font size is usually bigger than twext, so 1 space of Text may equal to more than one space of Twext.
       if(NPos > nPos) {
-        this.alignChunk(textEl, textLine, twextLine, nN); // realign this pair to move Twext word a little bit util aligned to Text word
+        realign = true;
+        //this.alignChunk(textEl, textLine, twextLine, nN); // realign this pair to move Twext word a little bit util aligned to Text word
       }
     } else if(NPos > nPos) {  // Twext word has less position, move it to Text word
       parentEl = twextNode.parentElement;
@@ -117,6 +218,7 @@ var SpanAligner = Class({
     }
     // Remove span tag from Twext node
     SpanUtils.removeSpanNode(textEl.childNodes[twextLine], "twextWord", n == 0, n == twextWords.length-1);
+    if(realign) this.alignChunk(textEl, textLine, twextLine, nN); // realign this pair to move Twext word a little bit util aligned to Text word
   },
 
   /**

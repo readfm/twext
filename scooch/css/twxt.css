@@ -11,10 +11,10 @@
 	line-height:1.1em;
 }
 
-.twext{
-    font-size: 0.4em;
-    color: silver;
-    top: -0.9em;
+.twext, .timing{
+  font-size: 0.4em;
+  color: silver;
+  top: -0.9em;
 	line-height:0.9em;
 }
 
