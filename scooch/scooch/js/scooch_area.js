@@ -496,6 +496,19 @@ window.ScoochArea = Class.$extend({
   },
 
   /**
+  * Update text lines with new text.
+  * @param 'text' the new text to display
+  */
+  updateText: function(text) {
+    var i;
+    var lines = text.split('\n');
+    var nodes = this.area.childNodes;
+    for(i=0; i<nodes.length; i++) { // loop over nodes
+      nodes[i].innerText = lines[i];  // update line with new text
+    }
+  },
+
+  /**
   * Count the number of spaces between the cursor position and the nonspace previous caharacter.
   */
   count_previous_blanks: function(){

@@ -97,6 +97,36 @@
     $('#url-list-f9, #url-list-label').click(function() {
       showHideUrlList();
     });
+
+    // control text sybs in timing mode
+    $(area.area).keyup(function(e) {
+      if(area.isTimingOn()) { // timing lines are displayed
+        if(e.keyCode == 173 || e.keyCode == 189) {  // - keycode in chrome is 189 and in firefox is 173
+          var cursorCoord = area.getCaretPos();
+          // Insert - in all instances of the word where - inserted
+          var txt = syllabifier.replaceByHyphenatedWord(area.area.innerText, cursorCoord);
+          if(txt) {
+            area.updateText(txt);
+            area.setCaretPos(cursorCoord.lines, cursorCoord.offset);
+            syllabifier.setHyphenatedText(extractText());
+            //area.realign();
+          }
+        }
+      }
+    });
+    $(area.area).keydown(function(e) {
+      if(e.keyCode == 8) { // backspace
+        var cursorCoord = area.getCaretPos();
+        // Delete - from all instances of the word where - deleted
+        var txt = syllabifier.undoHyphenation(area.area.innerText, cursorCoord);
+        if(txt) {
+          e.preventDefault();
+          area.updateText(txt);
+          area.setCaretPos(cursorCoord.lines, cursorCoord.offset-1);
+          syllabifier.setHyphenatedText(extractText());
+        }
+      }
+    });
   }
 
   /**
@@ -305,7 +335,7 @@
   * Show/Hide timings(Turn on/off).
   */
   function switchTimingState() {
-    var text = extractText(area.area.innerText);  // get Text
+    var text = extractText();  // get Text
     text = trimStringLines(text);
     if(area.isTwextOn()) { // Timings/Twexts are dispalyed, hide timings/twexts
       var oldText = trim(area.area.innerText);
@@ -318,7 +348,8 @@
       toggle_data.updateVersion(saved, version, language);  // update old language version with the saved data (chunks)
     } else if(area.isTimingOn()) {
       var oldText = trim(area.area.innerText);
-      
+
+      text = syllabifier.unsyllabifyText(text);
       displayText(text);  // display text only
       set_timing_state(false); // set state to timing off
 
@@ -666,7 +697,8 @@
   * If twexts are displayed, toggle languages.
   */
   function check_translations(e, fetchAdded) {
-    var text = extractText(area.area.innerText);
+    var text = extractText();
+    if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
     text = trimStringLines(text); // trim string lines
     var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
     if(isNewText) {
@@ -703,24 +735,18 @@
 
   /**
   * Extract text lines from area input. Text = input if twext not displayed.
-  * @param 'input' area inner text
   * @return Text lines string
   */
-  function extractText(input) {
+  function extractText() {
     var lines = [], i, text = "";
     var nodes = area.area.childNodes; // area child nodes
-    if(area.isTwextOn()) { // if twext displayed
+    if(area.isTwextOn() || area.isTimingOn()) { // if twext displayed
       for(i=0; i<nodes.length; i++) { // loop over area childnodes
         if(nodes[i].className == "text") lines.push(nodes[i].innerText);  // push text line
       }
       text = lines.join('\n');  // construct text string
-    } else if(area.isTimingOn()) {
-      for(i=0; i<nodes.length; i++) { // loop over area childnodes
-        if(nodes[i].className == "text") lines.push(syllabifier.unsyllabifyText(nodes[i].innerText));  // push text line after unsyllabifying
-      }
-      text = lines.join('\n');  // construct text string
     } else {  // twext not displayed
-      text = input; // text is the input
+      text = area.area.innerText; // text is the input
     }
     return text;  // return text
   }
@@ -1103,10 +1129,10 @@
   * Init display; Register keys events, Load initial(sample) data and get its translations, render Text/Twext lines
   */
   function init(){
+    area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
     register_keys();  // Attach keys events
     loadLanguageList(); // load languages to the menu
     attachEvents(); // attach elements events
-    area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
     syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
     timing = new Timing(); // create Timing object that handles timing features
   }

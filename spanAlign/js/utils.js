@@ -1,4 +1,18 @@
 /**
+* Remove empty elements from the array.
+* @return the array after removing empty entries
+*/
+Array.prototype.clean = function() {
+  for (var i = 0; i < this.length; i++) { // loop over array elements
+    if (this[i] == undefined || this[i] == "") {  // if empty entry
+      this.splice(i, 1);  // remove entry
+      i--;
+    }
+  }
+  return this;  // return array after removing empty entries
+};
+
+/**
   Extract words from text.
 */
 function getWords(text) {

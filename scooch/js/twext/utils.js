@@ -95,6 +95,29 @@ function getStrWords(str) {
 }
 
 /**
+* Get indices of words in text.
+* @param 'str' the string
+* @return array of words' start indices of the string
+*/
+function strWordsIndices(str) {
+  var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words(including non english characters)
+  return matchIndices(str, re); // return words indices
+}
+
+/**
+* Get indices of regular expression matches in the string.
+* @param 'str' the string
+* @return array of words' start indices of the string
+*/
+function matchIndices(str, re) {
+  var result, indices = [];
+  while(result = re.exec(str)) {
+    indices.push(result.index); // Match found, push its index in the array
+  }
+  return indices; // return matches indices
+}
+
+/**
 * Count the number of spaces between the specified position and the nonspace previous caharacter.
 * @param 'str' the str
          'pos' position where previous spaces counted
@@ -184,6 +207,26 @@ function trimStringLines(str) {
     if(this != "") trimmedLines.push($.trim(this.replace(/\s+/g, ' '))); // trim line and remove extra spaces
   });
   return trimmedLines.join('\n'); // return trimmed string
+}
+
+/**
+* Get the word where the cursor points
+* @param 'str' the input string
+         'pos' cursor position
+* @return array contains word where the cursor points and the cursor index at the word, null if not found
+*/
+function wordAtCaret(str, pos) {
+  var i;
+  var words = getStrWords(str);
+  var indices = strWordsIndices(str);
+  for(i=0; i<indices.length; i++) {
+    start = indices[i]; // start position of the word(the first char)
+    end = start + words[i].length;  // end position of the word(the char after word)
+    if(pos >= start && pos < end) {  // cursor between word characters
+      return [words[i], pos-start];
+    }
+  }
+  return null;
 }
 //Twext.Utils = {};
 

@@ -54,7 +54,7 @@ var SpanAligner = Class({
     // Get Text words
     var textWords = getWords(textVal);
     for(i=1; i<textWords.length; i++) {
-      segLength = textWords[i-1].split('-').length;
+      segLength = textWords[i-1].split('-').clean().length;
       timingIx += segLength;
       this.alignTiming(textEl[0], textLine, timingLine, i, timingIx);
     }
