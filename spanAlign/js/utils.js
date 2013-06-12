@@ -65,7 +65,7 @@ function cleanText(text) {
   }
   re = new RegExp(str.substring(0, str.length-1), 'g'); // Create regular expression of possible html spaces
   text = text.replace(re, ' '); // replace html spaces by text spaces
-  return text;
+  return $.trim(text);
 }
 
 /**

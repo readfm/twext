@@ -472,8 +472,8 @@ window.ScoochArea = Class.$extend({
   },
 
   /**
-  * Display text lines as html content in the area
-  * @param 'lines' text lines to be displayed
+  * Display text/twext lines as html content in the area
+  * @param 'lines' text/twext lines to be displayed
   */
   render_html: function(lines, smallClass){
     var index, big = true, html_lines = new Array();
@@ -492,6 +492,20 @@ window.ScoochArea = Class.$extend({
     }
     console.log("to unbind...");
     console.log(html_lines);
+    this.area.innerHTML = html_lines.join("");  // display html
+  },
+
+  /**
+  * Display text lines as html content in the area
+  * @param 'lines' text lines to be displayed
+  */
+  render_text_lines: function(lines) {
+    var index, html_lines = new Array();
+    for(index=0; index < lines.length; index++) { // loop over text lines
+      if(typeof(lines[index]) == 'string' && lines[index].trim().length > 0) {  // if line is not empty
+        html_lines[index] = '<div class="text">' + this.nbsp_spaces(lines[index]) + "</div>";
+      }
+    }
     this.area.innerHTML = html_lines.join("");  // display html
   },
 

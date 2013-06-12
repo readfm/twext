@@ -15,6 +15,8 @@
   var urlListLimit = 1000; // maximum number of urls retrieved from firebase
   var urlListState = 0; // current state of displaying urls; 0=off, 1=show first 10 urls, 2=show all
   var subListLength = 10; // maximum number of links to be displayed in the sub list
+  var isPlaying = false; // boolean to detect if the text is in playing mode
+  var player = null;  // player object that handles text playing features
 
   // language translations data. To add/delete a language, go to languages.js
   var selectedLanguages = getUserLanguages(); // Get user prefernces from the browser, if not found then set to the first 5 languages
@@ -32,6 +34,7 @@
     $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
     $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
     $(d).bind("keydown", "f9", showHideUrlList);
+    $(d).bind("keydown", "f2", playPauseText);  // Animate text on F2 key press
     //$(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
     //$(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
     //$(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
@@ -45,7 +48,7 @@
   function attachEvents() {
     // hide menu when clicked outside, except clicking on F2 link
     $('body').click(function(e) {
-      if(e.target.id != 'data-bar-f2' && e.target.id != 'data-bar-heart' && $('#language_menu_container').is(":visible")) hideLangMenu();
+      if(e.target.id != 'data-bar-f7' && e.target.id != 'data-bar-heart' && $('#language_menu_container').is(":visible")) hideLangMenu();
     });
     $('#language_menu_container').click(function(e) {
       e.stopPropagation();
@@ -57,9 +60,9 @@
       saveLangToBrowser(selected); // Save the user languages selection to the browser
     });
 
-    // show/hide menu when press f2 key, hide when press esc
+    // show/hide menu when press f7 key, hide when press esc. register_keys not working if the menu is in focus.
     $('body').keydown(function(e) {
-      if(e.keyCode == 113) { // If F2 is pressed
+      if(e.keyCode == 118) { // If F7 is pressed
         languageMenu(); // show/hide menu
       } else if(e.keyCode == 27) {  // If esc is pressed
         if($('#language_menu_container').is(":visible")) hideLangMenu();  // hide menu
@@ -85,8 +88,11 @@
     });
 
     // attach click events on data bar links
-    $('#data-bar-f2, #data-bar-heart').click(function() {
+    $('#data-bar-f7, #data-bar-heart').click(function() {
       languageMenu();
+    });
+    $('#data-bar-f2, #data-bar-play').click(function() {
+      playPauseText();
     });
     $('#data-bar-f4, #data-bar-timing').click(function() {
       switchTimingState();
@@ -127,6 +133,36 @@
         }
       }
     });
+  }
+
+  /**
+  * Animate text segments according to timings.
+  */
+  function playPauseText() {
+    var mode; // current mode
+    if(area.isTwextOn()) {
+      mode = "twext";
+    } else if(area.isTimingOn()) {
+      mode = "timing";
+    } else {
+      mode = "text";
+      if(!player.inPlaying()) displayText(area.area.innerText); // render Text lines in <div class="text"> format, needed if user enters new Text
+    }
+
+    // Set display mode in player
+    if(!player.displayMode || player.displayMode != mode) {
+      player.setDisplayMode(mode); //set mode at the start of play or if changed
+      isPlaying = false;
+    }
+
+    // play/pause text
+    if(!isPlaying || player.done) { // currently paused or done with playing
+      player.playText(); // resume text play
+      isPlaying = true;
+    } else { // currently playing
+      player.pauseText(); // pause text play
+      isPlaying = false;
+    }
   }
 
   /**
@@ -335,6 +371,7 @@
   * Show/Hide timings(Turn on/off).
   */
   function switchTimingState() {
+    player.reset(); // reset playing data
     var text = extractText();  // get Text
     text = trimStringLines(text);
     if(area.isTwextOn()) { // Timings/Twexts are dispalyed, hide timings/twexts
@@ -381,7 +418,7 @@
   * @param 'text' text to be displayed
   */
   function displayText(text) {
-    area.area.innerText = text;
+    area.render_text_lines(text.split('\n'));
   }
 
   /**
@@ -407,6 +444,7 @@
   * Switch to previous language; this method is called on 'Alt+F8' key down event.
   */
   function toggleLangDown() {
+    player.reset(); // reset playing data
     console.log("KEY: alt+f8"); // log pressed key/s
     switch_language(-1);  // Switch to previous language, subtract 1 from the current language
   }
@@ -697,6 +735,7 @@
   * If twexts are displayed, toggle languages.
   */
   function check_translations(e, fetchAdded) {
+    player.reset(); // reset playing data
     var text = extractText();
     if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
     text = trimStringLines(text); // trim string lines
@@ -1134,7 +1173,8 @@
     loadLanguageList(); // load languages to the menu
     attachEvents(); // attach elements events
     syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
-    timing = new Timing(); // create Timing object that handles timing features
+    timing = new TimingCreator(); // create Timing object that handles timing features
+    player = new TextPlayer(area.area, syllabifier, timing);
   }
 
   /**
