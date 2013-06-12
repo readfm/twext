@@ -131,11 +131,11 @@ SpanUtils = {
   getCombinedValue: function(id, firstWord, lastWord) {
     var data = "";
     if(firstWord) { // first word of the line
-      var preVal = cleanText($('#'+id)[0].previousSibling.nodeValue); // Get node value before span
+      var preVal = $('#'+id)[0].previousSibling.nodeValue; // Get node value before span
       // Remove a space from the begining of the value (if any) that may be added when adding the span tag for the first word in the line
       $('#'+id)[0].previousSibling.nodeValue = preVal.charAt(0) != " " ? $('#'+id)[0].previousSibling.nodeValue : $('#'+id)[0].previousSibling.nodeValue.slice(1);
     } else if(lastWord) { // Last word of the line
-      var nextVal = cleanText($('#'+id)[0].nextSibling.nodeValue);  // Get node value after span
+      var nextVal = $('#'+id)[0].nextSibling.nodeValue;  // Get node value after span
       // Remove a space from the begining of the value (if any) that may be added when adding the span tag for the last word in the line
       $('#'+id)[0].nextSibling.nodeValue = nextVal.charAt(0) != " " ? $('#'+id)[0].nextSibling.nodeValue : $('#'+id)[0].nextSibling.nodeValue.slice(1);
     }
