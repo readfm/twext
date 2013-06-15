@@ -123,14 +123,18 @@
     $(area.area).keydown(function(e) {
       if(e.keyCode == 8) { // backspace
         var cursorCoord = area.getCaretPos();
-        // Delete - from all instances of the word where - deleted
-        var txt = syllabifier.undoHyphenation(area.area.innerText, cursorCoord);
-        if(txt) {
-          e.preventDefault();
-          area.updateText(txt);
-          area.setCaretPos(cursorCoord.lines, cursorCoord.offset-1);
-          syllabifier.setHyphenatedText(extractText());
-        }
+        var text = area.area.innerText;
+        var line = text.split('\n')[cursorCoord.lines];
+        if(line.charAt(cursorCoord.offset-1) == '-') { // delete hyphen
+          // Delete - from all instances of the word where - deleted
+          var txt = syllabifier.undoHyphenation(text, cursorCoord);
+          if(txt) {
+            e.preventDefault();
+            area.updateText(txt);
+            area.setCaretPos(cursorCoord.lines, cursorCoord.offset-1);
+            syllabifier.setHyphenatedText(extractText());
+          }
+        } // end if
       }
     });
   }
