@@ -17,7 +17,8 @@ TextPlayer = Class.$extend({
     this.currentSeg = null; // key/value obj contains line and seg number of current seg
     this.nextSeg = null;  // key/value obj contains line and seg number of next seg
     this.sourceText = null; // Text lines currently displayed
-    this.segTimingLines = []; // index of the array is the Text line number; each entry is an obj contains seg, segIx, timing
+    this.segTimingLines = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is an obj contains seg, timing
+    this.segIndices = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is seg index
     this.timeout = 0; // window timeout value
     this.done = false;  // boolean detects if all segs has been played
   },
@@ -28,16 +29,16 @@ TextPlayer = Class.$extend({
   */
   playText: function() {
     var text = this.text();
-    var isNewText = this.sourceText == null || this.sourceText != text; // check if it's a new text
+    var isNewText = this.sourceText == null || this.sourceText != text;
     if(isNewText) {
       this.sourceText = text;
       this.createSegTiming(); // create array of segments and timings per each Text line, this method will recall playText
     } else {
+      this.unhighlightSeg(); // unhighlight current seg
       if(!this.currentSeg) {  // start playing with the first seg
         this.currentSeg = {line: 0, seg: 0};
         this.done = false;
       } else if(!this.nextSeg) { // current seg is the last seg, start over again
-        this.unhighlightSeg(); // unhighlight current seg
         this.currentSeg = {line: 0, seg: 0}; //start over again
         this.done = false;
       } else {
@@ -45,7 +46,6 @@ TextPlayer = Class.$extend({
         this.currentSeg = this.nextSeg;
       }
       var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
-      //if(!currentLine) return;  // no more lines, end of playing
       if(this.currentSeg.seg == currentLine.length-1) { // last seg in the line, move to next line
         if(this.currentSeg.line == this.segTimingLines.length-1) {  // last line, end of playing
           clearTimeout(this.timeout);
@@ -100,51 +100,30 @@ TextPlayer = Class.$extend({
   * Put the segment in <span>, set to uppercase and add background color.
   */
   highlightSeg: function() {
-    var before, after, afterP1, afterP2, newHtml, newSpan, spanStartIx, spanEndIx, previousSeg;
+    var before, after, spanNode;
     var currentSeg = this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].seg;
+    var currentSegIx = this.segIndices[this.currentSeg.line][this.currentSeg.seg];
     var nodeIx = this.getCurrentTextNode();
     var currentNode = this.element.childNodes[nodeIx];
-    var html = currentNode.innerHTML;
     var nodeVal = currentNode.innerText;
 
-    if(this.currentSeg.seg == 0) {  // first seg in line
-      if(nodeIx != 0) { // not the first line, delete the previous seg span from the previous line
-        previousSeg = this.segTimingLines[this.previousSeg.line][this.previousSeg.seg].seg;
-        var previousNode = this.element.childNodes[this.getPreviousTextNode(nodeIx)];
-        var preHtml = previousNode.innerHTML;
-        spanStartIx = preHtml.indexOf('<span');
-        spanEndIx = preHtml.indexOf('/span>')+6; // the index at the end of span node
-        before = preHtml.substring(0, spanStartIx);
-        after = preHtml.slice(spanEndIx);
-        newHtml = before + previousSeg + after;
-        previousNode.innerHTML = newHtml;
-      }
-      before = html.substring(0, html.indexOf(currentSeg));
-      after = html.slice(html.indexOf(currentSeg)+currentSeg.length);
-      newSpan = '<span class="highlighted">' + currentSeg + '</span>';
-      newHtml = before + newSpan + after;
-      currentNode.innerHTML = newHtml;
-    } else {
-      previousSeg = this.segTimingLines[this.previousSeg.line][this.previousSeg.seg].seg;
-      spanStartIx = html.indexOf('<span');
-      spanEndIx = html.indexOf('/span>')+6; // the index at the end of span node, 6 is the length of "/span>"
-      before = html.substring(0, spanStartIx);
-      after = html.slice(spanEndIx);
-      afterP1 = after.substring(0, after.indexOf(currentSeg)) 
-      afterP2 = after.slice(after.indexOf(currentSeg)+currentSeg.length)
-      newSpan = "<span class='highlighted'>" + currentSeg + "</span>";
-      newHtml = before + previousSeg + afterP1 + newSpan + afterP2;
-      currentNode.innerHTML = newHtml;
-    }
+    // highlight the new seg
+    before = nodeVal.substring(0, currentSegIx);
+    after = nodeVal.slice(currentSegIx+currentSeg.length);
+    spanNode = $("<span class='highlighted'>" + currentSeg + "</span>");
+    currentNode.childNodes[0].nodeValue = before;
+    spanNode.insertAfter(currentNode.childNodes[0]);
+    $(document.createTextNode(after)).insertAfter(spanNode); // Create text node to contain the text string after the span
+
     this.sourceText = this.text(); // update the source text with the text in play
   },
 
   /**
   * Unhighlight segment, default segment is the current.
   */
-  unhighlightSeg: function(segment) {
+  unhighlightSeg: function() {
     if($('.highlighted').length != 0) { // If there is a highlighted segment
-      var seg = segment?segment:this.currentSeg;
+      var seg = this.currentSeg;
       var currentNode = this.element.childNodes[this.getCurrentTextNode()];
       var spanNode = $('.highlighted')[0];
       var preVal = spanNode.previousSibling?spanNode.previousSibling.nodeValue:"";
@@ -165,17 +144,6 @@ TextPlayer = Class.$extend({
     if(this.displayMode == "text")  return this.currentSeg.line;
     else if(this.displayMode == "twext" || this.displayMode == "timing")  return this.currentSeg.line*2;
     return -1;
-  },
-
-  /**
-  * Get the previous Text node number. (this should be altered if multiple versions are displayed)
-  * If the mode is text only, then the previous line number is the one before current line.
-  * If the mode is timing or twext, then the previous line is not a Text line line, take the one before the previous line
-  * @return previous Text node index
-  */
-  getPreviousTextNode: function(currentLine) {
-    if(this.displayMode == "text") return currentLine-1;
-    else if(this.displayMode == "twext" || this.displayMode == "timing") return currentLine-2;
   },
 
   /**
@@ -204,9 +172,39 @@ TextPlayer = Class.$extend({
           }
         }
         player.segTimingLines = segTiming;
+        player.getSegIndices();
         player.playText(player.sourceText); // recall of play after getting segs and timings
       });
     });
+  },
+
+  /**
+  * Get all segments indices per line.
+  * The index of the array is the Text line number, each entry is array of line segments indices.
+  * The method loop on displayed Text lines, loop on segments of the line, find the index of the first occurence of the seg in the line then take the substring after the segment and repeat until donne with all line segments.
+  */
+  getSegIndices: function() {
+    var i, j, k = 0;  // i is counter for element child nodes, k is counter for text lines in segTimingLines obj
+    var  line, subLine, seg, segs, segIx = 0, segIxCount = 0, indicesLine, segIndices = [];
+    var lines = this.element.childNodes;
+    for(i=0; i<lines.length; i++) {
+      if(lines[i].className == "text") {  // Text line
+        segIxCount = 0;  // start with the first seg in the line where the index is 0
+        indicesLine = []
+        line = lines[i].innerText; // line text
+        segs = this.segTimingLines[k];
+        for(j=0; j<segs.length; j++) {
+          seg = segs[j].seg;  // seg value
+          segIx = line.indexOf(seg);  // index of seg in the line
+          indicesLine.push(segIx + segIxCount); // push index of the seg
+          line = line.slice(segIx + seg.length); // new text after dropping the previous segment
+          segIxCount += segIx + seg.length;
+        }
+        segIndices.push(indicesLine);
+        k++;  // increment text lines counter
+      }
+    }
+    this.segIndices = segIndices;
   },
 
   /**
@@ -237,6 +235,7 @@ TextPlayer = Class.$extend({
     this.nextSeg = null;
     this.sourceText = null;
     this.segTimingLines = [];
+    this.segIndices = [];
     this.done = false;
   }
 });

@@ -739,20 +739,26 @@
   * If twexts are displayed, toggle languages.
   */
   function check_translations(e, fetchAdded) {
-    player.reset(); // reset playing data
     var text = extractText();
     if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
     text = trimStringLines(text); // trim string lines
-    var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text);
+    var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text &&  player.sourceText.replace(/\ +/g, ' ') != text);
     if(isNewText) {
+      player.reset(); // reset playing data
       get_translations(text); // get translations of text from firebase of google
     } else {
       if(fetchAdded) {  // do not toggle, translate added languages only
+        player.reset(); // reset playing data
         translateAddedLanguages();  // fetch added languages translations @TODO auto save
       } else {  // toggle to next language
         if(area.isTwextOn()) {
           toggleLangUp(); // toggle languages
+          isPlaying = false;
+          player.pauseText(); // stop playing
+          player.getSegIndices(); // get new indices of the segments
+          player.highlightSeg();  // highlight current seg
         } else {  // timing displayed or textonly, display current language twexts
+          player.reset(); // reset playing data
           var timingOn = area.isTimingOn();
           var oldText = trim(area.area.innerText);
 
