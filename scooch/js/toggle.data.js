@@ -375,13 +375,13 @@
   * Show/Hide timings(Turn on/off).
   */
   function switchTimingState() {
-    player.reset(); // reset playing data
-    var text = extractText();  // get Text
-    text = trimStringLines(text);
+    //var text;
     if(area.isTwextOn()) { // Timings/Twexts are dispalyed, hide timings/twexts
+      player.reset(); // reset playing data
       var oldText = trim(area.area.innerText);
-      
-      displayText(text);  // display text only
+      //text = extractText();  // get Text
+      //text = trimStringLines(text);
+      displayText(toggle_data.source_text);  // display text only
       set_timing_state(false); // set state to timing off
 
       // Save timing data into firebase
@@ -390,16 +390,32 @@
     } else if(area.isTimingOn()) {
       var oldText = trim(area.area.innerText);
 
-      text = syllabifier.unsyllabifyText(text);
-      displayText(text);  // display text only
+      //text = extractText();  // get Text
+      //text = trimStringLines(text);
+      //text = syllabifier.unsyllabifyText(text);
+      displayText(toggle_data.source_text);  // display text only
       set_timing_state(false); // set state to timing off
+
+      isPlaying = false;
+      player.setDisplayMode("text");
+      player.pauseText(); // stop playing
+      player.getSegIndices(); // get new indices of the segments
+      player.highlightSeg();  // highlight current seg
 
       // Save timing data into firebase
       var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, true);
       timing.setTimingLines(saved);  // update old timing lines with the saved ones
     } else {  // timings not dispalyed, show timings
-      place_timing(text); // display timing slots
+      //text = extractText();  // get Text
+      //text = trimStringLines(text);
+      place_timing(toggle_data.source_text); // display timing slots
       set_timing_state(true); // set state to timing on
+
+      isPlaying = false;
+      player.setDisplayMode("timing");
+      player.pauseText(); // stop playing
+      player.getSegIndices(); // get new indices of the segments
+      player.highlightSeg();  // highlight current seg
     }
   }
 

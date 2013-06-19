@@ -212,7 +212,7 @@ TextPlayer = Class.$extend({
   * @param 'mode' current mode (text, twext or timing)
   */
   setDisplayMode: function(mode) {
-    this.reset();
+    //this.reset();
     this.displayMode = mode;
   },
 
