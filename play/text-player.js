@@ -100,6 +100,7 @@ TextPlayer = Class.$extend({
   * Put the segment in <span>, set to uppercase and add background color.
   */
   highlightSeg: function() {
+    if(this.segTimingLines.length == 0) return; // No segments/timings generated yet
     var before, after, spanNode;
     var currentSeg = this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].seg;
     var currentSegIx = this.segIndices[this.currentSeg.line][this.currentSeg.seg];
@@ -184,6 +185,7 @@ TextPlayer = Class.$extend({
   * The method loop on displayed Text lines, loop on segments of the line, find the index of the first occurence of the seg in the line then take the substring after the segment and repeat until donne with all line segments.
   */
   getSegIndices: function() {
+    if(this.segTimingLines.length == 0) return; // No segments/timings generated yet
     var i, j, k = 0;  // i is counter for element child nodes, k is counter for text lines in segTimingLines obj
     var  line, subLine, seg, segs, segIx = 0, segIxCount = 0, indicesLine, segIndices = [];
     var lines = this.element.childNodes;
