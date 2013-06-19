@@ -398,7 +398,7 @@
 
       isPlaying = false;
       player.setDisplayMode("text");
-      player.pauseText(); // stop playing
+      //player.pauseText(); // stop playing
       player.getSegIndices(); // get new indices of the segments
       player.highlightSeg();  // highlight current seg
 
@@ -413,7 +413,7 @@
 
       isPlaying = false;
       player.setDisplayMode("timing");
-      player.pauseText(); // stop playing
+      //player.pauseText(); // stop playing
       player.getSegIndices(); // get new indices of the segments
       player.highlightSeg();  // highlight current seg
     }
@@ -770,7 +770,7 @@
         if(area.isTwextOn()) {
           toggleLangUp(); // toggle languages
           isPlaying = false;
-          player.pauseText(); // stop playing
+          //player.pauseText(); // stop playing
           player.getSegIndices(); // get new indices of the segments
           player.highlightSeg();  // highlight current seg
         } else {  // timing displayed or textonly, display current language twexts
