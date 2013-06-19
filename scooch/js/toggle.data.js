@@ -375,14 +375,15 @@
   * Show/Hide timings(Turn on/off).
   */
   function switchTimingState() {
-    //var text;
-    if(area.isTwextOn()) { // Timings/Twexts are dispalyed, hide timings/twexts
-      player.reset(); // reset playing data
+    if(area.isTwextOn()) { // Twexts are dispalyed, show text only
+      //player.reset(); // reset playing data
       var oldText = trim(area.area.innerText);
       //text = extractText();  // get Text
       //text = trimStringLines(text);
       displayText(toggle_data.source_text);  // display text only
       set_timing_state(false); // set state to timing off
+
+      resumePlaying("text");
 
       // Save timing data into firebase
       var saved = area.saveData(language, version, toggle_data.getLines(language, version), oldText, true, false); // Save data into firebase
@@ -396,11 +397,7 @@
       displayText(toggle_data.source_text);  // display text only
       set_timing_state(false); // set state to timing off
 
-      isPlaying = false;
-      player.setDisplayMode("text");
-      //player.pauseText(); // stop playing
-      player.getSegIndices(); // get new indices of the segments
-      player.highlightSeg();  // highlight current seg
+      resumePlaying("text");
 
       // Save timing data into firebase
       var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, true);
@@ -411,12 +408,15 @@
       place_timing(toggle_data.source_text); // display timing slots
       set_timing_state(true); // set state to timing on
 
-      isPlaying = false;
-      player.setDisplayMode("timing");
-      //player.pauseText(); // stop playing
-      player.getSegIndices(); // get new indices of the segments
-      player.highlightSeg();  // highlight current seg
+      resumePlaying("timing");
     }
+  }
+
+  function resumePlaying(mode) {
+    //isPlaying = false;
+    player.setDisplayMode(mode);
+    player.getSegIndices(); // get new indices of the segments
+    player.highlightSeg();  // highlight current seg
   }
 
   /**
@@ -769,16 +769,14 @@
       } else {  // toggle to next language
         if(area.isTwextOn()) {
           toggleLangUp(); // toggle languages
-          isPlaying = false;
-          //player.pauseText(); // stop playing
-          player.getSegIndices(); // get new indices of the segments
-          player.highlightSeg();  // highlight current seg
+          resumePlaying("twext");
         } else {  // timing displayed or textonly, display current language twexts
-          player.reset(); // reset playing data
           var timingOn = area.isTimingOn();
           var oldText = trim(area.area.innerText);
 
           place_twext(language, version); // display twexts of current language/version
+
+          resumePlaying("twext");
 
           // Save timing data into firebase
           var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, timingOn);
@@ -786,15 +784,6 @@
         }
       }
     }
-    /*if(area.isTwextOn() && !isNewText) { // twexts are displayed, fetch added languages or toggle language
-      if(fetchAdded) {  // do not toggle, translate added languages only
-        translateAddedLanguages();  // fetch added languages translations
-      } else {  // toggle to next language
-        toggleLangUp(); // toggle languages
-      }
-    } else { // no twexts are displayed, translate text
-      get_translations(text); // get translations of text from firebase of google
-    }*/   
     area.setCaretPos(0,0);  // set cursor position at the start of area text
   }
 
