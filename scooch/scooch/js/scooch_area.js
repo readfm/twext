@@ -41,7 +41,7 @@ window.ScoochArea = Class.$extend({
    	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this)); // backspace key down event
     $(area).bind("keydown",'delete',$.proxy(this.onDelete,this)); // delete key down event
     // Attach window key events
-    $(window).bind("resize", $.proxy(this.realign, this));  // window resize event
+    //$(window).bind("resize", $.proxy(this.realign, this));  // window resize event
     $(window).bind("beforeunload", $.proxy(this.save, this)); // refresh/close window event
     //$(area).keydown($.proxy(this.adjustLimit, this));  // check if exceed limit
     $(area).keydown($.proxy(this.adjustLimit, this));

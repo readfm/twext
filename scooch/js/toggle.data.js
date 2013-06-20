@@ -71,7 +71,12 @@
 
     // resize language menu on window resize
     $(window).resize(function(e) {
-      resizeLanguageMenu();
+      resizeLanguageMenu(); // resize language menu to fit with the window
+
+      // realign chunks, if text is in playing, unhighlight current seg before align so that the span doesn't mess with spanAligner
+      player.unhighlightSeg();  // unhighlight current seg
+      area.realign(); // realign chunks
+      player.highlightSeg();  // rehighlight current seg
     });
 
     // attach window load event
