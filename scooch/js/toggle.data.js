@@ -758,7 +758,8 @@
     var text = extractText();
     if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
     text = trimStringLines(text); // trim string lines
-    var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text &&  player.sourceText.replace(/\ +/g, ' ') != text);
+    
+    var isNewText = toggle_data == null || (toggle_data != null && toggle_data.source_text != text &&  (player.sourceText == null || player.sourceText.replace(/\ +/g, ' ') != text));
     if(isNewText) {
       player.reset(); // reset playing data
       get_translations(text); // get translations of text from firebase of google
