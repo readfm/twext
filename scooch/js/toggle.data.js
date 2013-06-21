@@ -417,11 +417,15 @@
     }
   }
 
+  /**
+  * Resume playing segments when toggle or mode change.
+  * @param 'mode' the current mode
+  */
   function resumePlaying(mode) {
     //isPlaying = false;
     player.setDisplayMode(mode);
     player.getSegIndices(); // get new indices of the segments
-    player.highlightSeg();  // highlight current seg
+    if(isPlaying) player.highlightSeg();  // highlight current seg
   }
 
   /**

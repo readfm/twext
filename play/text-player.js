@@ -73,6 +73,7 @@ TextPlayer = Class.$extend({
   * Pause text animation.
   */
   pauseText: function() {
+    this.unhighlightSeg();
     clearTimeout(this.timeout);
   },
 
