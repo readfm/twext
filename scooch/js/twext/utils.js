@@ -90,6 +90,7 @@ function cleanText(text) {
 * @return array of words of the string
 */
 function getStrWords(str) {
+  str = cleanText(str);
   var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|((([^\x00-\x80]+|\w+)+)?(-|')(([^\x00-\x80]+|\w+)+)?)+|([^\x00-\x80]+|\w+)+/gi; // Match url | words(including non english characters)
   return str.match(re);  // return array of all words of the text
 }
@@ -110,6 +111,7 @@ function strWordsIndices(str) {
 * @return array of words' start indices of the string
 */
 function matchIndices(str, re) {
+  str = cleanText(str);
   var result, indices = [];
   while(result = re.exec(str)) {
     indices.push(result.index); // Match found, push its index in the array
@@ -217,6 +219,7 @@ function trimStringLines(str) {
 */
 function wordAtCaret(str, pos) {
   var i;
+  str = cleanText(str);
   var words = getStrWords(str);
   var indices = strWordsIndices(str);
   for(i=0; i<indices.length; i++) {
