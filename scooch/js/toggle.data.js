@@ -380,12 +380,14 @@
   * Show/Hide timings(Turn on/off).
   */
   function switchTimingState() {
+    player.unhighlightSeg();
+    var text;
     if(area.isTwextOn()) { // Twexts are dispalyed, show text only
       //player.reset(); // reset playing data
       var oldText = trim(area.area.innerText);
-      //text = extractText();  // get Text
-      //text = trimStringLines(text);
-      displayText(toggle_data.source_text);  // display text only
+      text = extractText();  // get Text
+      text = trimStringLines(text);
+      displayText(text);  // display text only
       set_timing_state(false); // set state to timing off
 
       resumePlaying("text");
@@ -396,10 +398,10 @@
     } else if(area.isTimingOn()) {
       var oldText = trim(area.area.innerText);
 
-      //text = extractText();  // get Text
-      //text = trimStringLines(text);
-      //text = syllabifier.unsyllabifyText(text);
-      displayText(toggle_data.source_text);  // display text only
+      text = extractText();  // get Text
+      text = trimStringLines(text);
+      text = syllabifier.unsyllabifyText(text);
+      displayText(text);  // display text only
       set_timing_state(false); // set state to timing off
 
       resumePlaying("text");
@@ -408,9 +410,9 @@
       var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, true);
       timing.setTimingLines(saved);  // update old timing lines with the saved ones
     } else {  // timings not dispalyed, show timings
-      //text = extractText();  // get Text
-      //text = trimStringLines(text);
-      place_timing(toggle_data.source_text); // display timing slots
+      text = extractText();  // get Text
+      text = trimStringLines(text);
+      place_timing(text); // display timing slots
       set_timing_state(true); // set state to timing on
 
       resumePlaying("timing");
