@@ -74,9 +74,10 @@
       resizeLanguageMenu(); // resize language menu to fit with the window
 
       // realign chunks, if text is in playing, unhighlight current seg before align so that the span doesn't mess with spanAligner
+      var playing = player.inPlaying();
       player.unhighlightSeg();  // unhighlight current seg
       area.realign(); // realign chunks
-      player.highlightSeg();  // rehighlight current seg
+      if(playing) player.highlightSeg();  // rehighlight current seg
     });
 
     // attach window load event
