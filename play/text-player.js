@@ -220,10 +220,10 @@ TextPlayer = Class.$extend({
   },
 
   /**
-  * Check if there is a highlighted segment displayed.
+  * Check if there is a highlighted segment displayed "Text is playing".
   * @return boolean detects if the current segment is highlighted
   */
-  inPlaying: function() {
+  isPlaying: function() {
     return $('.highlighted').length > 0;
   },
 

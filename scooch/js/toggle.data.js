@@ -74,10 +74,9 @@
       resizeLanguageMenu(); // resize language menu to fit with the window
 
       // realign chunks, if text is in playing, unhighlight current seg before align so that the span doesn't mess with spanAligner
-      var playing = player.inPlaying();
       player.unhighlightSeg();  // unhighlight current seg
       area.realign(); // realign chunks
-      if(playing) player.highlightSeg();  // rehighlight current seg
+      if(isPlaying) player.highlightSeg();  // rehighlight current seg
     });
 
     // attach window load event
@@ -157,7 +156,7 @@
       mode = "timing";
     } else {
       mode = "text";
-      if(!player.inPlaying()) displayText(area.area.innerText); // render Text lines in <div class="text"> format, needed if user enters new Text
+      if(!player.isPlaying()) displayText(area.area.innerText); // render Text lines in <div class="text"> format, needed if user enters new Text
     }
 
     // Set display mode in player
