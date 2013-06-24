@@ -88,6 +88,7 @@
 
     // retrieve text when url hash change "when user change hash and press enter, page not reloaded(load event not called)
     $(window).bind('hashchange', function() {
+      player.reset();
       resizeLanguageMenu();
       loadText(); // load text into textarea
     });
