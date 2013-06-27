@@ -57,7 +57,7 @@ function setCaretPos(node, offset) {
 /**
   Clean text from possible html characters
 */
-function cleanText(text) {
+function clean_text(text) {
   var re, str = "", i;
   var spaces = [String.fromCharCode(160), '&nbsp;'];  // Possible html spaces
   for (i = 0; i < spaces.length; i++) {
@@ -65,7 +65,7 @@ function cleanText(text) {
   }
   re = new RegExp(str.substring(0, str.length-1), 'g'); // Create regular expression of possible html spaces
   text = text.replace(re, ' '); // replace html spaces by text spaces
-  return $.trim(text);
+  return text;
 }
 
 /**
@@ -174,6 +174,6 @@ SpanUtils = {
   */
   cleanAndUnalignNode: function(textEl, line) {
     var node = textEl.childNodes[line].childNodes.length > 0 ? textEl.childNodes[line].childNodes[0] : textEl.childNodes[line];
-    node.nodeValue = cleanText(node.nodeValue).replace(/\ +/g, ' ');
+    node.nodeValue = clean_text(node.nodeValue).replace(/\ +/g, ' ');
   }
 }

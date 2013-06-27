@@ -50,7 +50,7 @@ var SpanAligner = Class({
     // Get Text node
     var textNode = textEl[0].childNodes[textLine].childNodes.length > 0?textEl[0].childNodes[textLine].childNodes[0]:textEl[0].childNodes[textLine];
     // Get Text node value cleaned (convert any nbsp to normal spaces)
-    var textVal = cleanText(textNode.nodeValue);
+    var textVal = clean_text(textNode.nodeValue);
     // Get Text words
     var textWords = getWords(textVal);
     for(i=1; i<textWords.length; i++) {
@@ -75,8 +75,8 @@ var SpanAligner = Class({
     var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
     var timingNode = textEl.childNodes[timingLine].childNodes.length > 0?textEl.childNodes[timingLine].childNodes[0]:textEl.childNodes[timingLine];
     // Get Text/Timing nodes' values cleaned (convert any nbsp to normal spaces)
-    var textVal = cleanText(textNode.nodeValue);
-    var timingVal = cleanText(timingNode.nodeValue).replace(/\./g, '-'); // replace . by - to consider timing slot as one word ("1.00" not "1","00")
+    var textVal = clean_text(textNode.nodeValue);
+    var timingVal = clean_text(timingNode.nodeValue).replace(/\./g, '-'); // replace . by - to consider timing slot as one word ("1.00" not "1","00")
     // Get Text/Timing lines' words
     var textWords = getWords(textVal);
     var timingWords = getWords(timingVal);
@@ -163,8 +163,8 @@ var SpanAligner = Class({
     var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
     var twextNode = textEl.childNodes[twextLine].childNodes.length > 0 ? textEl.childNodes[twextLine].childNodes[0] : textEl.childNodes[twextLine];
     // Get Text/Twext nodes' values cleaned (convert any nbsp to normal spaces)
-    var textVal = cleanText(textNode.nodeValue);
-    var twextVal = cleanText(twextNode.nodeValue);
+    var textVal = clean_text(textNode.nodeValue);
+    var twextVal = clean_text(twextNode.nodeValue);
     // Get Text/Twext lines' words
     var textWords = getWords(textVal);
     var twextWords = getWords(twextVal);
@@ -237,8 +237,8 @@ var SpanAligner = Class({
     var textNode = textEl.childNodes[textLine].childNodes.length > 0 ? textEl.childNodes[textLine].childNodes[0] : textEl.childNodes[textLine];
     var twextNode = textEl.childNodes[twextLine].childNodes.length > 0 ? textEl.childNodes[twextLine].childNodes[0] : textEl.childNodes[twextLine];
     // Get Text/Twext nodes' values cleaned (convert any nbsp to normal spaces)
-    var textVal = cleanText(textNode.nodeValue);
-    var twextVal = cleanText(twextNode.nodeValue);
+    var textVal = clean_text(textNode.nodeValue);
+    var twextVal = clean_text(twextNode.nodeValue);
     // Get Text/Twext lines' words
     var textWords = getWords(textVal);
     var twextWords = getWords(twextVal);
@@ -347,8 +347,8 @@ var SpanAligner = Class({
     var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
     var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
     // Get current and reference nodes' values
-    var currentValue = cleanText(currentNode.nodeValue);
-    var refValue = cleanText(refNode.nodeValue);
+    var currentValue = clean_text(currentNode.nodeValue);
+    var refValue = clean_text(refNode.nodeValue);
     // Get current words and positions
     var currentWords = getWords(currentValue);
     var currentWordsPos = getWordsIndices(currentValue);
@@ -383,7 +383,7 @@ var SpanAligner = Class({
     var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
     var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
     // Get reference node value, words and positions
-    var refValue = cleanText(refNode.nodeValue);
+    var refValue = clean_text(refNode.nodeValue);
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
     // Create <span> where the cursor is positioned, get its left position and remove the span tag
@@ -414,8 +414,8 @@ var SpanAligner = Class({
     var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
     var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
     // Get current and reference nodes' values
-    var currentValue = cleanText(currentNode.nodeValue);
-    var refValue = cleanText(refNode.nodeValue);
+    var currentValue = clean_text(currentNode.nodeValue);
+    var refValue = clean_text(refNode.nodeValue);
     // Get current words and positions
     var currentWords = getWords(currentValue);
     var currentWordsPos = getWordsIndices(currentValue);
@@ -450,7 +450,7 @@ var SpanAligner = Class({
     var currentNode = el.childNodes[currentLine].childNodes.length > 0 ? el.childNodes[currentLine].childNodes[0] : el.childNodes[currentLine];
     var refNode = el.childNodes[refLine].childNodes.length > 0 ? el.childNodes[refLine].childNodes[0] : el.childNodes[refLine];
     // Get reference node value, words and positions
-    var refValue = cleanText(refNode.nodeValue);
+    var refValue = clean_text(refNode.nodeValue);
     var refWords = getWords(refValue);
     var refWordsPos = getWordsIndices(refValue);
     // Create <span> where the cursor is positioned, get its left position and remove the span tag
@@ -478,7 +478,7 @@ var SpanAligner = Class({
     // Get the node with the specified line number
     var node = el.childNodes[lineNumber].childNodes.length > 0 ? el.childNodes[lineNumber].childNodes[0] : el.childNodes[lineNumber];
     // Get node value
-    var nodeValue = cleanText(node.nodeValue);
+    var nodeValue = clean_text(node.nodeValue);
     // Get line words and words' positions
     var words = getWords(nodeValue);
     var wordsPos = getWordsIndices(nodeValue);
@@ -500,7 +500,7 @@ var SpanAligner = Class({
     // Get the node with the specified line number
     var node = el.childNodes[lineNumber].childNodes.length > 0 ? el.childNodes[lineNumber].childNodes[0] : el.childNodes[lineNumber];
     // Get node value
-    var nodeValue = cleanText(node.nodeValue);
+    var nodeValue = clean_text(node.nodeValue);
     // Get line words and words' positions
     var wordsPos = getWordsIndices(nodeValue);
     // Get the index of space after the word
