@@ -184,6 +184,7 @@ function randomId() {
 */
 function isTypingChar(code) {
   if(code == 13 ||                    // enter
+     code == 32 ||                    // space
      (code >= 48 && code <= 57) ||    // 0 -> 9
      code == 59 ||                    // ;:
      code == 61 ||                    // =+
@@ -230,6 +231,19 @@ function wordAtCaret(str, pos) {
     }
   }
   return null;
+}
+
+/**
+* Send request to firebase and get required data value.
+* @param 'ref' the firebase url (request)
+          'callbackValue' callback value needed in the calling method
+          'callback' the callback function
+*/
+function getFirebaseEntryValue(ref, callbackValue, callback) {
+  // Send request to firebase
+  new Firebase(ref).once('value', function(dataSnapshot) {  //callback
+    callback(dataSnapshot.val(), callbackValue);  // callback with data retrieved
+  });
 }
 //Twext.Utils = {};
 

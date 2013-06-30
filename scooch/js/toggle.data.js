@@ -5,8 +5,8 @@
   var language = 0; // current language
   var version = 0;  // current version
   var area = null;  // ScoochArea object to represent input element
-  var syllabifier = null; // Syllabifier object to handle text syllabification
-  var timing = null;  // Timing object to handle timing features
+  //var syllabifier = null; // Syllabifier object to handle text syllabification
+  //var timing = null;  // Timing object to handle timing features
   var toggle_data = null; // object to carry all languages information (languages, versions, translations, chunks)
   var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
   var gTranslatedText = {}; // object carry each language translated text loaded from google; key=language code, value=transalated text
@@ -16,7 +16,7 @@
   var urlListState = 0; // current state of displaying urls; 0=off, 1=show first 10 urls, 2=show all
   var subListLength = 10; // maximum number of links to be displayed in the sub list
   var isPlaying = false; // boolean to detect if the text is in playing mode
-  var player = null;  // player object that handles text playing features
+  //var player = null;  // player object that handles text playing features
 
   // language translations data. To add/delete a language, go to languages.js
   var selectedLanguages = getUserLanguages(); // Get user prefernces from the browser, if not found then set to the first 5 languages
@@ -30,11 +30,11 @@
   */
   function register_keys(){
     console.log("register keys");
-    $(d).bind("keydown","f4", switchTimingState);  // F4 key down event, Turn twexts on/off
-    $(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
-    $(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
-    $(d).bind("keydown", "f9", showHideUrlList);
-    $(d).bind("keydown", "f2", playPauseText);  // Animate text on F2 key press
+    //$(d).bind("keydown","f4", switchTimingState);  // F4 key down event, Turn twexts on/off
+    //$(d).bind("keydown","f8", check_translations);  // F2 key down event, Get translations of area text lines
+    //$(d).bind("keydown","alt+F8",toggleLangDown); // Alt+F8 keys down event, Switch to previous language
+    //$(d).bind("keydown", "f9", showHideUrlList);
+    //$(d).bind("keydown", "f2", playPauseText);  // Animate text on F2 key press
     //$(d).bind("keydown","F8",toggleLangUp); // F8 key down event, Switch to next language
     //$(d).bind("keydown","alt+F7",toggleVerDown);  // Alt+F7 keys down event, Switch to previous version of current language
     //$(d).bind("keydown","F7",toggleVerUp);  // F7 key down event, Switch to next version of current language
@@ -47,54 +47,54 @@
   */
   function attachEvents() {
     // hide menu when clicked outside, except clicking on F2 link
-    $('body').click(function(e) {
+    /*$('body').click(function(e) {
       if(e.target.id != 'data-bar-f7' && e.target.id != 'data-bar-heart' && $('#language_menu_container').is(":visible")) hideLangMenu();
-    });
-    $('#language_menu_container').click(function(e) {
+    });*/
+    /*$('#language_menu_container').click(function(e) {
       e.stopPropagation();
-    });
+    });*/
 
     // Change event of the languages menu
-    $('#language_menu').change(function() {
+    /*$('#language_menu').change(function() {
       var selected = updateSelectedLanguages();  // Update selected languages when list is changed
       saveLangToBrowser(selected); // Save the user languages selection to the browser
-    });
+    });*/
 
     // show/hide menu when press f7 key, hide when press esc. register_keys not working if the menu is in focus.
-    $('body').keydown(function(e) {
+    /*$('body').keydown(function(e) {
       if(e.keyCode == 118) { // If F7 is pressed
         languageMenu(); // show/hide menu
       } else if(e.keyCode == 27) {  // If esc is pressed
         if($('#language_menu_container').is(":visible")) hideLangMenu();  // hide menu
       }
-    });
+    });*/
 
     // resize language menu on window resize
-    $(window).resize(function(e) {
+    /*$(window).resize(function(e) {
       resizeLanguageMenu(); // resize language menu to fit with the window
 
       // realign chunks, if text is in playing, unhighlight current seg before align so that the span doesn't mess with spanAligner
       player.unhighlightSeg();  // unhighlight current seg
       area.realign(); // realign chunks
       if(isPlaying) player.highlightSeg();  // rehighlight current seg
-    });
+    });*/
 
     // attach window load event
-    $(window).bind('load', function() {
+    /*$(window).bind('load', function() {
       resizeLanguageMenu();
       loadText(); // load text into textarea
       loadUrlList();  // load url list from firebase to the local object urlList
-    });
+    });*/
 
     // retrieve text when url hash change "when user change hash and press enter, page not reloaded(load event not called)
-    $(window).bind('hashchange', function() {
+    /*$(window).bind('hashchange', function() {
       player.reset();
       resizeLanguageMenu();
       loadText(); // load text into textarea
-    });
+    });*/
 
     // attach click events on data bar links
-    $('#data-bar-f7, #data-bar-heart').click(function() {
+    /*$('#data-bar-f7, #data-bar-heart').click(function() {
       languageMenu();
     });
     $('#data-bar-f2, #data-bar-play').click(function() {
@@ -108,10 +108,10 @@
     });
     $('#url-list-f9, #url-list-label').click(function() {
       showHideUrlList();
-    });
+    });*/
 
     // control text sybs in timing mode
-    $(area.area).keyup(function(e) {
+    /*$(area.area).keyup(function(e) {
       if(area.isTimingOn()) { // timing lines are displayed
         if(e.keyCode == 173 || e.keyCode == 189) {  // - keycode in chrome is 189 and in firefox is 173
           var cursorCoord = area.getCaretPos();
@@ -125,8 +125,8 @@
           }
         }
       }
-    });
-    $(area.area).keydown(function(e) {
+    });*/
+    /*$(area.area).keydown(function(e) {
       if(e.keyCode == 8) { // backspace
         var cursorCoord = area.getCaretPos();
         var text = area.area.innerText;
@@ -142,13 +142,13 @@
           }
         } // end if
       }
-    });
+    });*/
   }
 
   /**
   * Animate text segments according to timings.
   */
-  function playPauseText() {
+  /*function playPauseText() {
     var mode; // current mode
     if(area.isTwextOn()) {
       mode = "twext";
@@ -173,38 +173,38 @@
       player.pauseText(); // pause text play
       isPlaying = false;
     }
-  }
+  }*/
 
   /**
   * Load text into textarea.
   * If there is a hash url, load the saved text from firebase, else load sample data.
   */
-  function loadText() {
+  /*function loadText() {
     var shortcut = window.location.hash;  // get text shortcut
     if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
       loadTextOfURL(shortcut.slice(1)); // load text and translations from firebase
     } else {  // no hash value in the url
       load_sample_data(); // load sample data
     }
-  }
+  }*/
 
   /**
   * Load url-text list from firebase to urlList object.
   */
-  function loadUrlList() {
+  /*function loadUrlList() {
     var ref = new Firebase(firebaseRef+"history");  // firebase ref
     var query = ref.endAt().limit(urlListLimit);  // query to retrieve the last limit entries
     query.once("value", function(data) {
       urlList = Object.toArray(data.val());
       fillListElements(urlList);
     });
-  }
+  }*/
 
   /**
   * Add the new created url to the top of the list.
   * @param 'data' key/value object contains the url and text
   */
-  function addToUrlList(data) {
+  /*function addToUrlList(data) {
     var currentRef = window.location.href;  // current url
     var hashIndex = currentRef.indexOf('#');  // index of '#' if exist
     currentRef = hashIndex != -1?currentRef.substring(0, hashIndex):currentRef; // current url without # part
@@ -218,14 +218,14 @@
     }
     $('#url-all-list').prepend(aEl); // append to all list
     urlList.push(data);  // Update urlList object
-  }
+  }*/
 
   /**
   * Create elements for urls and append them to the DOM.
   * Append the latest 10 added urls to the "url-sub-list" element, and all urls to "url-all-list"
   * @param 'list' array of all urls
   */
-  function fillListElements(list) {
+  /*function fillListElements(list) {
     var i, aEl = "", ref = "", text = "";
     var currentRef = window.location.href;
     var hashIndex = currentRef.indexOf('#');
@@ -239,13 +239,13 @@
       }
       $('#url-all-list').append(aEl); // append to all list
     }
-  }
+  }*/
 
   /**
   * Load Text from firebase that is referenced by the given shortcut.
   * @param 'shortcut' the reference hash of the text
   */
-  function loadTextOfURL(shortcut) {
+  /*function loadTextOfURL(shortcut) {
     getFirebaseEntryValue(firebaseRef+"mapping/url-text/"+shortcut, null, function(data, value) {
       if(data) {  // if there is a mapped text with the given url
         // init selectedLanguages to "english", "spanish", "romanian", "catalan", "german", "french", "italian", "portuguese"
@@ -259,12 +259,12 @@
         alert("The requested URL does not exist.");
       }
     });
-  }
+  }*/
 
   /**
   * Change the menu width/height to fit with window width/height
   */
-  function resizeLanguageMenu() {
+  /*function resizeLanguageMenu() {
     var clientHeight = document.documentElement.clientHeight;
     if(clientHeight < 500) {  // if client height is less than 500(approximate value near to menu height which is 445), then reduce menu height
       $('#language_menu').height(clientHeight-40);
@@ -272,7 +272,7 @@
       $('#language_menu').height(445);
     }
     $('#language_menu').width(120); // keep menu width fixed
-  }
+  }*/
 
   /**
   * Show/Hide url list according to current state.
@@ -280,7 +280,7 @@
   * Second key press shows all urls.
   * Third key press hide list, and then repeat process.
   */
-  function showHideUrlList() {
+  /*function showHideUrlList() {
     if(urlListState == 0) { // current state is off, move to state 1, show first 10 urls
       $('#url-sub-list').show();
       urlListState = 1;
@@ -295,26 +295,26 @@
       urlListState = 0;
       $('#url-list-label').html("off");
     }
-  }
+  }*/
 
   /**
   * Save languages codes and names into the browser.
   * The codes and names arrays are converted into strings and saved in two different cookies in the browser.
   * @param 'langObj' the languages object that carry codes and names
   */
-  function saveLangToBrowser(langObj) {
+  /*function saveLangToBrowser(langObj) {
     var codesStr = langObj.targets.toString();  // put codes array in a string
     var namesStr = langObj.lang_names.toString(); // put names array in a string
     setCookie("twext_lang_codes", codesStr, 365);  // save languages codes to the browser for a year
     setCookie("twext_lang_names", namesStr, 365);  // save languages names to the browser for a year
-  }
+  }*/
 
   /**
   * Get the languages list saved in the browser.
   * If no list found, return the first 5 languages ("French", "Italian", "Spanish", "English", "Portuguese")
   * @return languages list
   */
-  function getUserLanguages() {
+  /*function getUserLanguages() {
     var list = {};
     var codes = getCookie("twext_lang_codes"); // get lang codes
     var names = getCookie("twext_lang_names"); // get lang names
@@ -332,13 +332,13 @@
       };
     }
     return list;  // return languages list
-  }
+  }*/
 
   /**
   * Update the selectedLanguages object value with the updated selected options in languages menu.
   * @return the selected languages object after the update
   */
-  function updateSelectedLanguages() {
+  /*function updateSelectedLanguages() {
     var i, names = [], codes = [];
     var selectedOptions = $('#language_menu')[0].selectedOptions;
     for(i=0; i<selectedOptions.length; i++) {
@@ -348,39 +348,39 @@
     selectedLanguages.targets = codes;  // update selected languages codes
     selectedLanguages.lang_names = names; // update selected languages names
     return selectedLanguages;
-  }
+  }*/
 
   /**
   * Show/Hide language selection menu. The menu is used to select(include/exclude) languages to be displayed.
   */
-  function languageMenu() {
+  /*function languageMenu() {
     if($('#language_menu_container').is(":visible")) {  // If menu opened
       hideLangMenu(); // hide menu
     } else {  // menu closed
       showLangMenu(); // show menu
     }
-  }
+  }*/
 
   /**
   * Hide language menu; get text translations on menu hide.
   */
-  function hideLangMenu() {
+  /*function hideLangMenu() {
     $('#language_menu_container').hide(0, function(e) {
       check_translations(null, true); // fetch translations as if F8 is pressed
     }); // hide language menu
-  }
+  }*/
 
   /**
   * Show language menu.
   */
-  function showLangMenu() {
+  /*function showLangMenu() {
     $('#language_menu_container').show(); // show language menu
-  }
+  }*/
 
   /**
   * Show/Hide timings(Turn on/off).
   */
-  function switchTimingState() {
+  /*function switchTimingState() {
     player.unhighlightSeg();
     var text;
     if(area.isTwextOn()) { // Twexts are dispalyed, show text only
@@ -408,8 +408,8 @@
       resumePlaying("text");
 
       // Save timing data into firebase
-      var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, true);
-      timing.setTimingLines(saved);  // update old timing lines with the saved ones
+      var saved = area.saveData(language, version, timingCreator.getTimingLines(), oldText, false, true);
+      timingCreator.setTimingLines(saved);  // update old timing lines with the saved ones
     } else {  // timings not dispalyed, show timings
       text = extractText();  // get Text
       text = trimStringLines(text);
@@ -418,40 +418,40 @@
 
       resumePlaying("timing");
     }
-  }
+  }*/
 
   /**
   * Resume playing segments when toggle or mode change.
   * @param 'mode' the current mode
   */
-  function resumePlaying(mode) {
+  /*function resumePlaying(mode) {
     //isPlaying = false;
     player.setDisplayMode(mode);
     player.getSegIndices(); // get new indices of the segments
     if(isPlaying) player.highlightSeg();  // highlight current seg
-  }
+  }*/
 
   /**
   * Display Text/Timing lines and align each word-timing pair.
   */
-  function place_timing(text) {
+  /*function place_timing(text) {
     syllabifier.syllabifyText(text, function(hText) { // syllabify text to get segments
       var textLines = hText.split('\n');  // hyphenated text lines
-      timing.getSegTiming(text, hText, function(timingLines) {
+      timingCreator.getSegTiming(text, hText, function(timingLines) {
         var lines = meld_timing_lines(textLines, timingLines);  // merge lines
         renderLines(lines, 'timing'); // display Text/Timing lines
-        timing.saveTimings(text);
+        timingCreator.saveTimings(text);
       }); // timing lines
     });
-  }
+  }*/
 
   /**
   * Display text in area.
   * @param 'text' text to be displayed
   */
-  function displayText(text) {
+  /*function displayText(text) {
     area.render_text_lines(text.split('\n'));
-  }
+  }*/
 
   /**
   * Show/Hide twexts(Turn on/off).
@@ -475,37 +475,37 @@
   /**
   * Switch to previous language; this method is called on 'Alt+F8' key down event.
   */
-  function toggleLangDown() {
+  /*function toggleLangDown() {
     player.reset(); // reset playing data
     console.log("KEY: alt+f8"); // log pressed key/s
     switch_language(-1);  // Switch to previous language, subtract 1 from the current language
-  }
+  }*/
 
   /**
   * Switch to next language; this method is called on 'F8' key down event.
   * Check if text is translated to all selected languages in the menu before switch to next language(in case new language is included from the menu)
   * If one or more language is not yet translated, then get translations of these languages first befor displaying next language translations.
   */
-  function toggleLangUp() {
+  /*function toggleLangUp() {
     console.log("KEY: f8"); // log pressed key/s
     switch_language(1); // Switch to next language, add 1 to the current language
-  }
+  }*/
 
   /**
   * Fetch translations of new selected languages added in the menu.
   */
-  function translateAddedLanguages() {
+  /*function translateAddedLanguages() {
     var languages = getAddedLanguages(); // get list of new languages that not yet used to translate text.
     if(languages) {  // one or more language translations not found, translate text to these languages and display next language
       pull_translations(toggle_data.source_text, languages, language);  // translate text to these languages
     }
-  }
+  }*/
 
   /**
   * Check if all selected languages translations included in toggle_data.
   * @return object of languages codes and names that are not found in toggle_data object (text not translated to these languages), false if all languages already added to toggle_data
   */
-  function getAddedLanguages() {
+  /*function getAddedLanguages() {
     var i, lang_ix = -1, result = false;
     var codes = [], names = [];
     for(i=0; i<selectedLanguages.lang_names.length; i++) {  // loop over selected languages
@@ -516,7 +516,7 @@
       }
     }
     return names.length > 0 ? {targets: codes, lang_names: names} : false; // return languages object, false if all languages already in toggle_data
-  }
+  }*/
 
   /**
   * Switch to previous version of the current language; this method is called on 'Alt+F7' key down event.
@@ -561,14 +561,14 @@
   /**
   * Display current language name.
   */
-  function set_language_name() {
+  /*function set_language_name() {
     var lang = toggle_data.languageName(language);  // get current language name
     if(lang) {  // valid language
       $('#data-bar-language').html(lang); // Display language name (French, English..)
     } else {  // not a valid language
       $('#data-bar-language').html('Unknown');  // Display "Unknown"
     }
-  }
+  }*/
 
   /**
   * Display current version name.
@@ -598,20 +598,20 @@
   * Display timing current state(on/off).
   * @param 'state' the current timing state; true if timing on, false if timing off
   */
-  function set_timing_state(state) {
+  /*function set_timing_state(state) {
     if(state) { // timing on
       $('#data-bar-timing').html("timing");
     } else {  // timing off
       $('#data-bar-timing').html("text");
     }
-  }
+  }*/
 
   /**
   * Round Switch to previous/next language (move to first version of the previous/next language)
   * @param 'add' amount to subtract/add from/to current language
            'ver' version of language, set only when switching both language and version (F9, Alt+F9)
   */
-  function switch_language(add, ver) {
+  /*function switch_language(add, ver) {
     // Data before language switch, save data later into firebase(save after render new language data,so that ui is not slowed by firebase requests)
     var oldLang = language, oldVer = version, oldText = trim(area.area.innerText), displayedLangName = $('#data-bar-language').text();
     var twextOn = area.isTwextOn(), timingOn = area.isTimingOn();
@@ -625,13 +625,13 @@
     }
 
     // Check if the language to switch is in the selected language list, if not then switch to the language after it.
-    /*var lang_name = toggle_data.language(nl).language;  // get new language name
-    if($.inArray(lang_name, selectedLanguages.lang_names) == -1) {  // if language not included in selected language list, switch to the one after
-      language = nl;
-      switch_language(1, ver); // switch to next language
-    } else {  // language included in selected languages, switch to this language
-      place_twext(nl, ver); // display Text/Twext lines
-    }*/
+    //var lang_name = toggle_data.language(nl).language;  // get new language name
+    //if($.inArray(lang_name, selectedLanguages.lang_names) == -1) {  // if language not included in selected language list, switch to the one after
+      //language = nl;
+      //switch_language(1, ver); // switch to next language
+    //} else {  // language included in selected languages, switch to this language
+      //place_twext(nl, ver); // display Text/Twext lines
+    //}
     display_language(nl, ver);
     //language = nl;  // set current language to the new one
     //version = ver?ver:0;  // set version, default is the first version
@@ -652,14 +652,14 @@
     //area.saveChunks(oldLang, oldVer);
     //saveTwexts(oldText, oldLang, oldVer);
     //place_twext();
-  }
+  }*/
 
   /**
   * Display twexts of the given language. If the language to display is not in the selected languages, the switch to the language after it.
   * @param 'lang' the language to display
            'ver' the language version to display
   */
-  function display_language(lang, ver) {
+  /*function display_language(lang, ver) {
     // Check if the language to display is in the selected language list, if not then switch to the language after it.
     var lang_name = toggle_data.language(lang).language;  // get language name
     if($.inArray(lang_name, selectedLanguages.lang_names) == -1) {  // if language not included in selected language list, switch to the one after
@@ -668,7 +668,7 @@
     } else {  // language included in selected languages, switch to this language
       place_twext(lang, ver); // display Text/Twext lines
     }
-  }
+  }*/
 
   /**
   * Switch to previous/next version of the current language; if no version found, display error to the user.
@@ -740,16 +740,16 @@
   /**
   * Display "translating" msg to user while getting bing translations.
   */
-  function display_translating() {
+  /*function display_translating() {
     $('#translating').show();
-  }
+  }*/
 
   /**
   * Hide "translating" msg to user after getting bing translations.
   */
-  function hide_translating() {
+  /*function hide_translating() {
     $('#translating').hide();
-  }
+  }*/
 
   /**
   * Remove spaces/new lines from the start and end of string
@@ -766,7 +766,7 @@
   * If no twexts are displayed, get translations of the area text lines(from firebase or google), display them as twexts for each Text line.
   * If twexts are displayed, toggle languages.
   */
-  function check_translations(e, fetchAdded) {
+  /*function check_translations(e, fetchAdded) {
     var text = extractText();
     if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
     text = trimStringLines(text); // trim string lines
@@ -793,18 +793,18 @@
 
           // Save timing data into firebase
           var saved = area.saveData(language, version, timing.getTimingLines(), oldText, false, timingOn);
-          timing.setTimingLines(saved);  // update old timing lines with the saved ones
+          timingCreator.setTimingLines(saved);  // update old timing lines with the saved ones
         }
       }
     }
     area.setCaretPos(0,0);  // set cursor position at the start of area text
-  }
+  }*/
 
   /**
   * Extract text lines from area input. Text = input if twext not displayed.
   * @return Text lines string
   */
-  function extractText() {
+  /*function extractText() {
     var lines = [], i, text = "";
     var nodes = area.area.childNodes; // area child nodes
     if(area.isTwextOn() || area.isTimingOn()) { // if twext displayed
@@ -816,7 +816,7 @@
       text = area.area.innerText; // text is the input
     }
     return text;  // return text
-  }
+  }*/
 
   /**
   * Get translations of text from either firebase or Bing translate api.
@@ -824,7 +824,7 @@
   * While data transfer to toggle_data object, if any entry is null(not found in firebase), then translate text using google translate.
   * @param 'text' text to be translated
   */
-  function get_translations(text) {
+  /*function get_translations(text) {
     var line = "", j;
 
     // Create toggle_data object to carry all languages information (languages, versions, translations, chunks)
@@ -836,7 +836,7 @@
 
     // Get firebase translations
     pull_translations(text, selectedLanguages, 0);
-  }
+  }*/
 
   /**
   * Pull translations of text from either firebase or Bing translate api.
@@ -846,7 +846,7 @@
            'langs' the languages object for the text to be translated to. The object contains two lists: codes and names
            'firstLanguage' number of first language to be displayed
   */
-  function pull_translations(text, langs, firstLanguage) {
+  /*function pull_translations(text, langs, firstLanguage) {
     // initialize objects
     firebaseTranslations = []; // initialize firebase translations
     gTranslatedText = []; // initialize google translations of text
@@ -869,14 +869,14 @@
         }
       });
     }
-  }
+  }*/
 
   /**
   * Generate random string as a shortcut to represent the text. This is used to retrieve the text later if requested via URL.
   * Save this shortcut/text mapping into firebase.
   * @param 'text' the source text
   */
-  function generateTextShortcut(text) {
+  /*function generateTextShortcut(text) {
     var textEntry = constructFbKeyFromText(text); // convert text to firebase key entry
     getFirebaseEntryValue(firebaseRef+"mapping/text-url/"+textEntry, null, function(data, index) {
       if(!data) { // if text not exist, generate and save shortcut
@@ -887,14 +887,14 @@
         window.history.pushState("", document.title, "#"+data); // display new url
       }
     });
-  }
+  }*/
 
   /**
   * Save url-text mapping into firebase, only if text is not saved before.
   * The url-text mappings are saved into firebase under the path: "mapping/url-text"; key is the url shortcut, value is the text
   * The reverse mapping "text-url" is saved under the path: "mapping/text-url". This mapping is used to check duplicate text, so that same text not saved twice with different urls; text is saved as one line strings
   */
-  function saveShortcut(text, id, shortcut, index) {
+  /*function saveShortcut(text, id, shortcut, index) {
     getFirebaseEntryValue(firebaseRef+"mapping/url-text/"+shortcut, index, function(data, index) {
       if(!data) { // if this shortcut not used for other text
         window.history.pushState("", document.title, "#"+shortcut); // display new url
@@ -915,14 +915,14 @@
         }
       }
     });
-  }
+  }*/
 
   /**
   * Convert text to one line string to be a key entry in firebase.
   * Replace new lines "\n" by two spaces, separate words by -
   * @param 'text' the text to be converted.
   */
-  function constructFbKeyFromText(text) {
+  /*function constructFbKeyFromText(text) {
     var i, line, result = [];
     var lines = text.split("\n");
     lines = lines.clean();
@@ -931,7 +931,7 @@
       result.push(line);
     }
     return result.join('  ');
-  }
+  }*/
 
   /**
   * Send request to firebase and get required data value.
@@ -939,12 +939,12 @@
             'callbackValue' callback value needed in the calling method
             'callback' the callback function
   */
-  function getFirebaseEntryValue(ref, callbackValue, callback) {
+  /*function getFirebaseEntryValue(ref, callbackValue, callback) {
     // Send request to firebase
     new Firebase(ref).once('value', function(dataSnapshot) {  //callback
       callback(dataSnapshot.val(), callbackValue);  // callback with data retrieved
     });
-  }
+  }*/
 
   /**
   * Fill toggle_data object with data retrieved from firebase.
@@ -955,7 +955,7 @@
            'lineIx' text line index; If set, start loading from this line index
            'langIx' language index; If set, start loading from this language index
   */
-  function fillTranslations(text, langs, firstLanguage, lineIx, langIx) {
+  /*function fillTranslations(text, langs, firstLanguage, lineIx, langIx) {
     var targets = langs.targets;  // selected targets
     var lang_names = langs.lang_names;  // selected lang names
     var lang_ix;
@@ -1000,7 +1000,7 @@
     display_language(firstLanguage, 0);
     hide_translating(); // hide translating msg after getting text translations
     //place_twext(firstLanguage, 0); // Twexts display
-  }
+  }*/
 
   /**
   * Add all versions/data to toggle_data object.
@@ -1008,12 +1008,12 @@
            'lineNum' the line number in which the data will be loaded
            'lang_ix' the language index in which the data will be loaded
   */
-  function addVersions(versions, lineNum, lang_ix) {
+  /*function addVersions(versions, lineNum, lang_ix) {
     for(var key in versions) {  // loop over versions
       // add line/data (translated text and chunks) to toggle_data object(add version too if not already exist)
       toggle_data.addLine(lang_ix, key, lineNum, versions[key]);
     }
-  }
+  }*/
 
   /**
   * Translate text to the sepcified language.
@@ -1024,7 +1024,7 @@
            'lineIx' line index where translation request is sent(in fillTranslations), used to call fillTranslations() and continue from this line
            'langIx' language where translation request is sent(in fillTranslations),used to call fillTranslations() and continue from this language
   */
-  function translate_html(text_source, target_lang, target_name, translator, langs, firstLanguage, lineIx, langIx) {
+  /*function translate_html(text_source, target_lang, target_name, translator, langs, firstLanguage, lineIx, langIx) {
     // Get the access token for translation
     new Firebase("https://readfm.firebaseio.com/AccessToken").once('value', function(dataSnapshot) {  //callback
       translator.setAccessToken(dataSnapshot.val());  // set access token in translator
@@ -1057,7 +1057,7 @@
         console.log("Translate Error: " + msg + "\tlanguage: " + target_name);
       }); // end translate request
     }); // end firebase request
-  }
+  }*/
 
   /**
   * Detect text language using Bing api.
@@ -1083,7 +1083,7 @@
   * @param 'target_name' the langauge name to be added
   * @return index of added language
   */
-  function addLanguage(target_name) {
+  /*function addLanguage(target_name) {
     // Add language to toggle_data object
     var lang_ix = toggle_data.find_by_language_name(target_name); // get language from toggle_data object
     // check if this language has been loaded to toggle_data before
@@ -1093,7 +1093,7 @@
       lang_ix = toggle_data.addLanguage(target_name); // add language
     }
     return lang_ix; // return index of added language
-  }
+  }*/
 
   /**
   * Display Text/Twext lines (text/translation) and align each pair.
@@ -1101,19 +1101,19 @@
   * @param 'lang' the language to be dispalyed
            'ver' the language version to be displayed
   */
-  function place_twext(lang, ver) {
+  /*function place_twext(lang, ver) {
     language = lang;
     version = ver?ver:0;
     var doc = toggle_data.languageVersion(language, version);
     display_twext(doc.lines);
-  }
+  }*/
 
   /**
   * Display Text/Twext lines (text/translation) and align each pair.
   * Get Text/Twext lines, align and render lines, set langauge and version display names.
   * @param 'lines' translations (twexts) to be displayed
   */
-  function display_twext(lines) {
+  /*function display_twext(lines) {
     var lines = meld_twext_lines(toggle_data.source_text, lines); // Get Text/Twext lines
     $("#main").show();  // show the input area
     renderLines(lines); // render Text/Twext lines
@@ -1127,7 +1127,7 @@
     area.orgLines = toggle_data.getLines(language, version);console.log("display twexts")
     // Align twexts
     area.realign();*/
-  }
+  //}
 
   /**
   * Get Text/Twext lines.
@@ -1135,7 +1135,7 @@
            'lang' transalted lines
   * @return Text/Twext lines
   */
-  function meld_twext_lines(main, lang) {
+  /*function meld_twext_lines(main, lang) {
     var i = 0, j = 0, text_lines = [];
     var nl = /\n/g; // new line regular expression, used for text split
     var main = main.split(nl);  // get source text lines
@@ -1150,7 +1150,7 @@
       }
     }
     return text_lines;  // return Text/Twext lines
-  }
+  }*/
 
   /**
   * Get Text/Timing lines.
@@ -1158,57 +1158,57 @@
            'timingLines' timing of line segments
   * @return Text/Timing lines
   */
-  function meld_timing_lines(textLines, timingLines) {
+  /*function meld_timing_lines(textLines, timingLines) {
     var i = 0, lines = [];
     for(i=0; i<textLines.length ; i++) {  // loop over source text lines
       lines.push(textLines[i]); // add Text line
       lines.push(timingLines[i]); // add Twext line
     }
     return lines;  // return Text/Timing lines
-  }
+  }*/
 
   /**
   * Render Text/Twext lines (text/translation) and align each pair.
   * Align and render lines, set langauge and version display names.
   * @param 'lines' Text/Twext lines to be displayed
   */
-  function renderLines(lines, secondClass) {
+  /*function renderLines(lines, secondClass) {
     area.language = language; // set current language in the area
     area.version = version; // set current version in the area
     area.render_html(lines, secondClass);  // render the lines
     area.orgLines = toggle_data.getLines(language, version);  // set current displayed lines in the area
     area.realign(); // align Text/Twext lines
-  }
+  }*/
 
   /**
   * Load some initial sample text into the input area.
   */
-  function load_sample_data() {
+  /*function load_sample_data() {
     // Initiate some sample data
     var data = "Twext is twin text,\n"+
                "aligned between the lines,\n"+
                "in any language you like.";
     get_translations(data);
     //return data;  // return data, for display on input area
-  }
+  }*/
 
   /**
   * Init display; Register keys events, Load initial(sample) data and get its translations, render Text/Twext lines
   */
-  function init(){
-    area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
+  /*function init(){
+    //area = new ScoochArea( this.getElementById('data-show') );  // create ScoochArea object to represent the contenteditable element
     register_keys();  // Attach keys events
     loadLanguageList(); // load languages to the menu
     attachEvents(); // attach elements events
-    syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
-    timing = new TimingCreator(); // create Timing object that handles timing features
-    player = new TextPlayer(area.area, syllabifier, timing);
-  }
+    //syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
+    //timing = new TimingCreator(); // create Timing object that handles timing features
+    //player = new TextPlayer(area.area, syllabifier, timing);
+  }*/
 
   /**
   * Load all languages to the select menu.
   */
-  function loadLanguageList() {
+  /*function loadLanguageList() {
     var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"english":"en", ....}) sorted by keys
     $.each(selectValues, function(key, value) {  // loop languages
       $('#language_menu')
@@ -1217,34 +1217,34 @@
          .text(key)); // set the text of the option to language name
     });
     select($('#language_menu')[0], selectedLanguages.targets);  // select the options included in the selectedLanguages object
-  }
+  }*/
 
   /**
   * Select options in the select box that included in the given array.
   * @param 'selectBox' the select box element
            'arr' array contains values needed to be selected
   */
-  function select(selectBox, arr) {
+  /*function select(selectBox, arr) {
     for(var i=0; i<selectBox.options.length; i++) { // loop over options
       if($.inArray(selectBox.options[i].value, arr) != -1) {
         selectBox.options[i].selected = true; // select option
       }
     } 
-  }
+  }*/
 
   /**
   * Deselect all options in the select box.
   * @param 'selectBox' the select box element
   */
-  function deselectAll(selectBox) {
+  /*function deselectAll(selectBox) {
     for(var i=0; i<selectBox.options.length; i++) { // loop over options
       selectBox.options[i].selected = false; // unselect option
     }
-  }
+  }*/
 
   // Init sample data display
-  console.log("Init");  // log start init operation
-  $(init);
+  //console.log("Init");  // log start init operation
+  //$(init);
 
 }(document);
 

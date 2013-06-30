@@ -37,14 +37,13 @@ window.ScoochArea = Class.$extend({
     //End TODO zone
 
     // Attach area key events
-    $(area).bind("keydown","space",$.proxy(this.onSpace,this)); // space key down event
-   	$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this)); // backspace key down event
-    $(area).bind("keydown",'delete',$.proxy(this.onDelete,this)); // delete key down event
+    //$(area).bind("keydown","space",$.proxy(this.onSpace,this)); // space key down event
+   	//$(area).bind("keydown",'backspace',$.proxy(this.onBackspace,this)); // backspace key down event
+    //$(area).bind("keydown",'delete',$.proxy(this.onDelete,this)); // delete key down event
     // Attach window key events
     //$(window).bind("resize", $.proxy(this.realign, this));  // window resize event
-    $(window).bind("beforeunload", $.proxy(this.save, this)); // refresh/close window event
-    //$(area).keydown($.proxy(this.adjustLimit, this));  // check if exceed limit
-    $(area).keydown($.proxy(this.adjustLimit, this));
+    //$(window).bind("beforeunload", $.proxy(this.save, this)); // refresh/close window event
+    //$(area).keydown($.proxy(this.adjustLimit, this));
 	},
 
   /**
@@ -57,7 +56,27 @@ window.ScoochArea = Class.$extend({
     if(!this.isTwextOn() && !this.isTimingOn() && isTypingChar(event.which) && !event.ctrlKey && text.length >= Area_Limit) {
       event.stopPropagation(); // Stop the bubbling of key press event to parent elements
       event.preventDefault(); // prevent the key press action from happening.
+      return false;
     }
+    return true;
+  },
+
+  /**
+  * Extract text lines from area input. Text = input if twext not displayed.
+  * @return Text lines string
+  */
+  extractText: function() {
+    var lines = [], i, text = "";
+    var nodes = this.area.childNodes; // area child nodes
+    if(this.isTwextOn() || this.isTimingOn()) { // if twext displayed
+      for(i=0; i<nodes.length; i++) { // loop over area childnodes
+        if(nodes[i].className == "text") lines.push(nodes[i].innerText);  // push text line
+      }
+      text = lines.join('\n');  // construct text string
+    } else {  // twext not displayed
+      text = area.area.innerText; // text is the input
+    }
+    return text;  // return text
   },
 
   /**
