@@ -20,7 +20,8 @@ TextPlayer = Class.$extend({
     this.segTimingLines = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is an obj contains seg, timing
     this.segIndices = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is seg index
     this.timeout = 0; // window timeout value
-    this.done = false;  // boolean detects if all segs has been played
+    //this.done = false;  // boolean detects if all segs has been played
+    this.endTiming = 1; // the number of seconds for the last seg to be highlighted before start over again "Loop"
   },
 
   /**
@@ -28,6 +29,8 @@ TextPlayer = Class.$extend({
   * @param 'text' the Text lines only
   */
   playText: function() {
+    var player = this;  // create object of the player to be sent to the timeout
+    var lastSeg = false;
     var text = this.text();
     var isNewText = this.sourceText == null || this.sourceText != text;
     if(isNewText) {
@@ -37,10 +40,10 @@ TextPlayer = Class.$extend({
       this.unhighlightSeg(); // unhighlight current seg
       if(!this.currentSeg) {  // start playing with the first seg
         this.currentSeg = {line: 0, seg: 0};
-        this.done = false;
+        //this.done = false;
       } else if(!this.nextSeg) { // current seg is the last seg, start over again
         this.currentSeg = {line: 0, seg: 0}; //start over again
-        this.done = false;
+        //this.done = false;
       } else {
         this.previousSeg = this.currentSeg;
         this.currentSeg = this.nextSeg;
@@ -48,11 +51,8 @@ TextPlayer = Class.$extend({
       var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
       if(this.currentSeg.seg == currentLine.length-1) { // last seg in the line, move to next line
         if(this.currentSeg.line == this.segTimingLines.length-1) {  // last line, end of playing
-          clearTimeout(this.timeout);
-          this.nextSeg = null;
-          this.highlightSeg();
-          this.done = true;  // done playing
-          return;
+          this.nextSeg = {line: 0, seg: 0}; // start loop, move to first seg again
+          lastSeg = true;
         } else {
           this.nextSeg = {line: this.currentSeg.line+1, seg: 0};
         }
@@ -61,12 +61,21 @@ TextPlayer = Class.$extend({
       }
       this.highlightSeg();
       // Set window timeout to allow playing next seg after difference between current and next timing amount of time
-      var currentTiming = currentLine[this.currentSeg.seg].timing;
-      var nextLine = this.segTimingLines[this.nextSeg.line];
-      var nextTiming = nextLine?nextLine[this.nextSeg.seg].timing:currentTiming;
-      var player = this;  // create object of the player to be sent to the timeout
-      this.timeout = setTimeout(function(){player.playText();}, (nextTiming-currentTiming)*1000);
+      this.timeout = setTimeout(function(){player.playText();}, (player.calculateSegTimeout(lastSeg))*1000);
     }
+  },
+
+  /**
+  * Calculate the timeout for the current seg.
+  * @param 'lastSeg' boolean detects if the current segment is the last segment in the text.
+  */
+  calculateSegTimeout: function(lastSeg) {
+    var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
+    var currentTiming = parseFloat(currentLine[this.currentSeg.seg].timing);  // current seg timing
+    var nextLine = this.segTimingLines[this.nextSeg.line];  // next line segments
+    var nextTiming = nextLine?parseFloat(nextLine[this.nextSeg.seg].timing):currentTiming;  // next seg timing
+    if(lastSeg) return this.endTiming+nextTiming; //if last seg,the seg remains highlighted for a period equal to the endtiming+the first seg timing
+    return nextTiming-currentTiming; //if not last seg,the seg remains highlighted for a period equals to difference between next and current timing
   },
 
   /**
@@ -239,6 +248,6 @@ TextPlayer = Class.$extend({
     this.sourceText = null;
     this.segTimingLines = [];
     this.segIndices = [];
-    this.done = false;
+    //this.done = false;
   }
 });

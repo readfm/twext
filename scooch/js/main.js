@@ -246,7 +246,7 @@ function playPauseText() {
   }
 
   // play/pause text
-  if(!player.isPlaying() || player.done) { // currently paused or done with playing
+  if(!player.isPlaying()) { // currently paused playing
     player.playText(); // resume text play
   } else { // currently playing
     player.pauseText(); // pause text play
