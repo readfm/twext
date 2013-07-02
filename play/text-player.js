@@ -67,6 +67,8 @@ TextPlayer = Class.$extend({
 
   /**
   * Calculate the timeout for the current seg.
+  * Last seg timeout(period before loop) = last seg timing + end time - first seg timing
+  * If not last seg, seg timeout = next seg timing - current seg timing.
   * @param 'lastSeg' boolean detects if the current segment is the last segment in the text.
   */
   calculateSegTimeout: function(lastSeg) {
@@ -74,8 +76,10 @@ TextPlayer = Class.$extend({
     var currentTiming = parseFloat(currentLine[this.currentSeg.seg].timing);  // current seg timing
     var nextLine = this.segTimingLines[this.nextSeg.line];  // next line segments
     var nextTiming = nextLine?parseFloat(nextLine[this.nextSeg.seg].timing):currentTiming;  // next seg timing
-    if(lastSeg) return this.endTiming+nextTiming; //if last seg,the seg remains highlighted for a period equal to the endtiming+the first seg timing
-    return nextTiming-currentTiming; //if not last seg,the seg remains highlighted for a period equals to difference between next and current timing
+    //if last seg,the seg remains highlighted for a period equal to the current seg timing + endtiming - first seg timing
+    if(lastSeg) return currentTiming + this.endTiming - nextTiming;
+    //if not last seg,the seg remains highlighted for a period equals to difference between next and current timing
+    return nextTiming-currentTiming;
   },
 
   /**
