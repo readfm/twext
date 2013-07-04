@@ -13,7 +13,7 @@ TextPlayer = Class.$extend({
     this.syllabifier = syllab?syllab:new Syllabifier(); // syllabifier object
     this.timingCreator = timing?timing:new TimingCreator(); // timingCreator object
     this.displayMode = null;  // current display mode
-    this.previousSeg = null;  // key/value obj contains line and seg number of previous seg
+    //this.previousSeg = null;  // key/value obj contains line and seg number of previous seg
     this.currentSeg = null; // key/value obj contains line and seg number of current seg
     this.nextSeg = null;  // key/value obj contains line and seg number of next seg
     this.sourceText = null; // Text lines currently displayed
@@ -22,6 +22,7 @@ TextPlayer = Class.$extend({
     this.timeout = 0; // window timeout value
     //this.done = false;  // boolean detects if all segs has been played
     this.endTiming = 1; // the number of seconds for the last seg to be highlighted before start over again "Loop"
+    this.date = null;  // The date of the last tap, used to calculate number of seconds between taps that equals to difference between current tap and previous tap times
   },
 
   /**
@@ -38,31 +39,52 @@ TextPlayer = Class.$extend({
       this.createSegTiming(); // create array of segments and timings per each Text line, this method will recall playText
     } else {
       this.unhighlightSeg(); // unhighlight current seg
-      if(!this.currentSeg) {  // start playing with the first seg
-        this.currentSeg = {line: 0, seg: 0};
-        //this.done = false;
-      } else if(!this.nextSeg) { // current seg is the last seg, start over again
-        this.currentSeg = {line: 0, seg: 0}; //start over again
-        //this.done = false;
-      } else {
-        this.previousSeg = this.currentSeg;
-        this.currentSeg = this.nextSeg;
-      }
-      var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
-      if(this.currentSeg.seg == currentLine.length-1) { // last seg in the line, move to next line
-        if(this.currentSeg.line == this.segTimingLines.length-1) {  // last line, end of playing
-          this.nextSeg = {line: 0, seg: 0}; // start loop, move to first seg again
-          lastSeg = true;
-        } else {
-          this.nextSeg = {line: this.currentSeg.line+1, seg: 0};
-        }
-      } else {  // move to next seg of the line
-        this.nextSeg = {line: this.currentSeg.line, seg: this.currentSeg.seg+1};
-      }
+      this.setCurrentSeg();
+      this.setNextSeg();
       this.highlightSeg();
       // Set window timeout to allow playing next seg after difference between current and next timing amount of time
-      this.timeout = setTimeout(function(){player.playText();}, (player.calculateSegTimeout(lastSeg))*1000);
+      this.timeout = setTimeout(function(){player.playText();}, (player.calculateSegTimeout(this.isLastSeg()))*1000);
     }
+  },
+
+  /**
+  * Set the current segment.
+  * If at start of play or end of play, set current segment to the first segment, else set it to the next segment.
+  */
+  setCurrentSeg: function() {
+    if(!this.currentSeg || !this.nextSeg) {  // start playing or loop
+      this.currentSeg = {line: 0, seg: 0};
+    } else {
+      this.currentSeg = this.nextSeg;
+    }
+  },
+
+  /**
+  * Set the next segment.
+  * If end of play, set current segment to the first segment to loop, 
+    else if current segment is last segment in line, set next segment to be the first segment of the next line,
+    else set next segment to the next segment in the current line.
+  */
+  setNextSeg: function() {
+    var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
+    if(this.currentSeg.seg == currentLine.length-1) { // last seg in the line, move to next line
+      if(this.currentSeg.line == this.segTimingLines.length-1) {  // last line
+        this.nextSeg = {line: 0, seg: 0}; // start loop, move to first seg again
+        //lastSeg = true;
+      } else {
+        this.nextSeg = {line: this.currentSeg.line+1, seg: 0};
+      }
+    } else {  // move to next seg of the line
+      this.nextSeg = {line: this.currentSeg.line, seg: this.currentSeg.seg+1};
+    }
+  },
+
+  /**
+  * Check if the current segment is the last segment in text.
+  */
+  isLastSeg: function() {
+    var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
+    return this.currentSeg.seg == currentLine.length-1 && this.currentSeg.line == this.segTimingLines.length-1;
   },
 
   /**
@@ -110,10 +132,80 @@ TextPlayer = Class.$extend({
   },
 
   /**
+  * Get number of seconds between taps.
+  */
+  getSeconds: function() {
+    var now = new Date();
+    return (now.getTime() - this.date.getTime())/1000;
+  },
+
+  /**
+  * Enter taptiming mode.
+  */
+  startTimer: function() {
+    this.date = new Date(); // set current date
+    clearTimeout(this.timeout);
+    this.unhighlightSeg();
+    this.highlightSeg("timerHighlighted");
+  },
+
+  /**
+  * Tap segment means move to next segment and override its timing.
+  */
+  tap: function() {
+    if(this.isLastSeg()) return;
+
+    var secs = this.getSeconds();
+    // Get current seg timing
+    var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
+    var currentTiming = parseFloat(currentLine[this.currentSeg.seg].timing);  // current seg timing
+    // calculate new timing for next seg
+    var newTiming = round(currentTiming + secs);
+
+    // move to next seg
+    this.date = new Date();
+    this.unhighlightSeg();
+    this.setCurrentSeg();
+    this.setNextSeg();
+    this.highlightSeg("timerHighlighted");
+
+    // update timing of current segment
+    this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].timing = timingCreator.timingStr(newTiming);
+
+    // save timing in fb and update in timingCreator class
+    var newTimingLine = this.getTimingsOfCurrentLine();
+    if(area.isTimingOn()) { // update displayed timing line
+      var text = area.area.innerText;
+      var lines = text.split('\n');
+      var lineNum = this.getCurrentTextNode()+1;
+      area.area.childNodes[lineNum].innerText = newTimingLine;
+      
+      // realign segs
+      this.unhighlightSeg();  // unhighlight current seg
+      area.realign(); // realign chunks
+      player.highlightSeg("timerHighlighted");  // rehighlight current seg
+    }
+    timingCreator.saveTimingLine(newTimingLine, this.currentSeg.line);  // save timing line into fb
+  },
+
+  /**
+  * Get timings of current line segs.
+  */
+  getTimingsOfCurrentLine: function() {
+    var i, timings = [];
+    var segs = this.segTimingLines[this.currentSeg.line];
+    for(i=0; i<segs.length; i++) {
+      timings.push(segs[i].timing);
+    }
+    return timings.join(" ");
+  },
+
+  /**
   * Highlight the current seg.
   * Put the segment in <span>, set to uppercase and add background color.
   */
-  highlightSeg: function() {
+  highlightSeg: function(clazz) {
+    var clss = clazz?clazz:"playHighlighted";
     if(this.segTimingLines.length == 0) return; // No segments/timings generated yet
     var before, after, spanNode;
     var currentSeg = this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].seg;
@@ -125,7 +217,7 @@ TextPlayer = Class.$extend({
     // highlight the new seg
     before = nodeVal.substring(0, currentSegIx);
     after = nodeVal.slice(currentSegIx+currentSeg.length);
-    spanNode = $("<span class='highlighted'>" + currentSeg + "</span>");
+    spanNode = $("<span class='" + clss + "'>" + currentSeg + "</span>");
     currentNode.childNodes[0].nodeValue = before;
     spanNode.insertAfter(currentNode.childNodes[0]);
     $(document.createTextNode(after)).insertAfter(spanNode); // Create text node to contain the text string after the span
@@ -135,18 +227,23 @@ TextPlayer = Class.$extend({
 
   /**
   * Unhighlight segment, default segment is the current.
+  * @return class of the unhighlighted seg
   */
   unhighlightSeg: function() {
-    if($('.highlighted').length != 0) { // If there is a highlighted segment
-      var seg = this.currentSeg;
-      var currentNode = this.element.childNodes[this.getCurrentTextNode()];
-      var spanNode = $('.highlighted')[0];
-      var preVal = spanNode.previousSibling?spanNode.previousSibling.nodeValue:"";
-      var afterVal = spanNode.nextSibling?spanNode.nextSibling.nodeValue:"";
-      var segVal = this.segTimingLines[seg.line][seg.seg].seg;
-      $('.highlighted').remove();
-      currentNode.innerText = preVal + segVal + afterVal;
-    }
+    var clazz = null;
+    if($('.playHighlighted').length != 0) clazz = "playHighlighted";
+    else if($('.timerHighlighted').length != 0) clazz = "timerHighlighted";
+    else return;  // nothing to unhighlight
+
+    var seg = this.currentSeg;
+    var currentNode = this.element.childNodes[this.getCurrentTextNode()];
+    var spanNode = $('.'+clazz)[0];
+    var preVal = spanNode.previousSibling?spanNode.previousSibling.nodeValue:"";
+    var afterVal = spanNode.nextSibling?spanNode.nextSibling.nodeValue:"";
+    var segVal = this.segTimingLines[seg.line][seg.seg].seg;
+    $('.'+clazz).remove();
+    currentNode.innerText = preVal + segVal + afterVal;
+    return clazz;
   },
 
   /**
@@ -237,7 +334,15 @@ TextPlayer = Class.$extend({
   * @return boolean detects if the current segment is highlighted
   */
   isPlaying: function() {
-    return $('.highlighted').length > 0;
+    return $('.playHighlighted').length > 0;
+  },
+
+  /**
+  * Check if there is a highlighted segment displayed in timer mode.
+  * @return boolean detects if the current segment is highlighted in timer mode
+  */
+  isTapTiming: function() {
+    return $('.timerHighlighted').length > 0;
   },
 
   /**
@@ -246,7 +351,7 @@ TextPlayer = Class.$extend({
   reset: function() {
     this.unhighlightSeg();
     this.displayMode = null;
-    this.previousSeg = null;
+    //this.previousSeg = null;
     this.currentSeg = null;
     this.nextSeg = null;
     this.sourceText = null;

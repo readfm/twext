@@ -142,8 +142,9 @@ Toggle = Class.$extend({
     if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
     text = trimStringLines(text); // trim string lines
 
-    var playing = player.isPlaying(); // get the current state of player.
-    //player.unhighlightSeg();
+    var playing = false;
+    if(player.isPlaying()) playing = "fromPlay";
+    else if(player.isTapTiming()) playing = "fromTap";
     
     var isNewText = this.toggle_data == null || (this.toggle_data != null && this.toggle_data.source_text != text &&  (player.sourceText == null || trimStringLines(player.sourceText).replace(/\ +/g, ' ') != text));
     if(isNewText) {

@@ -245,6 +245,16 @@ function getFirebaseEntryValue(ref, callbackValue, callback) {
     callback(dataSnapshot.val(), callbackValue);  // callback with data retrieved
   });
 }
+
+/**
+* Round number to nearest float num with two floating digits.
+* @param 'num' the float num to be rounded
+* @return the nearest float number with two floating digits
+*/
+function round(num) {
+  return Math.round(num*10)/10;
+}
+
 //Twext.Utils = {};
 
 // This is a quick fix until I rename those functions.

@@ -1,0 +1,9 @@
+.playHighlighted { 
+  background-color: greenyellow;
+  text-transform: uppercase;
+}
+
+.timerHighlighted {
+  background-color: yellow;
+  text-transform: uppercase;
+}

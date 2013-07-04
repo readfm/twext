@@ -5,10 +5,15 @@ var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
 // Keyboard keys' codes used
 var keys = {
   'backspace': 8,
+  'enter': 13,
   'esc': 27,
   'space': 32,
   'delete': 46,
-  'f7': 118
+  'a': 65,
+  'f': 70,
+  'j': 74,
+  'f7': 118,
+  ';': 186
 }
 
 /**
@@ -46,6 +51,7 @@ function attachEvents() {
   $(document).bind("keydown","f8", fetch_translations);  // F2 key down event, Get translations of area text lines
   $(document).bind("keydown","alt+F8", toggleLangDown); // Alt+F8 keys down event, Switch to previous language
   $(document).bind("keydown", "f9", showHideUrlList); // F9 keydown event, Show/Hide url list
+  $(document).bind("keydown", onDocumentKeydown); // On document keydown
 
   // Attach body events
   $('body').bind("keydown", onBodyKeydown);
@@ -75,10 +81,10 @@ function onResize() {
   langMenu.resize();
 
   // realign chunks, if text is in playing, unhighlight current seg before align so that the span doesn't mess with spanAligner
-  var playing = player.isPlaying();
-  player.unhighlightSeg();  // unhighlight current seg
+  var playing = player.isPlaying() || player.isTapTiming();
+  var clazz = player.unhighlightSeg();  // unhighlight current seg
   area.realign(); // realign chunks
-  if(playing) player.highlightSeg();  // rehighlight current seg
+  if(playing) player.highlightSeg(clazz);  // rehighlight current seg
 }
 
 /**
@@ -107,6 +113,21 @@ function onHashChange() {
   langMenu.resize();
   // load text and translations into textarea
   toggle.loadText();
+}
+
+/**
+* On document keydown.
+*/
+function onDocumentKeydown(e) {
+  if(player.isPlaying()) {
+    if(e.keyCode == keys['a']) startTimer(e);
+  } else if(player.isTapTiming()) {
+    if(e.keyCode == keys['f'] || e.keyCode == keys['j']) tap(e);
+    else if(e.keyCode == keys['enter'] || e.keyCode == keys[';']) {
+      e.preventDefault();
+      player.playText();
+    }
+  }
 }
 
 /**
@@ -157,7 +178,9 @@ function onAreaKeydown(e) {
   if(!area.adjustLimit(e)) return false;
 
   // Disable typing if text playing
-  if(player.isPlaying() && isTypingChar(e.keyCode) && !e.ctrlKey) return false;
+  if(isTypingChar(e.keyCode) && !e.ctrlKey) {
+    if((player.isPlaying() && e.keyCode != keys['a']) || (player.isTapTiming() && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['enter'])) return false;
+  }
 
   // Check keys for proper event
   if(e.keyCode == keys['backspace']) onBackspace(e);  // On backspace
@@ -218,6 +241,23 @@ function onMenuSelectChange() {
 }
 
 /**
+* Enter timer mode
+*/
+function startTimer(e) {
+  e.preventDefault();
+  player.startTimer(); // enter timer mode
+}
+
+/**
+* Tap segment
+*/
+function tap(e) {
+  e.preventDefault();
+  player.tap(); // tap segments
+  
+}
+
+/**
 * Show/Hide language menu.
 */
 function showHideLangMenu() {
@@ -258,7 +298,9 @@ function playPauseText() {
 */
 function switchTimingState() {
   var text;
-  var playing = player.isPlaying(); // get the current state of player.
+  var playing = false;
+  if(player.isPlaying()) playing = "fromPlay";
+  else if(player.isTapTiming()) playing = "fromTap";
   player.unhighlightSeg();
 
   if(area.isTwextOn()) { // Twexts are dispalyed, show text only
@@ -321,7 +363,8 @@ function set_timing_state(state) {
 function resumePlaying(mode, playing) {
   player.setDisplayMode(mode);
   player.getSegIndices(); // get new indices of the segments
-  if(playing) player.highlightSeg();  // highlight current seg
+  if(playing == "fromPlay") player.highlightSeg();  // resume from play state, timeout persist, highlight current seg
+  else if(playing == "fromTap") player.playText();  // resume from tap state, timout lost, replay
 }
 
 /**
