@@ -252,7 +252,7 @@ function getFirebaseEntryValue(ref, callbackValue, callback) {
 * @return the nearest float number with two floating digits
 */
 function round(num) {
-  return Math.round(num*10)/10;
+  return Math.round(num*100)/100;
 }
 
 //Twext.Utils = {};

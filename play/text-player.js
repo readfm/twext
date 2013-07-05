@@ -13,7 +13,7 @@ TextPlayer = Class.$extend({
     this.syllabifier = syllab?syllab:new Syllabifier(); // syllabifier object
     this.timingCreator = timing?timing:new TimingCreator(); // timingCreator object
     this.displayMode = null;  // current display mode
-    //this.previousSeg = null;  // key/value obj contains line and seg number of previous seg
+    this.previousSeg = null;  // key/value obj contains line and seg number of previous seg
     this.currentSeg = null; // key/value obj contains line and seg number of current seg
     this.nextSeg = null;  // key/value obj contains line and seg number of next seg
     this.sourceText = null; // Text lines currently displayed
@@ -55,6 +55,7 @@ TextPlayer = Class.$extend({
     if(!this.currentSeg || !this.nextSeg) {  // start playing or loop
       this.currentSeg = {line: 0, seg: 0};
     } else {
+      this.previousSeg = this.currentSeg;
       this.currentSeg = this.nextSeg;
     }
   },
@@ -70,7 +71,6 @@ TextPlayer = Class.$extend({
     if(this.currentSeg.seg == currentLine.length-1) { // last seg in the line, move to next line
       if(this.currentSeg.line == this.segTimingLines.length-1) {  // last line
         this.nextSeg = {line: 0, seg: 0}; // start loop, move to first seg again
-        //lastSeg = true;
       } else {
         this.nextSeg = {line: this.currentSeg.line+1, seg: 0};
       }
@@ -145,7 +145,12 @@ TextPlayer = Class.$extend({
   startTimer: function() {
     this.date = new Date(); // set current date
     clearTimeout(this.timeout);
+
+    // Highlight first seg
     this.unhighlightSeg();
+    this.previousSeg = null;
+    this.currentSeg = {line: 0, seg: 0};
+    this.setNextSeg();
     this.highlightSeg("timerHighlighted");
   },
 
@@ -153,24 +158,18 @@ TextPlayer = Class.$extend({
   * Tap segment means move to next segment and override its timing.
   */
   tap: function() {
-    if(this.isLastSeg()) return;
-
+    var previousLine, previousTiming = 0;
     var secs = this.getSeconds();
-    // Get current seg timing
-    var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
-    var currentTiming = parseFloat(currentLine[this.currentSeg.seg].timing);  // current seg timing
+    // Get previous seg timing
+    if(this.previousSeg) {
+      previousLine = this.segTimingLines[this.previousSeg.line];  // current line segments
+      previousTiming = parseFloat(previousLine[this.previousSeg.seg].timing);  // current seg timing
+    }
     // calculate new timing for next seg
-    var newTiming = round(currentTiming + secs);
-
-    // move to next seg
-    this.date = new Date();
-    this.unhighlightSeg();
-    this.setCurrentSeg();
-    this.setNextSeg();
-    this.highlightSeg("timerHighlighted");
-
+    var newTiming = previousTiming + secs;
     // update timing of current segment
     this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].timing = timingCreator.timingStr(newTiming);
+    this.date = new Date();
 
     // save timing in fb and update in timingCreator class
     var newTimingLine = this.getTimingsOfCurrentLine();
@@ -185,7 +184,14 @@ TextPlayer = Class.$extend({
       area.realign(); // realign chunks
       player.highlightSeg("timerHighlighted");  // rehighlight current seg
     }
-    timingCreator.saveTimingLine(newTimingLine, this.currentSeg.line);  // save timing line into fb
+    var currentSegLine = this.currentSeg.line;
+    // move to next seg
+    this.unhighlightSeg();
+    this.setCurrentSeg();
+    this.setNextSeg();
+    this.highlightSeg("timerHighlighted");
+
+    timingCreator.saveTimingLine(newTimingLine, currentSegLine);  // save timing line into fb
   },
 
   /**
@@ -243,6 +249,7 @@ TextPlayer = Class.$extend({
     var segVal = this.segTimingLines[seg.line][seg.seg].seg;
     $('.'+clazz).remove();
     currentNode.innerText = preVal + segVal + afterVal;
+    this.sourceText = this.text(); // update the source text with the text in play
     return clazz;
   },
 
@@ -351,7 +358,7 @@ TextPlayer = Class.$extend({
   reset: function() {
     this.unhighlightSeg();
     this.displayMode = null;
-    //this.previousSeg = null;
+    this.previousSeg = null;
     this.currentSeg = null;
     this.nextSeg = null;
     this.sourceText = null;

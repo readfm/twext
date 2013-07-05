@@ -13,7 +13,9 @@ var keys = {
   'f': 70,
   'j': 74,
   'f7': 118,
-  ';': 186
+  ';': 186,
+  'alt': false,
+  'ctrl': false
 }
 
 /**
@@ -51,6 +53,9 @@ function attachEvents() {
   $(document).bind("keydown","f8", fetch_translations);  // F2 key down event, Get translations of area text lines
   $(document).bind("keydown","alt+F8", toggleLangDown); // Alt+F8 keys down event, Switch to previous language
   $(document).bind("keydown", "f9", showHideUrlList); // F9 keydown event, Show/Hide url list
+  $(document).bind("keydown", "alt+F2", startTimer); // Alt+F2 keydown event, Play text
+  $(document).bind("keydown", "space", fromPlayToPause); // Alt+F2 keydown event, pause text
+  $(document).bind("keydown", "ctrl+space", playPauseText); // Alt+F2 keydown event, Play text
   $(document).bind("keydown", onDocumentKeydown); // On document keydown
 
   // Attach body events
@@ -118,8 +123,17 @@ function onHashChange() {
 /**
 * On document keydown.
 */
-function onDocumentKeydown(e) {
-  if(player.isPlaying()) {
+function onDocumentKeydown(e) {console.log(e);
+  if(e.altKey) keys['alt'] = true;
+  else if(e.ctrlKey) keys['ctrl'] = true;
+
+  if(e.keyCode == keys['a']) startTimer(e);
+  else if(e.keyCode == keys['f'] || e.keyCode == keys['j']) tap(e);
+  else if(e.keyCode == keys['enter'] || e.keyCode == keys[';']) fromTapToPlay(e);
+  //else if(keys['alt'] && keys['ctrl'] && e.keyCode == keys['space']) playPauseText(e);
+  //else if(e.keyCode == keys['space']) fromPlayToPause(e);
+
+  /*if(player.isPlaying()) {
     if(e.keyCode == keys['a']) startTimer(e);
   } else if(player.isTapTiming()) {
     if(e.keyCode == keys['f'] || e.keyCode == keys['j']) tap(e);
@@ -127,7 +141,12 @@ function onDocumentKeydown(e) {
       e.preventDefault();
       player.playText();
     }
-  }
+  }*/
+}
+
+function onDocumentKeyup(e) {
+  if(e.altKey) keys['alt'] = false;
+  else if(e.ctrlKey) keys['ctrl'] = false;
 }
 
 /**
@@ -179,12 +198,12 @@ function onAreaKeydown(e) {
 
   // Disable typing if text playing
   if(isTypingChar(e.keyCode) && !e.ctrlKey) {
-    if((player.isPlaying() && e.keyCode != keys['a']) || (player.isTapTiming() && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['enter'])) return false;
+    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space']) || (player.isTapTiming() && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['enter'])) return false;
   }
 
   // Check keys for proper event
   if(e.keyCode == keys['backspace']) onBackspace(e);  // On backspace
-  else if(e.keyCode == keys['space']) onSpace(e);  // On space
+  else if(!e.altKey && !e.ctrlKey && e.keyCode == keys['space']) onSpace(e);  // On space
   else if(e.keyCode == keys['delete']) onDelete(e);  // On delete
 }
 
@@ -213,7 +232,7 @@ function onBackspace(e) {
 * On space keydown event.
 */
 function onSpace(e) {
-  area.onSpace(e);  // push chunk
+  if(!player.isPlaying() && !player.isTapTiming()) area.onSpace(e);  // push chunk
 }
 
 /**
@@ -244,18 +263,51 @@ function onMenuSelectChange() {
 * Enter timer mode
 */
 function startTimer(e) {
-  e.preventDefault();
-  player.startTimer(); // enter timer mode
+  if(player.isPlaying()) {
+    e.preventDefault();
+    player.startTimer(); // enter timer mode
+  }
 }
 
 /**
 * Tap segment
 */
 function tap(e) {
-  e.preventDefault();
-  player.tap(); // tap segments
-  
+  if(player.isTapTiming()) {
+    e.preventDefault();
+    player.tap(); // tap segments
+  }
 }
+
+/**
+* Move from timer mode to play mode.
+*/
+function fromTapToPlay(e) {
+  if(player.isTapTiming()) {
+    e.preventDefault();
+    player.playText();
+  }
+}
+
+/**
+* Pause text if playing.
+*/
+function fromPlayToPause(e) {
+  if(player.isPlaying()) {
+    e.preventDefault();
+    player.pauseText();
+  }
+}
+
+/**
+* Play text if pause.
+*/
+/*function fromPauseToPlay(e) {
+  if(!player.isPlaying() && !player.isTapTiming()) {
+    e.preventDefault();
+    player.playText();
+  }
+}*/
 
 /**
 * Show/Hide language menu.
@@ -267,7 +319,8 @@ function showHideLangMenu() {
 /**
 * Animate text segments according to timings.
 */
-function playPauseText() {
+function playPauseText(e) {
+  e.preventDefault();
   var mode; // current mode
   if(area.isTwextOn()) {
     mode = "twext";
@@ -282,7 +335,7 @@ function playPauseText() {
   // Set display mode in player
   if(!player.displayMode || player.displayMode != mode) {
     player.setDisplayMode(mode); //set mode at the start of play or if changed
-    isPlaying = false;
+    //isPlaying = false;
   }
 
   // play/pause text
