@@ -20,7 +20,7 @@ TextPlayer = Class.$extend({
     this.segTimingLines = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is an obj contains seg, timing
     this.segIndices = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is seg index
     this.timeout = 0; // window timeout value
-    //this.done = false;  // boolean detects if all segs has been played
+    this.doneTapTiming = false;  // boolean detects if all segs has been tapped
     this.endTiming = 1; // the number of seconds for the last seg to be highlighted before start over again "Loop"
     this.date = null;  // The date of the last tap, used to calculate number of seconds between taps that equals to difference between current tap and previous tap times
   },
@@ -145,6 +145,7 @@ TextPlayer = Class.$extend({
   startTimer: function() {
     this.date = new Date(); // set current date
     clearTimeout(this.timeout);
+    this.doneTapTiming = false;
 
     // Highlight first seg
     this.unhighlightSeg();
@@ -158,13 +159,25 @@ TextPlayer = Class.$extend({
   * Tap segment means move to next segment and override its timing.
   */
   tap: function() {
+    if(this.doneTapTiming) return;
+
     var previousLine, previousTiming = 0;
     var secs = this.getSeconds();
-    // Get previous seg timing
-    if(this.previousSeg) {
+
+    if(!this.previousSeg) { // if first segment
+      this.previousSeg = this.currentSeg; // set previous seg for the next tap to jump to else case
+    } else {
+      // move to next seg
+      this.unhighlightSeg();
+      this.setCurrentSeg();
+      this.setNextSeg();
+      this.highlightSeg("timerHighlighted");
+
+      // Get previous seg timing
       previousLine = this.segTimingLines[this.previousSeg.line];  // current line segments
       previousTiming = parseFloat(previousLine[this.previousSeg.seg].timing);  // current seg timing
     }
+
     // calculate new timing for next seg
     var newTiming = previousTiming + secs;
     // update timing of current segment
@@ -184,13 +197,10 @@ TextPlayer = Class.$extend({
       area.realign(); // realign chunks
       player.highlightSeg("timerHighlighted");  // rehighlight current seg
     }
-    var currentSegLine = this.currentSeg.line;
-    // move to next seg
-    this.unhighlightSeg();
-    this.setCurrentSeg();
-    this.setNextSeg();
-    this.highlightSeg("timerHighlighted");
 
+    if(this.isLastSeg()) this.doneTapTiming = true;
+
+    var currentSegLine = this.currentSeg.line;
     timingCreator.saveTimingLine(newTimingLine, currentSegLine);  // save timing line into fb
   },
 
