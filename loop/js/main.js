@@ -10,8 +10,12 @@ var keys = {
   'space': 32,
   'delete': 46,
   'a': 65,
+  's': 83,
+  'd': 68,
   'f': 70,
   'j': 74,
+  'k': 75,
+  'l': 76,
   'f7': 118,
   ';': 186,
   'alt': false,
@@ -128,7 +132,7 @@ function onDocumentKeydown(e) {console.log(e);
   else if(e.ctrlKey) keys['ctrl'] = true;
 
   if(e.keyCode == keys['a']) startTimer(e);
-  else if(e.keyCode == keys['f'] || e.keyCode == keys['j']) tap(e);
+  else if(e.keyCode == keys['s'] || e.keyCode == keys['d'] || e.keyCode == keys['f'] || e.keyCode == keys['j'] || e.keyCode == keys['k'] || e.keyCode == keys['l']) tap(e);
   else if(e.keyCode == keys['enter'] || e.keyCode == keys[';']) fromTapToPlay(e);
   //else if(keys['alt'] && keys['ctrl'] && e.keyCode == keys['space']) playPauseText(e);
   //else if(e.keyCode == keys['space']) fromPlayToPause(e);
