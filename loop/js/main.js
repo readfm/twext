@@ -202,7 +202,7 @@ function onAreaKeydown(e) {
 
   // Disable typing if text playing
   if(isTypingChar(e.keyCode) && !e.ctrlKey) {
-    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space']) || (player.isTapTiming() && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['enter'])) return false;
+    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space']) || (player.isTapTiming() && e.keyCode != keys['s'] && e.keyCode != keys['d'] && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['k'] && e.keyCode != keys['l'] && e.keyCode != keys['enter'])) return false;
   }
 
   // Check keys for proper event
