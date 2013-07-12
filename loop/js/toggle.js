@@ -138,21 +138,24 @@ Toggle = Class.$extend({
   * If twexts are displayed, toggle languages.
   */
   check_translations: function(fetchAdded) {
-    var text = area.extractText();
-    if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
-    text = trimStringLines(text); // trim string lines
-
     var playing = false;
     if(player.isPlaying()) playing = "fromPlay";
     else if(player.isTapTiming()) playing = "fromTap";
+    if(playing) player.unhighlightSeg();
+
+     var text = area.extractText();
+    if(area.isTimingOn()) text = syllabifier.unsyllabifyText(text);
+    text = trimStringLines(text); // trim string lines
     
-    var isNewText = this.toggle_data == null || (this.toggle_data != null && this.toggle_data.source_text != text &&  (player.sourceText == null || trimStringLines(player.sourceText).replace(/\ +/g, ' ') != text));
+    var isNewText = this.toggle_data == null || (this.toggle_data != null && this.toggle_data.source_text != text);
     if(isNewText) {
-      player.reset(); // reset playing data
+      //player.reset(); // reset playing data
+      player.pauseText();
       this.get_translations(text); // get translations of text from firebase of google
     } else {
       if(fetchAdded) {  // do not toggle, translate added languages only
-        player.reset(); // reset playing data
+        //player.reset(); // reset playing data
+        player.pauseText();
         this.translateAddedLanguages();  // fetch added languages translations @TODO auto save
       } else {  // toggle to next language
         if(area.isTwextOn()) {

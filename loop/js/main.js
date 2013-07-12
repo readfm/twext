@@ -1,5 +1,5 @@
 // Global objects used through page life time.
-var area = null, syllabifier = null, timingCreator = null, player = null, langMenu = null, toggle = null, url_list = null;
+var area = null, syllabifier = null, timingCreator = null, player = null, langMenu = null, toggle = null, url_list = null, twextRecorder = null;
 var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
 
 // Keyboard keys' codes used
@@ -36,6 +36,7 @@ $(document).ready(function() {
   langMenu = new LanguageMenu();  // Create language menu object to handle menu features
   toggle = new Toggle();
   url_list = new URL_List();
+  twextRecorder = new TwextRecorder();  // Create twextRecorder object to handle audio recording features
 
   // Load all languages (in languages.js) into menu
   langMenu.loadLanguageList(toggle.selectedLanguages);
@@ -134,18 +135,6 @@ function onDocumentKeydown(e) {console.log(e);
   if(e.keyCode == keys['a']) startTimer(e);
   else if(e.keyCode == keys['s'] || e.keyCode == keys['d'] || e.keyCode == keys['f'] || e.keyCode == keys['j'] || e.keyCode == keys['k'] || e.keyCode == keys['l']) tap(e);
   else if(e.keyCode == keys['enter'] || e.keyCode == keys[';']) fromTapToPlay(e);
-  //else if(keys['alt'] && keys['ctrl'] && e.keyCode == keys['space']) playPauseText(e);
-  //else if(e.keyCode == keys['space']) fromPlayToPause(e);
-
-  /*if(player.isPlaying()) {
-    if(e.keyCode == keys['a']) startTimer(e);
-  } else if(player.isTapTiming()) {
-    if(e.keyCode == keys['f'] || e.keyCode == keys['j']) tap(e);
-    else if(e.keyCode == keys['enter'] || e.keyCode == keys[';']) {
-      e.preventDefault();
-      player.playText();
-    }
-  }*/
 }
 
 function onDocumentKeyup(e) {
@@ -269,6 +258,7 @@ function onMenuSelectChange() {
 function startTimer(e) {
   if(player.isPlaying()) {
     e.preventDefault();
+    twextRecorder.startRecording();
     player.startTimer(); // enter timer mode
   }
 }
@@ -289,7 +279,10 @@ function tap(e) {
 function fromTapToPlay(e) {
   if(player.isTapTiming()) {
     e.preventDefault();
-    player.playText();
+    twextRecorder.stopRecording(function(){
+      player.resetSegments();
+      player.play();
+    });
   }
 }
 
@@ -344,7 +337,7 @@ function playPauseText(e) {
 
   // play/pause text
   if(!player.isPlaying()) { // currently paused playing
-    player.playText(); // resume text play
+    player.play(); // resume text play
   } else { // currently playing
     player.pauseText(); // pause text play
   }
@@ -421,7 +414,7 @@ function resumePlaying(mode, playing) {
   player.setDisplayMode(mode);
   player.getSegIndices(); // get new indices of the segments
   if(playing == "fromPlay") player.highlightSeg();  // resume from play state, timeout persist, highlight current seg
-  else if(playing == "fromTap") player.playText();  // resume from tap state, timout lost, replay
+  else if(playing == "fromTap") player.play();  // resume from tap state, timout lost, replay
 }
 
 /**

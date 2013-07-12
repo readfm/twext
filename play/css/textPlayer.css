@@ -7,3 +7,8 @@
   background-color: yellow;
   text-transform: uppercase;
 }
+
+.recordingHighlighted {
+  background-color: orange;
+  text-transform: uppercase;
+}

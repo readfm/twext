@@ -20,9 +20,31 @@ TextPlayer = Class.$extend({
     this.segTimingLines = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is an obj contains seg, timing
     this.segIndices = []; // index of the array is the Text line number; each entry is an array of line segments(index is seg number); each entry is seg index
     this.timeout = 0; // window timeout value
+    this.audioTimeout = 0;
     this.doneTapTiming = false;  // boolean detects if all segs has been tapped
     this.endTiming = 1; // the number of seconds for the last seg to be highlighted before start over again "Loop"
     this.date = null;  // The date of the last tap, used to calculate number of seconds between taps that equals to difference between current tap and previous tap times
+  },
+
+  /**
+  * Play text and audio previously recorded.
+  */
+  play: function() {
+    var text = this.text();
+    var isNewText = this.sourceText == null || this.sourceText != text;
+    if(isNewText) {
+      this.resetSegments();
+      twextRecorder.clearAudio();
+      this.createSegTiming(text); // create array of segments and timings per each Text line, this method will recall playText
+      return;
+    }
+    if(!this.currentSeg) {
+      var currentTiming = parseFloat(this.segTimingLines[0][0].timing);  // current seg timing
+      this.timeout = setTimeout(function(){player.playText();}, currentTiming*1000);
+    } else {
+      this.playText();
+    }
+    twextRecorder.playAudio();
   },
 
   /**
@@ -30,21 +52,28 @@ TextPlayer = Class.$extend({
   * @param 'text' the Text lines only
   */
   playText: function() {
-    var player = this;  // create object of the player to be sent to the timeout
-    var lastSeg = false;
-    var text = this.text();
-    var isNewText = this.sourceText == null || this.sourceText != text;
-    if(isNewText) {
-      this.sourceText = text;
-      this.createSegTiming(); // create array of segments and timings per each Text line, this method will recall playText
-    } else {
-      this.unhighlightSeg(); // unhighlight current seg
-      this.setCurrentSeg();
-      this.setNextSeg();
-      this.highlightSeg();
-      // Set window timeout to allow playing next seg after difference between current and next timing amount of time
-      this.timeout = setTimeout(function(){player.playText();}, (player.calculateSegTimeout(this.isLastSeg()))*1000);
+    //var player = this;  // create object of the player to be sent to the timeout
+    //var text = this.text();
+    //var isNewText = this.sourceText == null || this.sourceText != text;
+    //if(isNewText) {
+      //this.sourceText = text;
+      //this.createSegTiming(); // create array of segments and timings per each Text line, this method will recall playText
+    //} else {
+    this.unhighlightSeg(); // unhighlight current seg
+    this.setCurrentSeg();
+    this.setNextSeg();
+    this.highlightSeg();
+
+    var lastSeg = this.isLastSeg();
+    var segTimeout = player.calculateSegTimeout(lastSeg);
+    if(lastSeg) {
+      // loop audio
+      var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);  // next seg timing
+      this.audioTimeout = setTimeout(function(){twextRecorder.seekAudio(nextTiming);twextRecorder.playAudio();}, segTimeout*1000);
     }
+    // Set window timeout to allow playing next seg after difference between current and next timing amount of time
+    this.timeout = setTimeout(function(){player.playText();}, segTimeout*1000);
+    //}
   },
 
   /**
@@ -110,6 +139,10 @@ TextPlayer = Class.$extend({
   pauseText: function() {
     this.unhighlightSeg();
     clearTimeout(this.timeout);
+    clearTimeout(this.audioTimeout);
+    twextRecorder.pauseAudio();
+    var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);
+    twextRecorder.seekAudio(nextTiming);
   },
 
   /**
@@ -144,15 +177,16 @@ TextPlayer = Class.$extend({
   */
   startTimer: function() {
     this.date = new Date(); // set current date
-    clearTimeout(this.timeout);
+    //clearTimeout(this.timeout);
+    this.pauseText();
     this.doneTapTiming = false;
 
     // Highlight first seg
-    this.unhighlightSeg();
+    //this.unhighlightSeg();
     this.previousSeg = null;
     this.currentSeg = {line: 0, seg: 0};
     this.setNextSeg();
-    this.highlightSeg("timerHighlighted");
+    this.highlightSeg("recordingHighlighted");
   },
 
   /**
@@ -166,6 +200,9 @@ TextPlayer = Class.$extend({
 
     if(!this.previousSeg) { // if first segment
       this.previousSeg = this.currentSeg; // set previous seg for the next tap to jump to else case
+      // Move from recording state to timer state
+      this.unhighlightSeg();
+      this.highlightSeg("timerHighlighted");
     } else {
       // move to next seg
       this.unhighlightSeg();
@@ -249,6 +286,7 @@ TextPlayer = Class.$extend({
     var clazz = null;
     if($('.playHighlighted').length != 0) clazz = "playHighlighted";
     else if($('.timerHighlighted').length != 0) clazz = "timerHighlighted";
+    else if($('.recordingHighlighted').length != 0) clazz = "recordingHighlighted";
     else return;  // nothing to unhighlight
 
     var seg = this.currentSeg;
@@ -279,13 +317,13 @@ TextPlayer = Class.$extend({
   * Create object contains segments and their timing slots.
   * Index of the array represents Text line number; each entry is an array(index is seg number) of key/value objects contains seg value, seg position and timing slot.
   */
-  createSegTiming: function() {
+  createSegTiming: function(text) {
     var segTiming = [], i, j, k, wSegs, timings;
-    var player = this;
+    //var player = this;
     var syllabifier = this.syllabifier;
     var timingCrt = this.timingCreator;
-    this.syllabifier.syllabifyText(this.sourceText, function(hText) {
-      timingCrt.getSegTiming(player.sourceText, hText, function(timingLines) {
+    this.syllabifier.syllabifyText(text, function(hText) {
+      timingCrt.getSegTiming(text, hText, function(timingLines) {
         var lines = hText.split('\n');
         for(i=0; i<lines.length; i++) {
           k = 0;
@@ -302,7 +340,8 @@ TextPlayer = Class.$extend({
         }
         player.segTimingLines = segTiming;
         player.getSegIndices();
-        player.playText(player.sourceText); // recall of play after getting segs and timings
+        player.sourceText = text;
+        player.play(); // recall of play after getting segs and timings
       });
     });
   },
@@ -359,18 +398,27 @@ TextPlayer = Class.$extend({
   * @return boolean detects if the current segment is highlighted in timer mode
   */
   isTapTiming: function() {
-    return $('.timerHighlighted').length > 0;
+    return $('.timerHighlighted').length > 0 || $('.recordingHighlighted').length > 0;
+  },
+
+  /**
+  * Reset segments.
+  */
+  resetSegments: function() {
+    this.unhighlightSeg(); // unhighlight current seg
+    this.previousSeg = null;
+    this.currentSeg = null;
+    this.nextSeg = null;
   },
 
   /**
   * Reset player.
   */
   reset: function() {
-    this.unhighlightSeg();
+    this.pauseText();
+    //this.unhighlightSeg();
     this.displayMode = null;
-    this.previousSeg = null;
-    this.currentSeg = null;
-    this.nextSeg = null;
+    this.resetSegments();
     this.sourceText = null;
     this.segTimingLines = [];
     this.segIndices = [];
