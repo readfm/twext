@@ -21,7 +21,7 @@ TwextRecorder = Class.$extend({
       window.URL = window.URL || window.webkitURL || window.mozURL;
 
       this.audio_context = new AudioContext();
-      console.log('Audio context set up.');
+      console.log('Audio context set up.' + this.audio_context);
       console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
     } catch (e) {
       console.warn('No web audio support in this browser!');
@@ -65,24 +65,26 @@ TwextRecorder = Class.$extend({
   startUserMedia: function(stream) {
     var input = twextRecorder.audio_context.createMediaStreamSource(stream);
     console.log('Media stream created.');
+    console.log("stream " + stream);
+    console.log("Input "+input);
 
-    twextRecorder.volume = twextRecorder.audio_context.createGainNode();
-    twextRecorder.volume.gain.value = twextRecorder.volumeLevel;
+    twextRecorder.volume = twextRecorder.audio_context.createGainNode();console.log("volume:"+twextRecorder.volume);
+    twextRecorder.volume.gain.value = twextRecorder.volumeLevel;console.log("volume gain:"+twextRecorder.volume.gain.value);
     input.connect(twextRecorder.volume);
-    twextRecorder.volume.connect(twextRecorder.audio_context.destination);
+    twextRecorder.volume.connect(twextRecorder.audio_context.destination);console.log("audio dest:"+twextRecorder.audio_context.destination);
     console.log('Input connected to audio context destination.');
     
-    twextRecorder.recorder = new Recorder(input);
+    twextRecorder.recorder = new Recorder(input);console.log("recorder:"+twextRecorder.recorder);
     console.log('Recorder initialised.');
   },
 
   playAudio: function() {
-    var audio = document.querySelector('audio');
+    var audio = document.querySelector('audio');console.log("play audio:"+audio.src);
     if(audio.src) audio.play();
   },
 
   pauseAudio: function() {
-    var audio = document.querySelector('audio');
+    var audio = document.querySelector('audio');console.log("pause audio:"+audio.src);
     if(audio.src) audio.pause();
   },
 
@@ -91,12 +93,12 @@ TwextRecorder = Class.$extend({
   * @param 'time' time to be seeked to
   */
   seekAudio: function(time) {
-    var audio = document.querySelector('audio');
+    var audio = document.querySelector('audio');console.log("seek audio:"+audio.src + ",time"+time);
     if(audio.src) audio.currentTime = time;
   },
 
   clearAudio: function() {
-    var audio = document.querySelector('audio');
+    var audio = document.querySelector('audio');console.log("clear audio:"+audio.src);
     if(audio.src) audio.src = null;
   }
 });

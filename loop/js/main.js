@@ -128,7 +128,7 @@ function onHashChange() {
 /**
 * On document keydown.
 */
-function onDocumentKeydown(e) {console.log(e);
+function onDocumentKeydown(e) {
   if(e.altKey) keys['alt'] = true;
   else if(e.ctrlKey) keys['ctrl'] = true;
 
@@ -255,8 +255,8 @@ function onMenuSelectChange() {
 /**
 * Enter timer mode
 */
-function startTimer(e) {
-  if(player.isPlaying()) {
+function startTimer(e) {console.log("In start timer");
+  if(player.isPlaying()) {console.log("In start timer, if playing");
     e.preventDefault();
     twextRecorder.startRecording();
     player.startTimer(); // enter timer mode

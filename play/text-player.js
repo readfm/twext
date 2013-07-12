@@ -32,7 +32,7 @@ TextPlayer = Class.$extend({
   play: function() {
     var text = this.text();
     var isNewText = this.sourceText == null || this.sourceText != text;
-    if(isNewText) {
+    if(isNewText) {console.log("new text:"+text);
       this.resetSegments();
       twextRecorder.clearAudio();
       this.createSegTiming(text); // create array of segments and timings per each Text line, this method will recall playText
@@ -44,7 +44,7 @@ TextPlayer = Class.$extend({
     } else {
       this.playText();
     }
-    twextRecorder.playAudio();
+    twextRecorder.playAudio();console.log("audio played");
   },
 
   /**
@@ -136,7 +136,7 @@ TextPlayer = Class.$extend({
   /**
   * Pause text animation.
   */
-  pauseText: function() {
+  pauseText: function() {console.log("audio paused");
     this.unhighlightSeg();
     clearTimeout(this.timeout);
     clearTimeout(this.audioTimeout);
