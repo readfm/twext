@@ -38,13 +38,21 @@ TextPlayer = Class.$extend({
       this.createSegTiming(text); // create array of segments and timings per each Text line, this method will recall playText
       return;
     }
+
+    if(videoPlayer.videoSet()) {
+      videoPlayer.playVideo(true);
+      //videoPlayer.loop();
+    } else twextRecorder.playAudio();
+
     if(!this.currentSeg) {
       var currentTiming = parseFloat(this.segTimingLines[0][0].timing);  // current seg timing
-      this.timeout = setTimeout(function(){player.playText();}, currentTiming*1000);
+      var segTimeout = currentTiming;
+      if(videoPlayer.videoSet() && videoPlayer.from < currentTiming) segTimeout = round(currentTiming - videoPlayer.from);
+      console.log("FIRST TIMEOUT: "+segTimeout);
+      this.timeout = setTimeout(function(){player.playText();}, segTimeout*1000);
     } else {
       this.playText();
     }
-    twextRecorder.playAudio();console.log("audio played");
   },
 
   /**
@@ -62,18 +70,25 @@ TextPlayer = Class.$extend({
     this.unhighlightSeg(); // unhighlight current seg
     this.setCurrentSeg();
     this.setNextSeg();
-    this.highlightSeg();
+    this.highlightSeg();console.log("SEG: "+this.currentSeg.seg+"   TIME: "+videoPlayer.currentTime());
 
     var lastSeg = this.isLastSeg();
     var segTimeout = player.calculateSegTimeout(lastSeg);
     if(lastSeg) {
-      // loop audio
-      var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);  // next seg timing
-      this.audioTimeout = setTimeout(function(){twextRecorder.seekAudio(nextTiming);twextRecorder.playAudio();}, segTimeout*1000);
+      // loop audio/video
+      this.audioTimeout = setTimeout(function(){player.playMedia();}, segTimeout*1000);
     }
     // Set window timeout to allow playing next seg after difference between current and next timing amount of time
     this.timeout = setTimeout(function(){player.playText();}, segTimeout*1000);
     //}
+  },
+
+  playMedia: function() {
+    if(!videoPlayer.videoSet()) {
+      var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);  // next seg timing
+      twextRecorder.seekAudio(nextTiming);
+      twextRecorder.playAudio();
+    }
   },
 
   /**
@@ -128,7 +143,16 @@ TextPlayer = Class.$extend({
     var nextLine = this.segTimingLines[this.nextSeg.line];  // next line segments
     var nextTiming = nextLine?parseFloat(nextLine[this.nextSeg.seg].timing):currentTiming;  // next seg timing
     //if last seg,the seg remains highlighted for a period equal to the current seg timing + endtiming - first seg timing
-    if(lastSeg) return currentTiming + this.endTiming - nextTiming;
+    if(lastSeg) {
+      if(videoPlayer.videoSet()) {console.log("LOOP after: "+round(videoPlayer.to - currentTiming + nextTiming - videoPlayer.from));
+        return round(videoPlayer.to - currentTiming + nextTiming - videoPlayer.from);
+      } else if(twextRecorder.audioDuration != -1) {
+        return round(twextRecorder.audioDuration - currentTiming + nextTiming);
+      } else {
+        return this.endTiming + nextTiming;
+      }
+      //return currentTiming + this.endTiming - nextTiming;
+    }
     //if not last seg,the seg remains highlighted for a period equals to difference between next and current timing
     return nextTiming-currentTiming;
   },
@@ -141,8 +165,12 @@ TextPlayer = Class.$extend({
     clearTimeout(this.timeout);
     clearTimeout(this.audioTimeout);
     twextRecorder.pauseAudio();
-    var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);
-    twextRecorder.seekAudio(nextTiming);
+    videoPlayer.pauseVideo();
+    if(this.nextSeg) {
+      var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);
+      twextRecorder.seekAudio(nextTiming);
+      videoPlayer.setStartTime(nextTiming);
+    }
   },
 
   /**
@@ -187,6 +215,8 @@ TextPlayer = Class.$extend({
     this.currentSeg = {line: 0, seg: 0};
     this.setNextSeg();
     this.highlightSeg("recordingHighlighted");
+    videoPlayer.setStartTime(videoPlayer.from);
+    videoPlayer.playVideo();
   },
 
   /**
@@ -216,7 +246,7 @@ TextPlayer = Class.$extend({
     }
 
     // calculate new timing for next seg
-    var newTiming = previousTiming + secs;
+    var newTiming = videoPlayer.videoSet()?videoPlayer.currentTime():(previousTiming + secs);
     // update timing of current segment
     this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].timing = timingCreator.timingStr(newTiming);
     this.date = new Date();
@@ -409,6 +439,7 @@ TextPlayer = Class.$extend({
     this.previousSeg = null;
     this.currentSeg = null;
     this.nextSeg = null;
+    clearTimeout(this.timeout);
   },
 
   /**

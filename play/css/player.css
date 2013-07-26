@@ -1,0 +1,42 @@
+.playHighlighted { 
+  background-color: greenyellow;
+  text-transform: uppercase;
+}
+
+.timerHighlighted {
+  background-color: yellow;
+  text-transform: uppercase;
+}
+
+.recordingHighlighted {
+  background-color: orange;
+  text-transform: uppercase;
+}
+
+#youtubeLinkContainer {
+  display: none;
+  padding-left: 13px;
+}
+
+#youtubeLink {
+  width: 450px;
+  border-color: silver;
+  border-width: 1px;
+}
+
+#video-msg {
+  display: none;
+  padding-left: 15px;
+  padding-top: 5px;
+  font-size: 12px;
+  font-family: arial;
+}
+
+#videoPlayerContainer {
+  padding-top: 5px;
+  display: none;
+}
+
+video {
+  background-color: black;
+}

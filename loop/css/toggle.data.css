@@ -5,7 +5,7 @@ body {
 
 #data-show {
   width: 800px;
-  height: 120px;
+  height: 80px;
   background-color: white;
   padding-left: 15px;
   padding-top: 3px;
@@ -15,10 +15,17 @@ body {
   outline: none;
 }
 
-#control-data-bar, #url-list-controls {
+#control-data-bar {
   font-family: arial;
   font-size: 8px;
   padding-left: 15px;
+}
+
+#url-list-controls {
+  font-family: arial;
+  font-size: 8px;
+  padding-left: 15px;
+  padding-top: 5px;
 }
 
 #control-data-bar a, #url-list-controls a {

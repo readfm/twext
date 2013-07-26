@@ -88,6 +88,12 @@ TwextRecorder = Class.$extend({
     if(audio.src) audio.pause();
   },
 
+  audioDuration: function() {
+    var audio = document.querySelector('audio');console.log("pause audio:"+audio.src);
+    if(audio.src) return audio.duration;
+    return -1;
+  },
+
   /**
   * Seek audio to the given time.
   * @param 'time' time to be seeked to

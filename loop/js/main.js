@@ -1,5 +1,5 @@
 // Global objects used through page life time.
-var area = null, syllabifier = null, timingCreator = null, player = null, langMenu = null, toggle = null, url_list = null, twextRecorder = null;
+var area = null, syllabifier = null, timingCreator = null, player = null, langMenu = null, toggle = null, url_list = null, twextRecorder = null, videoPlayer = null;
 var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
 
 // Keyboard keys' codes used
@@ -37,6 +37,7 @@ $(document).ready(function() {
   toggle = new Toggle();
   url_list = new URL_List();
   twextRecorder = new TwextRecorder();  // Create twextRecorder object to handle audio recording features
+  videoPlayer = new VideoPlayer();
 
   // Load all languages (in languages.js) into menu
   langMenu.loadLanguageList(toggle.selectedLanguages);
@@ -79,6 +80,7 @@ function attachEvents() {
   $('#data-bar-f4, #data-bar-timing').bind("click", switchTimingState);
   $('#data-bar-f8, #data-bar-language').bind("click", fetch_translations);
   $('#url-list-f9, #url-list-label').bind("click", showHideUrlList);
+  $('#youtubeLink').bind("change", loadVideo);
 }
 
 /**
@@ -297,16 +299,6 @@ function fromPlayToPause(e) {
 }
 
 /**
-* Play text if pause.
-*/
-/*function fromPauseToPlay(e) {
-  if(!player.isPlaying() && !player.isTapTiming()) {
-    e.preventDefault();
-    player.playText();
-  }
-}*/
-
-/**
 * Show/Hide language menu.
 */
 function showHideLangMenu() {
@@ -392,6 +384,9 @@ function switchTimingState() {
 */
 function displayText(text) {
   area.render_text_lines(text.split('\n'));
+  $('#youtubeLinkContainer').hide();
+  videoPlayer.hideVideo();
+  videoPlayer.clear();
 }
 
 /**
@@ -436,4 +431,31 @@ function toggleLangDown() {
 */
 function showHideUrlList() {
   url_list.switchUrlListState();
+}
+
+/**
+* Get video url parameters. Url in the form of "http://youtu.be/i6uVVcqPLk&loop=74.4;85.3"
+* @param 'url' youtube url
+* @return key/value object contains parameters
+*/
+function videoUrlParams(url) {
+  var params = {};
+  var tmp = url.split('/');
+  var paramArr = tmp[tmp.length-1].split('&');
+  var loopParams = paramArr[1].split('=')[1].split(';');
+  params['videoName'] = paramArr[0];
+  params['loopFrom'] = loopParams[0];
+  params['loopTo'] = loopParams[1];
+  return params;
+}
+
+function loadVideo() {
+  var link = $("#youtubeLink").val();
+  videoPlayer.clear();
+  if(link){
+    var params = videoUrlParams(link);
+    videoPlayer.setParams(params);
+    videoPlayer.loadVideo();
+  }
+  player.resetSegments();
 }
