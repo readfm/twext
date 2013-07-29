@@ -311,8 +311,8 @@ Toggle = Class.$extend({
     this.renderLines(lines); // render Text/Twext lines
     this.set_language_name();  // display language name
     $('#youtubeLinkContainer').hide();
-    videoPlayer.hideVideo();
-    videoPlayer.clear();
+    //videoPlayer.hideVideo();
+    //videoPlayer.clear();
     //set_version_name(); // display version name
   },
 

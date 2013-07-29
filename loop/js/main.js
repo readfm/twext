@@ -385,8 +385,8 @@ function switchTimingState() {
 function displayText(text) {
   area.render_text_lines(text.split('\n'));
   $('#youtubeLinkContainer').hide();
-  videoPlayer.hideVideo();
-  videoPlayer.clear();
+  //videoPlayer.hideVideo();
+  //videoPlayer.clear();
 }
 
 /**
