@@ -78,7 +78,7 @@ Toggle = Class.$extend({
         toggle.setSelectedLanguages(targets, names);
         langMenu.deselectAll();  // deselect all options
         langMenu.select(toggle.selectedLanguages.targets);  // select the options included in the selectedLanguages object
-        toggle.get_translations(data); // get text translations
+        toggle.get_translations(data.text); // get text translations
       } else {  // no mapped text, invalid url
         alert("The requested URL does not exist.");
       }
@@ -422,7 +422,7 @@ Toggle = Class.$extend({
       if(!data) { // if this shortcut not used for other text
         window.history.pushState("", document.title, "#"+shortcut); // display new url
         var textEntry = toggle.constructFbKeyFromText(text); // convert text to firebase key entry
-        new Firebase(firebaseRef+"mapping/url-text/"+shortcut).set(text); // save url-text mapping
+        new Firebase(firebaseRef+"mapping/url-text/"+shortcut+"/text").set(text); // save url-text mapping
         new Firebase(firebaseRef+"mapping/text-url/"+textEntry).set(shortcut);  // save text-url mapping
 
         var listEntry = {url: shortcut, text: text};
