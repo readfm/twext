@@ -79,6 +79,9 @@ Toggle = Class.$extend({
         langMenu.deselectAll();  // deselect all options
         langMenu.select(toggle.selectedLanguages.targets);  // select the options included in the selectedLanguages object
         toggle.get_translations(data.text); // get text translations
+        // Load video if exists
+        if(data.video) $("#youtubeLink").val(data.video);
+        loadVideo();
       } else {  // no mapped text, invalid url
         alert("The requested URL does not exist.");
       }

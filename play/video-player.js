@@ -27,6 +27,8 @@ VideoPlayer = Class.$extend({
         vidPlayer.hideMsg();
         vidPlayer.videoEl.src = "http://" + path;
         vidPlayer.showVideo();
+        // Save video url into firebase
+        vidPlayer.saveVideoUrl($("#youtubeLink").val());
       } else {
         vidPlayer.clear();
         vidPlayer.displayMsg("Video not found");
@@ -130,5 +132,17 @@ VideoPlayer = Class.$extend({
 
   currentTime: function() {
     return this.videoEl.currentTime;
+  },
+
+  /**
+  * Save video link into firebase.
+  * @param 'link' video link to be saved
+  */
+  saveVideoUrl: function(link) {
+    var shortcut = window.location.hash;  // get text shortcut
+    if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
+      shortcut = shortcut.slice(1);
+      new Firebase(firebaseRef+"mapping/url-text/"+shortcut+"/video").set(link); // save video link
+    }
   }
 });

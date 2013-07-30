@@ -44,7 +44,20 @@ $(document).ready(function() {
 
   // Attach events
   attachEvents();
+
+  //updateTable();
 });
+
+/*function updateTable() {
+  getFirebaseEntryValue(firebaseRef+"mapping/url-text", null, function(data, value) {
+    var text = null;
+    //new Firebase(firebaseRef+"mapping/backup").set(data); // save url-text mapping
+    for(var k in data) {
+      text = data[k];
+      new Firebase(firebaseRef+"mapping/url-text/"+k+"/text").set(text); // save url-text mapping
+    }
+  });
+}*/
 
 function attachEvents() {
   // Attach window events
@@ -123,6 +136,8 @@ function onHashChange() {
   player.reset();
   // resize language menu
   langMenu.resize();
+  // clear video link
+  $("#youtubeLink").val("");
   // load text and translations into textarea
   toggle.loadText();
 }
@@ -452,10 +467,12 @@ function videoUrlParams(url) {
 function loadVideo() {
   var link = $("#youtubeLink").val();
   videoPlayer.clear();
-  if(link){
+  if(link) {
     var params = videoUrlParams(link);
     videoPlayer.setParams(params);
     videoPlayer.loadVideo();
+  } else {  // delete video url from firebase
+    videoPlayer.saveVideoUrl(null);
   }
   player.resetSegments();
 }
