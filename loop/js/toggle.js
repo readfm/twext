@@ -81,7 +81,7 @@ Toggle = Class.$extend({
         toggle.get_translations(data.text); // get text translations
         // Load video if exists
         if(data.video) $("#youtubeLink").val(data.video);
-        loadVideo();
+        loadVideo(null, true);
       } else {  // no mapped text, invalid url
         alert("The requested URL does not exist.");
       }

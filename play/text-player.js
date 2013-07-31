@@ -83,6 +83,14 @@ TextPlayer = Class.$extend({
     //}
   },
 
+  restartPlay: function() {
+    this.resetSegments();
+    clearTimeout(this.audioTimeout);
+    clearTimeout(videoPlayer.playTimeout);
+    clearTimeout(videoPlayer.pauseTimeout);
+    this.play();
+  },
+
   playMedia: function() {
     if(!videoPlayer.videoSet()) {
       var nextTiming = parseFloat(this.segTimingLines[this.nextSeg.line][this.nextSeg.seg].timing);  // next seg timing

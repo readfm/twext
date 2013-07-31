@@ -19,7 +19,7 @@ VideoPlayer = Class.$extend({
     });
   },
 
-  loadVideo: function() {
+  loadVideo: function(loadOnly) {
     this.displayMsg("Loading video");  // display Loading message
     var vidPlayer = this;
     this.videoUrl(this.videoName, function(path) {
@@ -27,6 +27,14 @@ VideoPlayer = Class.$extend({
         vidPlayer.hideMsg();
         vidPlayer.videoEl.src = "http://" + path;
         vidPlayer.showVideo();
+        // restart play
+        if(!loadOnly) {
+          //player.resetSegments();
+          $(vidPlayer.videoEl).bind('canplaythrough', function(e){
+            player.restartPlay();
+          });
+          $(this.videoEl).unbind('canplaythrough');
+        }
         // Save video url into firebase
         vidPlayer.saveVideoUrl($("#youtubeLink").val());
       } else {

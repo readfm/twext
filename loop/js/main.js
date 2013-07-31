@@ -151,7 +151,7 @@ function onDocumentKeydown(e) {
 
   if(e.keyCode == keys['a']) startTimer(e);
   else if(e.keyCode == keys['s'] || e.keyCode == keys['d'] || e.keyCode == keys['f'] || e.keyCode == keys['j'] || e.keyCode == keys['k'] || e.keyCode == keys['l']) tap(e);
-  else if(e.keyCode == keys['enter'] || e.keyCode == keys[';']) fromTapToPlay(e);
+  else if((e.keyCode == keys['enter'] && e.target.id != "youtubeLink") || e.keyCode == keys[';']) fromTapToPlay(e);
 }
 
 function onDocumentKeyup(e) {
@@ -297,9 +297,14 @@ function fromTapToPlay(e) {
   if(player.isTapTiming()) {
     e.preventDefault();
     twextRecorder.stopRecording(function(){
-      player.resetSegments();
-      player.play();
+      //player.resetSegments();
+      //player.play();
+      player.restartPlay();
     });
+  } else if(player.isPlaying()) { // restart play
+    e.preventDefault();
+    //player.resetSegments();
+    player.restartPlay();
   }
 }
 
@@ -464,13 +469,13 @@ function videoUrlParams(url) {
   return params;
 }
 
-function loadVideo() {
+function loadVideo(e, loadOnly) {
   var link = $("#youtubeLink").val();
   videoPlayer.clear();
   if(link) {
     var params = videoUrlParams(link);
     videoPlayer.setParams(params);
-    videoPlayer.loadVideo();
+    videoPlayer.loadVideo(loadOnly);
   } else {  // delete video url from firebase
     videoPlayer.saveVideoUrl(null);
   }
