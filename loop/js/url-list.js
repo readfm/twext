@@ -19,7 +19,7 @@ URL_List = Class.$extend({
   * Load url-text list from firebase to urlList object.
   */
   loadList: function() {
-    var ref = new Firebase(firebaseRef+"history");  // firebase ref
+    var ref = new Firebase(firebaseRef+"history/list");  // firebase ref
     var query = ref.endAt().limit(this.urlListLimit);  // query to retrieve the last limit entries
     query.once("value", function(data) {
       url_list.urlList = Object.toArray(data.val());
