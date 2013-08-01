@@ -430,7 +430,7 @@ Toggle = Class.$extend({
 
         var listEntry = {url: shortcut, text: text};
         url_list.addToUrlList(listEntry);  // add new url to list
-        new Firebase(firebaseRef+"history").push(listEntry);  // push generated url to history list
+        new Firebase(firebaseRef+"history/list").push(listEntry);  // push generated url to history list
       } else {  // if shortcut is already in use
         if(index == id.length-1) {  // all characters of the generated id is used, generate a new one
           toggle.generateTextShortcut(text);
