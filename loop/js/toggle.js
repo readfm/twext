@@ -55,10 +55,10 @@ Toggle = Class.$extend({
   * Load text into textarea.
   * If there is a hash url, load the saved text from firebase, else load sample data.
   */
-  loadText: function() {
+  loadText: function(loadUrlList) {
     var shortcut = window.location.hash;  // get text shortcut
     if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
-      this.loadTextOfURL(shortcut.slice(1)); // load text and translations from firebase
+      this.loadTextOfURL(shortcut.slice(1), loadUrlList); // load text and translations from firebase
     } else {  // no hash value in the url
       this.load_sample_data(); // load sample data
     }
@@ -82,6 +82,10 @@ Toggle = Class.$extend({
         // Load video if exists
         if(data.video) $("#youtubeLink").val(data.video);
         loadVideo(null, true);
+        // Set current data to be saved after loading the lists
+        url_list.setCurrentUrlData({url: shortcut, text: data.text});
+        // load url list from firebase to the local object urlList or save the current url data
+        url_list.loadLists();
       } else {  // no mapped text, invalid url
         alert("The requested URL does not exist.");
       }
@@ -429,8 +433,8 @@ Toggle = Class.$extend({
         new Firebase(firebaseRef+"mapping/text-url/"+textEntry).set(shortcut);  // save text-url mapping
 
         var listEntry = {url: shortcut, text: text};
-        url_list.addToUrlList(listEntry);  // add new url to list
-        new Firebase(firebaseRef+"history/list").push(listEntry);  // push generated url to history list
+        url_list.saveToList(listEntry);  // add new url to list (All and Hot lists)
+        //new Firebase(firebaseRef+"history/list").push(listEntry);  // push generated url to history list
       } else {  // if shortcut is already in use
         if(index == id.length-1) {  // all characters of the generated id is used, generate a new one
           toggle.generateTextShortcut(text);

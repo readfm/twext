@@ -123,7 +123,7 @@ function onLoad() {
   // load text and translations into textarea
   toggle.loadText();
   // load url list from firebase to the local object urlList
-  url_list.loadList();
+  //url_list.loadList();
 }
 
 /**
@@ -138,6 +138,8 @@ function onHashChange() {
   langMenu.resize();
   // clear video link
   $("#youtubeLink").val("");
+  // reset url list
+  url_list.reset();
   // load text and translations into textarea
   toggle.loadText();
 }
