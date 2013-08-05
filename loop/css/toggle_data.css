@@ -5,10 +5,11 @@ body {
 
 #data-show {
   width: 800px;
-  height: 80px;
+  /*height: 80px;*/
   background-color: white;
   padding-left: 15px;
   padding-top: 3px;
+  padding-bottom: 5px;
   overflow: auto;
   white-space: nowrap;
   font-family: 'liberation mono', monospace;
