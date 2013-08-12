@@ -152,10 +152,10 @@ TextPlayer = Class.$extend({
     var nextTiming = nextLine?parseFloat(nextLine[this.nextSeg.seg].timing):currentTiming;  // next seg timing
     //if last seg,the seg remains highlighted for a period equal to the current seg timing + endtiming - first seg timing
     if(lastSeg) {
-      if(videoPlayer.videoSet()) {console.log("LOOP after: "+round(videoPlayer.to - currentTiming + nextTiming - videoPlayer.from));
+      if(videoPlayer.videoSet()) {
         return round(videoPlayer.to - currentTiming + nextTiming - videoPlayer.from);
-      } else if(twextRecorder.audioDuration != -1) {
-        return round(twextRecorder.audioDuration - currentTiming + nextTiming);
+      } else if(twextRecorder.audioDuration() != -1) {
+        return round(twextRecorder.audioDuration() - currentTiming + nextTiming);
       } else {
         return this.endTiming + nextTiming;
       }
