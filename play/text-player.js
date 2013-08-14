@@ -43,7 +43,7 @@ TextPlayer = Class.$extend({
       videoPlayer.playVideo(true);
       //videoPlayer.loop();
     } else twextRecorder.playAudio();
-
+//console.log("play time:"+(new Date()).getTime());
     if(!this.currentSeg) {
       var currentTiming = parseFloat(this.segTimingLines[0][0].timing);  // current seg timing
       var segTimeout = currentTiming;

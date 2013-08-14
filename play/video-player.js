@@ -97,7 +97,7 @@ VideoPlayer = Class.$extend({
     this.videoEl.play();
     var playPeriod = this.to - this.startTime;
     if(playPeriod > 0) {console.log("loop:" +playPeriod);
-      if(loop) this.playTimeout = setTimeout(function(){videoPlayer.playVideo(true);}, playPeriod*1000);
+      if(loop) this.playTimeout = setTimeout(function(){player.restartPlay();}, playPeriod*1000);// make video player restart play text when loop to sync text with video(video currenttime has a portion of secs less than window timeout)
       else this.pauseTimeout = setTimeout(function(){videoPlayer.pauseVideo();}, playPeriod*1000);
     }
   },
