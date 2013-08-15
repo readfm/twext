@@ -12,10 +12,15 @@ VideoPlayer = Class.$extend({
     this.startTime = -1;
     this.playTimeout = 0; // video player timeout value
     this.pauseTimeout = 0;
+    this.playbackRate = 1;
     $(this.videoEl).bind('pause', function(e){
       clearTimeout(videoPlayer.playTimeout);
       //e.preventDefault();
       //player.pauseText();
+    });
+    // pause before change rate, replay after change
+    $(this.videoEl).bind('ratechange', function(e) {
+      player.play();
     });
   },
 
@@ -95,8 +100,8 @@ VideoPlayer = Class.$extend({
     //  playPeriod = this.to - this.from;
     }
     this.videoEl.play();
-    var playPeriod = this.to - this.startTime;
-    if(playPeriod > 0) {console.log("loop:" +playPeriod);
+    var playPeriod = round((this.to - this.startTime)/this.playbackRate);
+    if(playPeriod > 0) {console.log("loop:" +loop+" "+playPeriod);
       if(loop) this.playTimeout = setTimeout(function(){player.restartPlay();}, playPeriod*1000);// make video player restart play text when loop to sync text with video(video currenttime has a portion of secs less than window timeout)
       else this.pauseTimeout = setTimeout(function(){videoPlayer.pauseVideo();}, playPeriod*1000);
     }
@@ -152,5 +157,15 @@ VideoPlayer = Class.$extend({
       shortcut = shortcut.slice(1);
       new Firebase(firebaseRef+"mapping/url-text/"+shortcut+"/video").set(link); // save video link
     }
+  },
+
+  playFast: function() {
+    this.videoEl.playbackRate = 1;
+    this.playbackRate = 1;
+  },
+
+  playSlow: function() {
+    this.videoEl.playbackRate = 0.5;
+    this.playbackRate = 0.5;
   }
 });

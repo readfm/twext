@@ -32,7 +32,7 @@ TextPlayer = Class.$extend({
   play: function() {
     var text = this.text();
     var isNewText = this.sourceText == null || this.sourceText != text;
-    if(isNewText) {console.log("new text:"+text);
+    if(isNewText) {
       this.resetSegments();
       twextRecorder.clearAudio();
       this.createSegTiming(text); // create array of segments and timings per each Text line, this method will recall playText
@@ -43,11 +43,11 @@ TextPlayer = Class.$extend({
       videoPlayer.playVideo(true);
       //videoPlayer.loop();
     } else twextRecorder.playAudio();
-//console.log("play time:"+(new Date()).getTime());
+
     if(!this.currentSeg) {
       var currentTiming = parseFloat(this.segTimingLines[0][0].timing);  // current seg timing
       var segTimeout = currentTiming;
-      if(videoPlayer.videoSet() && videoPlayer.from < currentTiming) segTimeout = round(currentTiming - videoPlayer.from);
+      if(videoPlayer.videoSet() && videoPlayer.from < currentTiming) segTimeout = round(currentTiming - videoPlayer.from)/videoPlayer.playbackRate;
       console.log("FIRST TIMEOUT: "+segTimeout);
       this.timeout = setTimeout(function(){player.playText();}, segTimeout*1000);
     } else {
@@ -70,10 +70,10 @@ TextPlayer = Class.$extend({
     this.unhighlightSeg(); // unhighlight current seg
     this.setCurrentSeg();
     this.setNextSeg();
-    this.highlightSeg();console.log("SEG: "+this.currentSeg.seg+"   TIME: "+videoPlayer.currentTime());
+    this.highlightSeg();
 
     var lastSeg = this.isLastSeg();
-    var segTimeout = player.calculateSegTimeout(lastSeg);
+    var segTimeout = player.calculateSegTimeout(lastSeg)/videoPlayer.playbackRate;
     if(lastSeg) {
       // loop audio/video
       this.audioTimeout = setTimeout(function(){player.playMedia();}, segTimeout*1000);

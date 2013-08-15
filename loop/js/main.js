@@ -16,6 +16,8 @@ var keys = {
   'j': 74,
   'k': 75,
   'l': 76,
+  'h': 72,
+  'g': 71,
   'f7': 118,
   ';': 186,
   'alt': false,
@@ -152,6 +154,8 @@ function onDocumentKeydown(e) {
   else if(e.ctrlKey) keys['ctrl'] = true;
 
   if(e.keyCode == keys['a']) startTimer(e);
+  else if(e.keyCode == keys['h']) playFast(e);
+  else if(e.keyCode == keys['g']) playSlow(e);
   else if(e.keyCode == keys['s'] || e.keyCode == keys['d'] || e.keyCode == keys['f'] || e.keyCode == keys['j'] || e.keyCode == keys['k'] || e.keyCode == keys['l']) tap(e);
   else if((e.keyCode == keys['enter'] && e.target.id != "youtubeLink") || e.keyCode == keys[';']) fromTapToPlay(e);
 }
@@ -210,7 +214,7 @@ function onAreaKeydown(e) {
 
   // Disable typing if text playing
   if(isTypingChar(e.keyCode) && !e.ctrlKey) {
-    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space']) || (player.isTapTiming() && e.keyCode != keys['s'] && e.keyCode != keys['d'] && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['k'] && e.keyCode != keys['l'] && e.keyCode != keys['enter'])) return false;
+    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space'] && e.keyCode != keys['h'] && e.keyCode != keys['g']) || (player.isTapTiming() && e.keyCode != keys['s'] && e.keyCode != keys['d'] && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['k'] && e.keyCode != keys['l'] && e.keyCode != keys['enter'])) return false;
   }
 
   // Check keys for proper event
@@ -482,4 +486,20 @@ function loadVideo(e, loadOnly) {
     videoPlayer.saveVideoUrl(null);
   }
   player.resetSegments();
+}
+
+function playFast(e) {
+  if(player.isPlaying() && videoPlayer.videoSet()) {
+    player.pauseText();
+    videoPlayer.playFast();
+    //player.play();
+  }
+}
+
+function playSlow(e) {
+  if(player.isPlaying() && videoPlayer.videoSet()) {
+    player.pauseText();
+    videoPlayer.playSlow();
+    //player.play();
+  }
 }
