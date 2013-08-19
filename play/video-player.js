@@ -29,17 +29,16 @@ VideoPlayer = Class.$extend({
     var vidPlayer = this;
     this.videoUrl(this.videoName, function(path) {
       if(path != -1) {
-        vidPlayer.hideMsg();
         vidPlayer.videoEl.src = "http://" + path;
-        vidPlayer.showVideo();
-        // restart play
-        if(!loadOnly) {
-          //player.resetSegments();
-          $(vidPlayer.videoEl).bind('canplaythrough', function(e){
-            player.restartPlay();
-          });
-          $(this.videoEl).unbind('canplaythrough');
-        }
+        // show video div when the video is fully laoded
+        $(vidPlayer.videoEl).bind('canplaythrough', function(e) {
+          vidPlayer.hideMsg();
+          vidPlayer.showVideo();
+          // restart play if required
+          if(!loadOnly) player.restartPlay();
+        });
+        $(this.videoEl).unbind('canplaythrough');
+
         // Save video url into firebase
         vidPlayer.saveVideoUrl($("#youtubeLink").val());
       } else {
