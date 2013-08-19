@@ -490,16 +490,16 @@ function loadVideo(e, loadOnly) {
 
 function playFast(e) {
   if(player.isPlaying() && videoPlayer.videoSet()) {
+    e.preventDefault();
     player.pauseText();
     videoPlayer.playFast();
-    //player.play();
   }
 }
 
 function playSlow(e) {
   if(player.isPlaying() && videoPlayer.videoSet()) {
+    e.preventDefault();
     player.pauseText();
     videoPlayer.playSlow();
-    //player.play();
   }
 }

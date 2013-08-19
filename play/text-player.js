@@ -24,12 +24,14 @@ TextPlayer = Class.$extend({
     this.doneTapTiming = false;  // boolean detects if all segs has been tapped
     this.endTiming = 1; // the number of seconds for the last seg to be highlighted before start over again "Loop"
     this.date = null;  // The date of the last tap, used to calculate number of seconds between taps that equals to difference between current tap and previous tap times
+    this.playing = false;
   },
 
   /**
   * Play text and audio previously recorded.
   */
   play: function() {
+    this.playing = true;
     var text = this.text();
     var isNewText = this.sourceText == null || this.sourceText != text;
     if(isNewText) {
@@ -168,7 +170,8 @@ TextPlayer = Class.$extend({
   /**
   * Pause text animation.
   */
-  pauseText: function() {console.log("audio paused");
+  pauseText: function() {
+    this.playing = false;
     this.unhighlightSeg();
     clearTimeout(this.timeout);
     clearTimeout(this.audioTimeout);
@@ -428,7 +431,8 @@ TextPlayer = Class.$extend({
   * @return boolean detects if the current segment is highlighted
   */
   isPlaying: function() {
-    return $('.playHighlighted').length > 0;
+    //return $('.playHighlighted').length > 0;
+    return this.playing;
   },
 
   /**
