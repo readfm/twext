@@ -1,5 +1,5 @@
 // Global objects used through page life time.
-var area = null, syllabifier = null, timingCreator = null, player = null, langMenu = null, toggle = null, url_list = null, twextRecorder = null, videoPlayer = null;
+var area = null, syllabifier = null, timingCreator = null, player = null, langMenu = null, toggle = null, url_list = null, twextRecorder = null, videoPlayer = null, game = null;
 var firebaseRef = "https://readfm.firebaseio.com/";  // firebase url
 
 // Keyboard keys' codes used
@@ -40,6 +40,7 @@ $(document).ready(function() {
   url_list = new URL_List();
   twextRecorder = new TwextRecorder();  // Create twextRecorder object to handle audio recording features
   videoPlayer = new VideoPlayer();
+  game = new Game();
 
   // Load all languages (in languages.js) into menu
   langMenu.loadLanguageList(toggle.selectedLanguages);
@@ -111,7 +112,7 @@ function onResize() {
   var playing = player.isPlaying() || player.isTapTiming();
   var clazz = player.unhighlightSeg();  // unhighlight current seg
   area.realign(); // realign chunks
-  if(playing) player.highlightSeg(clazz);  // rehighlight current seg
+  if(playing) player.highlightSeg(null, clazz);  // rehighlight current seg
 }
 
 /**
@@ -157,6 +158,7 @@ function onDocumentKeydown(e) {
   else if(e.keyCode == keys['h']) playFast(e);
   else if(e.keyCode == keys['g']) playSlow(e);
   else if(e.keyCode == keys['s'] || e.keyCode == keys['d'] || e.keyCode == keys['f'] || e.keyCode == keys['j'] || e.keyCode == keys['k'] || e.keyCode == keys['l']) tap(e);
+  else if($.inArray(e.keyCode, Object.toArray(game.keys)) != -1) playGame(e);
   else if((e.keyCode == keys['enter'] && e.target.id != "youtubeLink") || e.keyCode == keys[';']) fromTapToPlay(e);
 }
 
@@ -214,7 +216,7 @@ function onAreaKeydown(e) {
 
   // Disable typing if text playing
   if(isTypingChar(e.keyCode) && !e.ctrlKey) {
-    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space'] && e.keyCode != keys['h'] && e.keyCode != keys['g']) || (player.isTapTiming() && e.keyCode != keys['s'] && e.keyCode != keys['d'] && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['k'] && e.keyCode != keys['l'] && e.keyCode != keys['enter'])) return false;
+    if((player.isPlaying() && e.keyCode != keys['a'] && e.keyCode != keys['space'] && e.keyCode != keys['h'] && e.keyCode != keys['g'] && $.inArray(e.keyCode, Object.toArray(game.keys)) == -1) || (player.isTapTiming() && e.keyCode != keys['s'] && e.keyCode != keys['d'] && e.keyCode != keys['f'] && e.keyCode != keys['j'] && e.keyCode != keys['k'] && e.keyCode != keys['l'] && e.keyCode != keys['enter'])) return false;
   }
 
   // Check keys for proper event
@@ -501,5 +503,11 @@ function playSlow(e) {
     e.preventDefault();
     player.pauseText();
     videoPlayer.playSlow();
+  }
+}
+
+function playGame(e) {
+  if(player.isPlaying()) {
+    game.play();
   }
 }

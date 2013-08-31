@@ -62,17 +62,49 @@ TextPlayer = Class.$extend({
   * @param 'text' the Text lines only
   */
   playText: function() {
-    //var player = this;  // create object of the player to be sent to the timeout
-    //var text = this.text();
-    //var isNewText = this.sourceText == null || this.sourceText != text;
-    //if(isNewText) {
-      //this.sourceText = text;
-      //this.createSegTiming(); // create array of segments and timings per each Text line, this method will recall playText
-    //} else {
-    this.unhighlightSeg(); // unhighlight current seg
-    this.setCurrentSeg();
-    this.setNextSeg();
-    this.highlightSeg();
+    game.checkIfMissedSeg(this.currentSeg);console.log("MISSED: "+game.missedSegs);
+    if(game.isOn() && game.missedSegs < 3) {
+      if(game.segState == "cue") {
+        this.setCurrentSeg();
+        this.setNextSeg();
+        game.segState = "cuePlay";
+      } else {
+        segSpan = this.currentSeg?$('#'+this.currentSeg.line+""+this.currentSeg.seg):null;
+        if(segSpan && segSpan.attr("class") == "play") this.unhighlightSeg(); // unhighlight old seg
+        this.setCurrentSeg();
+        this.setNextSeg();
+        // change tapped seg class to good because Master seg can't be showed with Play seg
+        if(game.segState == "master" && (this.currentSeg.line != game.currentSeg.line || this.currentSeg.seg != game.currentSeg.seg)) {
+          $('#'+game.currentSeg.line+""+game.currentSeg.seg).removeClass("master");
+          $('#'+game.currentSeg.line+""+game.currentSeg.seg).addClass("good");
+          game.segState = "good";
+        }
+        //if(game.segState != "cue") {
+        segSpan = $('#'+this.currentSeg.line+""+this.currentSeg.seg);
+        if(!segSpan || segSpan.attr("class") != "master") {
+          this.unhighlightSeg(); // unhighlight new seg. to rehighlight it with different class
+          this.highlightSeg(null, "play");
+        }
+        //var t = setTimeout(function(){game.checkIfMissedSeg(player.currentSeg);}, game.outOfRangeTiming*1000);
+        //game.timeouts[this.currentSeg.line+""+this.currentSeg.seg] = t;
+        //}
+      }
+    } else {
+      if(game.missedSegs >= 3) {
+        game.showScore();
+        this.unhighlightSeg(game.tappedSegs[game.tappedSegs.length-1]);
+      }
+      game.reset();
+      this.unhighlightSeg(); // unhighlight current seg
+      this.setCurrentSeg();
+      this.setNextSeg();
+      this.highlightSeg();
+      // Display current seg timing
+      var currentTiming = floatToStr(this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].timing);
+      game.setSegTimeLabel(currentTiming, "timeFade");
+      game.showSegTimeLabel();
+    }
+    //game.showFeedback();  //@TODO
 
     var lastSeg = this.isLastSeg();
     var segTimeout = player.calculateSegTimeout(lastSeg)/videoPlayer.playbackRate;
@@ -83,6 +115,31 @@ TextPlayer = Class.$extend({
     // Set window timeout to allow playing next seg after difference between current and next timing amount of time
     this.timeout = setTimeout(function(){player.playText();}, segTimeout*1000);
     //}
+  },
+
+  getCurrentSeg: function() {
+    return this.currentSeg;
+  },
+
+  getNextSeg: function(segment) {
+    if(!segment) return this.nextSeg;
+    var nextSeg = null;
+    var currentLine = this.segTimingLines[segment.line];  // current line segments
+    if(segment.seg == currentLine.length-1) { // last seg in the line, move to next line
+      if(segment.line == this.segTimingLines.length-1) {  // last line
+        nextSeg = {line: 0, seg: 0}; // start loop, move to first seg again
+      } else {
+        nextSeg = {line: segment.line+1, seg: 0};
+      }
+    } else {  // move to next seg of the line
+      nextSeg = {line: segment.line, seg: segment.seg+1};
+    }
+    return nextSeg;
+  },
+
+  getNextSegTiming: function(segment) {
+    var nextSeg = this.getNextSeg(segment);
+    return this.segTimingLines[nextSeg.line][nextSeg.seg].timing;
   },
 
   restartPlay: function() {
@@ -121,7 +178,8 @@ TextPlayer = Class.$extend({
     else set next segment to the next segment in the current line.
   */
   setNextSeg: function() {
-    var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
+    this.nextSeg = this.getNextSeg(this.currentSeg);
+    /*var currentLine = this.segTimingLines[this.currentSeg.line];  // current line segments
     if(this.currentSeg.seg == currentLine.length-1) { // last seg in the line, move to next line
       if(this.currentSeg.line == this.segTimingLines.length-1) {  // last line
         this.nextSeg = {line: 0, seg: 0}; // start loop, move to first seg again
@@ -130,7 +188,7 @@ TextPlayer = Class.$extend({
       }
     } else {  // move to next seg of the line
       this.nextSeg = {line: this.currentSeg.line, seg: this.currentSeg.seg+1};
-    }
+    }*/
   },
 
   /**
@@ -182,6 +240,8 @@ TextPlayer = Class.$extend({
       twextRecorder.seekAudio(nextTiming);
       videoPlayer.setStartTime(nextTiming);
     }
+    game.reset();
+    game.resetFeedback();
   },
 
   /**
@@ -225,7 +285,7 @@ TextPlayer = Class.$extend({
     this.previousSeg = null;
     this.currentSeg = {line: 0, seg: 0};
     this.setNextSeg();
-    this.highlightSeg("recordingHighlighted");
+    this.highlightSeg(null, "recordingHighlighted");
     videoPlayer.setStartTime(videoPlayer.from);
     videoPlayer.playVideo();
   },
@@ -243,13 +303,13 @@ TextPlayer = Class.$extend({
       this.previousSeg = this.currentSeg; // set previous seg for the next tap to jump to else case
       // Move from recording state to timer state
       this.unhighlightSeg();
-      this.highlightSeg("timerHighlighted");
+      this.highlightSeg(null, "timerHighlighted");
     } else {
       // move to next seg
       this.unhighlightSeg();
       this.setCurrentSeg();
       this.setNextSeg();
-      this.highlightSeg("timerHighlighted");
+      this.highlightSeg(null, "timerHighlighted");
 
       // Get previous seg timing
       previousLine = this.segTimingLines[this.previousSeg.line];  // current line segments
@@ -273,7 +333,7 @@ TextPlayer = Class.$extend({
       // realign segs
       this.unhighlightSeg();  // unhighlight current seg
       area.realign(); // realign chunks
-      player.highlightSeg("timerHighlighted");  // rehighlight current seg
+      player.highlightSeg(null, "timerHighlighted");  // rehighlight current seg
     }
 
     if(this.isLastSeg()) this.doneTapTiming = true;
@@ -298,48 +358,91 @@ TextPlayer = Class.$extend({
   * Highlight the current seg.
   * Put the segment in <span>, set to uppercase and add background color.
   */
-  highlightSeg: function(clazz) {
+  highlightSeg: function(seg, clazz) {
     var clss = clazz?clazz:"playHighlighted";
+    var segment = seg?seg:this.currentSeg;
+
     if(this.segTimingLines.length == 0) return; // No segments/timings generated yet
-    var before, after, spanNode;
-    var currentSeg = this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].seg;
-    var currentSegIx = this.segIndices[this.currentSeg.line][this.currentSeg.seg];
-    var nodeIx = this.getCurrentTextNode();
+
+    var currentSeg = this.segTimingLines[segment.line][segment.seg].seg;
+    var currentSegIx = this.segIndices[segment.line][segment.seg];
+    var nodeIx = this.getCurrentTextNode(segment);
     var currentNode = this.element.childNodes[nodeIx];
-    var nodeVal = currentNode.innerText;
+    //var nodeVal = currentNode.innerText;
 
-    // highlight the new seg
-    before = nodeVal.substring(0, currentSegIx);
-    after = nodeVal.slice(currentSegIx+currentSeg.length);
-    spanNode = $("<span class='" + clss + "'>" + currentSeg + "</span>");
-    currentNode.childNodes[0].nodeValue = before;
-    spanNode.insertAfter(currentNode.childNodes[0]);
-    $(document.createTextNode(after)).insertAfter(spanNode); // Create text node to contain the text string after the span
-
+    var i, index = 0;
+    var before, after, spanNode, nodeVal, beforeNode = null, afterNode = null;
+    for(i=0; i<currentNode.childNodes.length; i++) { // node will have multiple childnodes if there is another word highlighted "span"
+      index += currentNode.childNodes[i].textContent.length;
+      if(currentSegIx < index) { // update this node
+        // highlight the new seg
+        nodeVal = currentNode.childNodes[i].textContent;
+        newSegIx = currentSegIx - (index - currentNode.childNodes[i].length);
+        before = nodeVal.substring(0, newSegIx);
+        after = nodeVal.slice(newSegIx+currentSeg.length);
+        spanNode = $("<span id='"+segment.line+""+segment.seg+"' "+"class='" + clss + "'>" + currentSeg + "</span>");
+        currentNode.childNodes[i].nodeValue = " ";
+        spanNode.insertAfter(currentNode.childNodes[i]);
+        currentNode.childNodes[i].remove();
+        
+        if(currentNode.childNodes[i-1] && currentNode.childNodes[i-1] == "#text") {
+          currentNode.childNodes[i-1].nodeValue += before;
+          //spanNode.insertAfter(currentNode.childNodes[i-1]);
+          //currentNode.childNodes[i].remove();
+        } else {
+          beforeNode = $(document.createTextNode(before));
+          //spanNode.insertAfter(currentNode.childNodes[i]);
+        }
+        if(currentNode.childNodes[i+1] && currentNode.childNodes[i+1] == "#text") {
+          currentNode.childNodes[i+1].nodeValue = after + currentNode.childNodes[i+1].nodeValue;
+        } else {
+          afterNode = $(document.createTextNode(after)); // Create text node to contain the text string after the span
+        }
+        if(beforeNode) beforeNode.insertBefore(spanNode);
+        if(afterNode) afterNode.insertAfter(spanNode);
+        //$(document.createTextNode(after)).insertAfter(spanNode); // Create text node to contain the text string after the span
+        break;
+      }
+    }
     this.sourceText = this.text(); // update the source text with the text in play
   },
 
   /**
   * Unhighlight segment, default segment is the current.
-  * @return class of the unhighlighted seg
   */
-  unhighlightSeg: function() {
-    var clazz = null;
-    if($('.playHighlighted').length != 0) clazz = "playHighlighted";
-    else if($('.timerHighlighted').length != 0) clazz = "timerHighlighted";
-    else if($('.recordingHighlighted').length != 0) clazz = "recordingHighlighted";
-    else return;  // nothing to unhighlight
-
-    var seg = this.currentSeg;
-    var currentNode = this.element.childNodes[this.getCurrentTextNode()];
-    var spanNode = $('.'+clazz)[0];
-    var preVal = spanNode.previousSibling?spanNode.previousSibling.nodeValue:"";
-    var afterVal = spanNode.nextSibling?spanNode.nextSibling.nodeValue:"";
-    var segVal = this.segTimingLines[seg.line][seg.seg].seg;
-    $('.'+clazz).remove();
-    currentNode.innerText = preVal + segVal + afterVal;
-    this.sourceText = this.text(); // update the source text with the text in play
-    return clazz;
+  unhighlightSeg: function(seg) {
+    var segVal;
+    var segment = seg?seg:this.currentSeg;
+    if(!segment) return;
+    var currentNode = this.element.childNodes[this.getCurrentTextNode(segment)];
+    var spanNode = $("#"+segment.line+""+segment.seg)[0];
+    if(spanNode) {
+      if(spanNode.previousSibling && spanNode.previousSibling.nodeName == "#text" && spanNode.nextSibling && spanNode.nextSibling.nodeName == "#text") {
+        segVal = this.segTimingLines[segment.line][segment.seg].seg;
+        spanNode.previousSibling.nodeValue += segVal + spanNode.nextSibling.nodeValue;
+        spanNode.nextSibling.remove();
+        $("#"+segment.line+""+segment.seg).remove();
+      } else if(spanNode.previousSibling && spanNode.previousSibling.nodeName == "#text") {
+        segVal = this.segTimingLines[segment.line][segment.seg].seg;
+        spanNode.previousSibling.nodeValue += segVal;
+        $("#"+segment.line+""+segment.seg).remove();
+        //currentNode.innerText = preVal + segVal + afterVal;
+      } else if(spanNode.nextSibling && spanNode.nextSibling.nodeName == "#text") {
+        segVal = this.segTimingLines[segment.line][segment.seg].seg;
+        spanNode.nextSibling.nodeValue += segVal;
+        $("#"+segment.line+""+segment.seg).remove();
+      } else {
+        segVal = this.segTimingLines[segment.line][segment.seg].seg;
+        $(document.createTextNode(segVal)).insertAfter(spanNode); // Create text node to contain the text string after the span
+        $("#"+segment.line+""+segment.seg).remove();
+      }
+      //var preVal = spanNode.previousSibling?spanNode.previousSibling.nodeValue:"";
+      //var afterVal = spanNode.nextSibling?spanNode.nextSibling.nodeValue:"";
+      //var segVal = this.segTimingLines[segment.line][segment.seg].seg;
+      //$("#"+segment.line+""+segment.seg).remove();
+      //currentNode.innerText = preVal + segVal + afterVal;
+      this.sourceText = this.text(); // update the source text with the text in play
+    }
   },
 
   /**
@@ -348,9 +451,10 @@ TextPlayer = Class.$extend({
   * If the mode is timing or twext, then the displayed Text line number is the seg line number multiplied by 2, to count twext/timing lines.
   * @return current Text node index
   */
-  getCurrentTextNode: function() {
-    if(this.displayMode == "text")  return this.currentSeg.line;
-    else if(this.displayMode == "twext" || this.displayMode == "timing")  return this.currentSeg.line*2;
+  getCurrentTextNode: function(seg) {
+    var segment = seg?seg:this.currentSeg;
+    if(this.displayMode == "text")  return segment.line;
+    else if(this.displayMode == "twext" || this.displayMode == "timing")  return segment.line*2;
     return -1;
   },
 

@@ -89,9 +89,14 @@ TwextRecorder = Class.$extend({
   },
 
   audioDuration: function() {
-    var audio = document.querySelector('audio');console.log("pause audio:"+audio.src);
+    var audio = document.querySelector('audio');
     if(audio.src) return audio.duration;
     return -1;
+  },
+
+  audioCurrentTime: function() {
+    var audio = document.querySelector('audio');
+    if(audio.src) return audio.currentTime;
   },
 
   /**

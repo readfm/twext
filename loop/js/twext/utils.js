@@ -255,6 +255,19 @@ function round(num) {
   return Math.round(num*100)/100;
 }
 
+function floatToStr(num) {
+  var decParts = num.toString().split('.');
+  var decimal = decParts[0];
+  var fraction = decParts[1];
+  if(fraction) {  // float number, one or two floating digits
+    if(fraction.length == 1) str = num + "0";
+    else str = num;
+  } else {  // integer "1, 2, 3, ...."
+    str = num + ".00";
+  }
+  return str;
+}
+
 //Twext.Utils = {};
 
 // This is a quick fix until I rename those functions.
