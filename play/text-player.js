@@ -62,6 +62,7 @@ TextPlayer = Class.$extend({
   * @param 'text' the Text lines only
   */
   playText: function() {
+    if(this.currentSeg && this.currentSeg.line == 0 && this.currentSeg.seg == 0) game.tappedSegs = [];
     game.checkIfMissedSeg(this.currentSeg);console.log("MISSED: "+game.missedSegs);
     if(game.isOn() && game.missedSegs < 3) {
       if(game.segState == "cue") {

@@ -75,21 +75,18 @@ Game = Class.$extend({
 
   calculateSegScore: function(currentTiming, perfectTiming) {
     var scoreStr = "";
-    var score = Math.abs(round(perfectTiming - currentTiming));console.log("SCORE: "+score);
-    if(score >= 0 && score < 0.3) { // master
+    var score = round(perfectTiming - currentTiming);console.log("SCORE: "+score);
+    if((score < 0 && score > -0.3) || (score >= 0 && score < 0.3)) { // master
       scoreStr = 'master';
       this.scores.push(100);
-    } else if(score >= 0.3 && score < 0.5) { // good
+    } else if((score <= -0.3 && score > -0.5) || (score >= 0.3 && score < 0.5)) { // good
       scoreStr = 'good';
       this.scores.push(80);
-    } else if(score >= 0.5 && score < 0.7) {
+    } else if((score < -0.5) || (score >= 0.5)) {
       scoreStr = 'good';
       this.scores.push(50);
-    } else if(score >= 0.7) {  // no
-      scoreStr = false;
-      //this.scores.push(0);
     }
-    this.totalScore += score;
+    this.totalScore += Math.abs(score);
     return scoreStr;
   },
 
