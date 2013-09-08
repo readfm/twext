@@ -163,8 +163,12 @@ URL_List = Class.$extend({
     var urlIx = this.inHotList(data); // check if the url already in the list
     if(urlIx != -1) {  // url already included in the list
       domUrlIx = this.urlHotList.length - 1 - urlIx; // get the reverse index to update the dom
-      this.hotListEl[0].childNodes[domUrlIx*2+1].remove();  // Delete element from the dom (*2 to count <br> tags)
-      this.hotListEl[0].childNodes[domUrlIx*2].remove();  // Delete <br> element from the dom (*2 to count <br> tags)
+      
+      // remove function is undefined on safari
+      // use jquery remove instead  for cross platform support
+      $(this.hotListEl[0].childNodes[domUrlIx*2+1]).remove();  // Delete element from the dom (*2 to count <br> tags)
+      $(this.hotListEl[0].childNodes[domUrlIx*2]).remove();  // Delete <br> element from the dom (*2 to count <br> tags)
+      
       var name = this.urlHotList[urlIx].name;
       new Firebase(firebaseRef+"history/hotList/"+name).remove();
       this.urlHotList.splice(urlIx, 1); // delete the old url from list
