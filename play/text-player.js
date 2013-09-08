@@ -259,13 +259,7 @@ TextPlayer = Class.$extend({
       text = lines.join('\n');  // construct text string
       if(this.displayMode == "timing") text = this.syllabifier.unsyllabifyText(text);
     } else {  // twext not displayed
-      
-      // Firefox doesn't support innerText
-      if (this.element.innerText == undefined)
-      	text = this.element.textContent;
-      else	// for other browsers
-      	text = this.element.innerText; // text is the input
-    
+      text = this.element.innerText; // text is the input
     }
     return cleanText(text);  // return text
   },

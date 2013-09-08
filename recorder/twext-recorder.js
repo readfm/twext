@@ -26,19 +26,10 @@ TwextRecorder = Class.$extend({
     } catch (e) {
       console.warn('No web audio support in this browser!');
     }
-
-	// retrieve the suitable navigator user media 
-	navigator.getMedia = ( navigator.getUserMedia       ||
-                           navigator.webkitGetUserMedia ||
-                           navigator.mozGetUserMedia    ||
-                           navigator.msGetUserMedia );  
-    
-    if(navigator.getMedia != undefined)
-    	navigator.getMedia({audio: true}, this.startUserMedia, function(e) {
-	      console.warn('No live audio input: ' + e);
-	    });
-	else
-		console.warn('No media (microphone & Camera) support in this browser, try to update to latest version');
+  
+    navigator.getUserMedia({audio: true}, this.startUserMedia, function(e) {
+      console.warn('No live audio input: ' + e);
+    });
   },
 
   /**
