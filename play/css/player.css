@@ -13,13 +13,39 @@
   text-transform: uppercase;
 }
 
+.gifPlayHighlighted {
+  color: greenyellow;
+  text-transform: uppercase;
+}
+
+#playerContainer {
+  width: 600px;
+  height: 80px;
+}
+
+#data-gif-view {
+  display: none;
+  position: absolute;
+  width: 600px;
+  height: 30px;
+  padding-top: 5px;
+  color: #f2f2f2;
+}
+
+#data-gif-content {
+  display: table;
+  margin: 0 auto;
+  text-align: left;
+  text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.8);
+}
+
 #youtubeLinkContainer {
   display: none;
   padding-left: 13px;
 }
 
 #youtubeLink {
-  width: 450px;
+  width: 500px;
   border-color: silver;
   border-width: 1px;
 }
@@ -33,10 +59,28 @@
 }
 
 #videoPlayerContainer {
-  padding-top: 5px;
   display: none;
+  background-color: black;
+}
+
+#videoPlayerContainer.normal-view {
+  padding-top: 5px;
+}
+
+#videoPlayerContainer.gif-view {
+  padding-top: 15px;
+}
+
+#gif-header {
+  display: none;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+  background-image: -moz-linear-gradient(rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0));
+  position: absolute;
+  margin-top: 15px;
+  width: 600px;
+  height: 20px;
 }
 
 video {
-  background-color: black;
+  /*background-color: black;*/
 }

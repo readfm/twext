@@ -68,14 +68,14 @@ window.ScoochArea = Class.$extend({
   extractText: function() {
     var lines = [], i, text = "";
     var nodes = this.area.childNodes; // area child nodes
-    if(this.isTwextOn() || this.isTimingOn()) { // if twext displayed
+    //if(this.isTwextOn() || this.isTimingOn()) { // if twext displayed
       for(i=0; i<nodes.length; i++) { // loop over area childnodes
         if(nodes[i].className == "text") lines.push(nodes[i].innerText);  // push text line
       }
       text = lines.join('\n');  // construct text string
-    } else {  // twext not displayed
-      text = area.area.innerText; // text is the input
-    }
+    //} else {  // twext not displayed
+      //text = area.area.innerText; // text is the input
+    //}
     return text;  // return text
   },
 
@@ -100,8 +100,15 @@ window.ScoochArea = Class.$extend({
   */
   realign: function() {
     if(this.isTwextOn() || this.isTimingOn()) {  // if twext lines are displayed
+      var playing = false;
+      var spanNode = $($('#data-show')[0]).find("span");
+      if(spanNode.length != 0) {
+        player.unhighlightSeg();
+        playing = true;
+      }
       var aligner = new SpanAligner();
       aligner.align($(this.area), this.getnNs()); // align chunks with span aligner
+      if(playing) player.highlightSeg();
     }
   },
 
@@ -201,6 +208,7 @@ window.ScoochArea = Class.$extend({
   * @return 'orgLines' after update
   */
   saveData: function(lang, ver, orgLines, changedText, twextsDisplayed, timingsDisplayed) {
+    if($('#data-gif-view').is(':visible'))  return orgLines;
     changedText = cleanText(changedText); // clean text from html characters
     var changedLines = changedText.split('\n'); // get changed text lines
 

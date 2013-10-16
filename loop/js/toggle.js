@@ -521,7 +521,11 @@ Toggle = Class.$extend({
       timingCreator.getSegTiming(text, hText, function(timingLines) {
         var lines = toggle.meld_timing_lines(textLines, timingLines);  // merge lines
         toggle.renderLines(lines, 'timing'); // display Text/Timing lines
-        $('#youtubeLinkContainer').show();
+        if($('#data-gif-view').is(':visible')) {
+          updateGifArea();
+        } else {
+          $('#youtubeLinkContainer').show();
+        }
         //timingCreator.saveTimings(text);
       }); // timing lines
     });
@@ -582,6 +586,9 @@ Toggle = Class.$extend({
       nl = 0; // switch to first language
     }
     this.display_language(nl, ver);
+    if($('#data-gif-view').is(':visible')) {
+      updateGifArea();
+    }
 
     // Save data (text edits and chunks) before language switch into firebase
     var oldLangName = this.toggle_data.language(oldLang).language;

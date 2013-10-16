@@ -29,3 +29,15 @@
     width:100%;
     clear: both;
 }
+
+.gifText {
+  font-size: 1.0em;
+  font-weight: bold;
+  line-height: 1.5em;
+}
+
+.gifTwext {
+  font-size: 0.4em;
+  color: grey;
+  line-height: 1.5em;
+}

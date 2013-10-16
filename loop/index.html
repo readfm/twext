@@ -75,9 +75,13 @@
 <div id="control-data-bar"><div id="game-segTime-label"></div><a id="data-bar-f7" class="controls">F7</a><a id="data-bar-heart" class="data">&hearts;</a><a id="data-bar-f2" class="controls">F2</a><a id="data-bar-play" class="data">play</a><a id="data-bar-f4" class="controls">F4</a><a id="data-bar-timing" class="data">text</a><a id="data-bar-f8" class="controls">F8</a><a id="data-bar-language" class="data">language</a><div id="translating">translating...</div><div id="game-feedback-label"></div><div class="clear"></div></div>
 <div id="language_menu_container"><select id="language_menu" name="language_menu" multiple>
 </select></div>
-<div id="data-show" contenteditable="true"></div>
+<div id="data-show" contenteditable="true" class="monospaceFont"></div>
 <div id="youtubeLinkContainer"><input type="text" id="youtubeLink"/></div><div id="video-msg">loading video...</div>
-<div id="videoPlayerContainer"><video id="htmlVideo" width="550" height="80" controls></video></div>
+<div id="playerContainer">
+  <div id="gif-header"></div>
+  <div id="data-gif-view" class="monospaceFont"><div id="data-gif-content"></div></div>
+  <div id="videoPlayerContainer" class="normal-view"><video id="htmlVideo" width="600" height="80" controls></video></div>
+</div>
 <div id="url-list-controls"><a id="url-list-f9" class="controls">F9</a><a id="url-list-label" class="data">off</a></div>
 <div id="url-hot-list"></div><div id="url-all-list"></div>
 <!--<div id="instructions">F2: translate. &nbsp; F8/Alt+F8: Change Language. &nbsp;F7/Alt+F7: Change Version. &nbsp;F9/Alt+F9: Toggle Language/Version</div>-->

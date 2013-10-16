@@ -98,7 +98,7 @@ Game = Class.$extend({
       if(this.tappedSegs[i].line == segment.line && this.tappedSegs[i].seg == segment.seg) return;
     }
     this.missedSegs++;
-    this.currentSeg = segment;console.log("CURRENTSEG: "+this.currentSeg.line+""+this.currentSeg.seg);
+    this.currentSeg = segment;
   },
 
   showSegTimeLabel: function() {

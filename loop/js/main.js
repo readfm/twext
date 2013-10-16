@@ -20,6 +20,8 @@ var keys = {
   'g': 71,
   'f7': 118,
   ';': 186,
+  '+': 187,
+  '-': 189,
   'alt': false,
   'ctrl': false
 }
@@ -75,7 +77,8 @@ function attachEvents() {
   $(document).bind("keydown","f8", fetch_translations);  // F2 key down event, Get translations of area text lines
   $(document).bind("keydown","alt+F8", toggleLangDown); // Alt+F8 keys down event, Switch to previous language
   $(document).bind("keydown", "f9", showHideUrlList); // F9 keydown event, Show/Hide url list
-  $(document).bind("keydown", "alt+F2", startTimer); // Alt+F2 keydown event, Play text
+  $(document).bind("keydown", "alt+F2", normalOrGifView); // Alt+F2 keydown event, Play text
+  $(document).bind("keydown", "alt+F7", switchFontType); // Alt+F2 keydown event, Play text
   $(document).bind("keydown", "space", fromPlayToPause); // Alt+F2 keydown event, pause text
   $(document).bind("keydown", "ctrl+space", playPauseText); // Alt+F2 keydown event, Play text
   $(document).bind("keydown", onDocumentKeydown); // On document keydown
@@ -160,6 +163,8 @@ function onDocumentKeydown(e) {
   else if(e.keyCode == keys['s'] || e.keyCode == keys['d'] || e.keyCode == keys['f'] || e.keyCode == keys['j'] || e.keyCode == keys['k'] || e.keyCode == keys['l']) tap(e);
   else if($.inArray(e.keyCode, Object.toArray(game.keys)) != -1) playGame(e);
   else if((e.keyCode == keys['enter'] && e.target.id != "youtubeLink") || e.keyCode == keys[';']) fromTapToPlay(e);
+  else if(keys['ctrl'] && keys['alt'] && e.keyCode == keys['+']) gifTextSizeUp();
+  else if(keys['ctrl'] && keys['alt'] && e.keyCode == keys['-']) gifTextSizeDown();
 }
 
 function onDocumentKeyup(e) {
@@ -171,7 +176,7 @@ function onDocumentKeyup(e) {
 * On body keydown event.
 */
 function onBodyKeydown(e) {
-  if(e.keyCode == keys['f7']) { // If F7 is pressed
+  if(e.keyCode == keys['f7'] && !keys['alt']) { // If F7 is pressed
     showHideLangMenu();
   } else if(e.keyCode == keys['esc']) {  // If esc is pressed
     if(langMenu.visible()) langMenu.hide();  // hide menu
@@ -277,11 +282,133 @@ function onMenuSelectChange() {
   langMenu.saveLangToBrowser(selected); // Save the user languages selection to the browser
 }
 
+function switchFontType(e) {
+  var currentFont, inputArea = null;
+  if($('#data-show').is(':visible')) {
+    currentFont = $('#data-show')[0].className;
+    if(currentFont == "" || currentFont == "monospaceFont") {
+      $('#data-show')[0].className = "proportionalFont";
+    } else {
+      $('#data-show')[0].className = "monospaceFont";
+    }
+    area.realign();
+  } else if($('#data-gif-view').is(':visible')){
+    currentFont = $('#data-gif-view')[0].className;
+    if(currentFont == "" || currentFont == "monospaceFont") {
+      $('#data-gif-view')[0].className = "proportionalFont";
+      $('#data-show')[0].className = "proportionalFont";
+    } else {
+      $('#data-gif-view')[0].className = "monospaceFont";
+      $('#data-show')[0].className = "monospaceFont";
+    }
+    realignGifText();
+  }
+  
+}
+
+function gifTextSizeUp() {
+  if($('#data-gif-view').is(':visible')) {
+    var currentSize = parseFloat($($('#data-gif-content')[0].childNodes[1]).css('font-size'));
+    var newSize = currentSize + 2;
+    $($('#data-gif-content')[0].childNodes[1]).css('font-size', newSize+"px");
+    realignGifText();
+  }
+}
+
+function gifTextSizeDown() {
+  if($('#data-gif-view').is(':visible')) {
+    var currentSize = parseFloat($($('#data-gif-content')[0].childNodes[1]).css('font-size'));
+    var newSize = currentSize-1 < 1 ? 1 : currentSize-2;
+    $($('#data-gif-content')[0].childNodes[1]).css('font-size', newSize+"px");
+    realignGifText();
+  }
+}
+
+function updateGifArea() {
+  var textLine = player.currentSeg?player.currentSeg.line:0;
+  var twextLine = player.currentSeg?player.currentSeg.line*2 + 1:1
+  var htmlTextLine = area.isTwextOn()||area.isTimingOn()?area.area.childNodes[textLine*2].outerHTML:area.area.childNodes[textLine].outerHTML;
+  var htmlTwextLine = area.isTwextOn()||area.isTimingOn()?area.area.childNodes[twextLine].outerHTML:"<div>=</div>";
+  $('#data-gif-content').html(htmlTwextLine+htmlTextLine);
+  $('#data-gif-content')[0].childNodes[0].className = "gifTwext";
+  $('#data-gif-content')[0].childNodes[1].className = "gifText";
+  var spanNode = $($('#data-gif-content')[0].childNodes[1]).find("span");
+  if(spanNode.length != 0) spanNode[0].className = "gifPlayHighlighted";
+  realignGifText();
+}
+
+function updateGifTextLine() {
+  var textLine = player.currentSeg?player.currentSeg.line:0;
+  var htmlTextLine = area.isTwextOn()||area.isTimingOn()?area.area.childNodes[textLine*2].outerHTML:area.area.childNodes[textLine].outerHTML;
+  $('#data-gif-content')[0].childNodes[1].outerHTML = htmlTextLine;
+  $('#data-gif-content')[0].childNodes[1].className = "gifText";
+  var spanNode = $($('#data-gif-content')[0].childNodes[1]).find("span");
+  if(spanNode.length != 0) spanNode[0].className = "gifPlayHighlighted";
+}
+
+function realignGifText() {
+  var line = player.currentSeg?player.currentSeg.line:0;
+  var aligner = new SpanAligner();
+  var playing = false;
+  var textLine = area.isTwextOn()||area.isTimingOn()?line*2:line;
+  var oldSize = parseFloat($(area.area.childNodes[textLine]).css('font-size'));
+  var spanNode = $($('#data-gif-content')[0].childNodes[1]).find("span");
+  if(spanNode.length != 0) {
+    var currentSize = parseFloat($($('#data-gif-content')[0].childNodes[1]).css('font-size'));
+    $(area.area.childNodes[textLine]).css('font-size', currentSize+"px");
+    player.unhighlightSeg();
+    updateGifTextLine();
+    playing = true;
+  }
+  if(area.isTwextOn()) aligner.alignChunks($('#data-gif-content'), 1, 0, area.getnNs()[textLine]);
+  else if(area.isTimingOn()) aligner.alignTimings($('#data-gif-content'), 1, 0);
+  if(playing) {
+    player.highlightSeg();
+    updateGifTextLine();
+    $(area.area.childNodes[textLine]).css('font-size', oldSize+"px");
+  }
+}
+
+function normalOrGifView(e) {
+  var playing = false;
+  if(player.isPlaying()) {
+    player.unhighlightSeg();
+    playing = true;
+  }
+  if($('#data-show').is(':visible')) {  // in normal view, switch to gif
+    // @adjust content while playing
+    $('#control-data-bar').hide();
+    $('#data-show').hide();
+    $('#youtubeLinkContainer').hide();
+    $('#playerContainer').height(400);
+    $('#htmlVideo').height(390);
+    $('#videoPlayerContainer')[0].className = "gif-view";
+    $('#data-gif-view')[0].className = $('#data-show')[0].className;
+    $('#data-gif-view').show();
+    $('#gif-header').show();
+    updateGifArea();
+  } else {  // in gif view switch to normal
+    $('#control-data-bar').show();
+    $('#data-show')[0].className = $('#data-gif-view')[0].className;
+    $('#data-show').show();
+    if(area.isTimingOn()) $('#youtubeLinkContainer').show();
+    $('#playerContainer').height(80);
+    $('#htmlVideo').height(80);
+    $('#videoPlayerContainer')[0].className = "normal-view";
+    $('#data-gif-content').html("");
+    // @adjust content while playing
+    $('#data-gif-view').hide();
+    $('#gif-header').hide();
+    area.realign();
+  }
+  //if(playing) player.play();
+}
+
 /**
 * Enter timer mode
 */
-function startTimer(e) {console.log("In start timer");
-  if(player.isPlaying()) {console.log("In start timer, if playing");
+function startTimer(e) {
+  if(player.isPlaying()) {
     e.preventDefault();
     twextRecorder.startRecording();
     player.startTimer(); // enter timer mode
@@ -382,6 +509,7 @@ function switchTimingState() {
     set_timing_state(false); // set state to timing off
 
     resumePlaying("text", playing);
+    updateGifArea();
 
     toggle.saveData(oldText, true, false); // save twexts and chunks updated before switch
   } else if(area.isTimingOn()) {
@@ -394,6 +522,7 @@ function switchTimingState() {
     set_timing_state(false); // set state to timing off
 
     resumePlaying("text", playing);
+    updateGifArea();
 
     toggle.saveData(oldText, false, true); // save twexts and chunks updated before switch
   } else {  // timings not dispalyed, show timings

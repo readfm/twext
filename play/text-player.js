@@ -41,7 +41,7 @@ TextPlayer = Class.$extend({
       return;
     }
 
-    if(videoPlayer.videoSet()) {
+    if(videoPlayer.videoSet()) {console.log("----PLAY");
       videoPlayer.playVideo(true);
       //videoPlayer.loop();
     } else twextRecorder.playAudio();
@@ -50,7 +50,6 @@ TextPlayer = Class.$extend({
       var currentTiming = parseFloat(this.segTimingLines[0][0].timing);  // current seg timing
       var segTimeout = currentTiming;
       if(videoPlayer.videoSet() && videoPlayer.from < currentTiming) segTimeout = round(currentTiming - videoPlayer.from)/videoPlayer.playbackRate;
-      console.log("FIRST TIMEOUT: "+segTimeout);
       this.timeout = setTimeout(function(){player.playText();}, segTimeout*1000);
     } else {
       this.playText();
@@ -63,7 +62,7 @@ TextPlayer = Class.$extend({
   */
   playText: function() {
     if(this.currentSeg && this.currentSeg.line == 0 && this.currentSeg.seg == 0) game.tappedSegs = [];
-    game.checkIfMissedSeg(this.currentSeg);console.log("MISSED: "+game.missedSegs);
+    game.checkIfMissedSeg(this.currentSeg);
     if(game.isOn() && game.missedSegs < 3) {
       if(game.segState == "cue") {
         this.setCurrentSeg();
@@ -99,7 +98,28 @@ TextPlayer = Class.$extend({
       this.unhighlightSeg(); // unhighlight current seg
       this.setCurrentSeg();
       this.setNextSeg();
-      this.highlightSeg();
+      if($("#data-gif-view").is(":visible")) {
+        var oldSize = 0, textLine;
+        var currentSize = parseFloat($($('#data-gif-content')[0].childNodes[1]).css('font-size'));  // text size before area update
+        if(this.currentSeg.seg == 0) { // line is updated
+          updateGifArea();
+          this.highlightSeg();
+          updateGifTextLine();
+          oldSize = parseFloat($($('#data-gif-content')[0].childNodes[1]).css('font-size'));  // text size after area update
+          if(currentSize != oldSize) {
+            $($('#data-gif-content')[0].childNodes[1]).css('font-size', currentSize+"px");
+          }
+        } else {
+          this.highlightSeg();
+          updateGifTextLine();
+          oldSize = parseFloat($($('#data-gif-content')[0].childNodes[1]).css('font-size'));  // text size after area update
+          if(oldSize != currentSize) {
+            $($('#data-gif-content')[0].childNodes[1]).css('font-size', currentSize+"px");
+          }
+        }
+      } else {
+        this.highlightSeg();
+      }
       // Display current seg timing
       var currentTiming = floatToStr(this.segTimingLines[this.currentSeg.line][this.currentSeg.seg].timing);
       game.setSegTimeLabel(currentTiming, "timeFade");
@@ -143,7 +163,7 @@ TextPlayer = Class.$extend({
     return this.segTimingLines[nextSeg.line][nextSeg.seg].timing;
   },
 
-  restartPlay: function() {
+  restartPlay: function() {console.log("----PAUSE");
     this.resetSegments();
     clearTimeout(this.audioTimeout);
     clearTimeout(videoPlayer.playTimeout);
@@ -382,6 +402,11 @@ TextPlayer = Class.$extend({
         before = nodeVal.substring(0, newSegIx);
         after = nodeVal.slice(newSegIx+currentSeg.length);
         spanNode = $("<span id='"+segment.line+""+segment.seg+"' "+"class='" + clss + "'>" + currentSeg + "</span>");
+        if($('#data-show').is(':visible')) {
+          if($('#data-show')[0].className == "proportionalFont")  $(spanNode).css('text-transform', 'none');
+        } else if($('#data-gif-view').is(':visible')) {
+          if($('#data-gif-view')[0].className == "proportionalFont")  $(spanNode).css('text-transform', 'none');
+        }
         currentNode.childNodes[i].nodeValue = " ";
         spanNode.insertAfter(currentNode.childNodes[i]);
         currentNode.childNodes[i].remove();
