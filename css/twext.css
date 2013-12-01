@@ -1,16 +1,109 @@
-#textInput {
-  font-family: monospace;
-  font-size: 16px;
-  border: 1px solid gray;
-  white-space: nowrap;
-  overflow: auto;
+body {
   padding: 2px;
-  width: 1100px;
-  height:500px;
-  color: black;
+  background-color: white;
 }
 
-.twext {
-  color: silver;
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Twext area */
+#data-show {
+  width: 800px;
+  background-color: white;
+  padding-left: 15px;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  overflow: auto;
+  white-space: nowrap;
+  outline: none;
+}
+
+#control-data-bar {
+  font-family: arial;
   font-size: 8px;
+  padding-left: 15px;
+}
+
+#url-list-controls {
+  font-family: arial;
+  font-size: 8px;
+  padding-left: 15px;
+  padding-top: 15px;
+}
+
+/* Url list style */
+#url-hot-list, #url-all-list  {
+  display: none;
+  font-family: arial;
+  font-size: 8px;
+  padding-left: 15px;
+  padding-top: 2px;
+}
+
+/* Url list link style */
+#url-hot-list a, #url-all-list  a {
+  color: silver;
+}
+
+#translating {
+  color: orange;
+  display: none;
+  margin-left: 10px;
+}
+
+/* Language menu container */
+#language_menu_container {
+  display: none;
+  position: absolute;
+  top: 25px;
+  left:25px;
+  z-index: 1;
+}
+
+/* Language menu */
+#language_menu {
+  outline: none;
+}
+
+/* control data bar key class */
+.controls {
+  margin-right: 1px;
+  color: blue;
+  float: left;
+}
+
+/* control data bar label class */
+.data {
+  margin-right: 5px;
+  color: silver;
+  float: left;
+}
+
+.clear {
+  clear: both;
+}
+
+/* Font types */
+.monospaceFont {
+  font-family: 'liberation mono', monospace;
+}
+.proportionalFont {
+  font-family: Helvetica, sans-serif;
+}
+
+/* Text line class */
+.text{
+  font-size: 1.0em;
+  font-weight: normal;
+	line-height:1.1em;
+}
+
+/* Twext/Timing line class */
+.twext, .timing{
+  font-size: 0.4em;
+  color: silver;
+  top: -0.9em;
+	line-height:0.9em;
 }

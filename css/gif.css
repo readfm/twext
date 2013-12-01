@@ -1,0 +1,48 @@
+/* Class of played seg in gif view */
+.gifPlayHighlighted {
+  color: greenyellow;
+  text-transform: uppercase;
+}
+
+/* Gif text line class */
+.gifText {
+  font-size: 1.0em;
+  font-weight: bold;
+  line-height: 1.5em;
+}
+
+/* Gif twext line class */
+.gifTwext {
+  font-size: 0.4em;
+  color: grey;
+  line-height: 1.5em;
+}
+
+/* Gif area */
+#gif-data-show {
+  display: none;
+  position: absolute;
+  width: 600px;
+  height: 30px;
+  padding-top: 5px;
+  color: #f2f2f2;
+}
+
+/* Gif area content */
+#gif-data-content {
+  display: table;
+  margin: 0 auto;
+  text-align: left;
+  text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Gif Header */
+#gif-header {
+  display: none;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+  background-image: -moz-linear-gradient(rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0));
+  position: absolute;
+  margin-top: 15px;
+  width: 600px;
+  height: 20px;
+}

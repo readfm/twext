@@ -1,0 +1,49 @@
+/* Class of played segment in game */
+.gamePlayHighlighted {
+  color: black;
+  background-color: #40E0D0;  /* TURQUOISE */
+  text-transform: uppercase;
+}
+
+/* Class of cue segment */
+.cue {
+  color: white;
+  background-color: #FF00FF;  /* Fuschia */
+  text-transform: uppercase;
+}
+
+/* Class of master tapped segment */
+.master {
+  color: yellow;
+  background-color: #00008B;  /* Dark blue */
+  text-transform: uppercase;
+}
+
+/* Class of good tapped segment */
+.good {
+  color: black;
+  background-color: yellow;
+}
+
+/* Time css */
+#game-segTime-label {
+  display: none;
+  float: left;
+  margin-right: 1px;
+}
+.timeOn {
+  color: white;
+  background-color: grey;  /* Dark grey */
+}
+.timeFade {
+  color: white;
+  background-color: #e0e0e0;  /* Light grey */
+}
+
+/* Score css */
+#game-score-label {
+  display: none;
+  float: left;
+  margin-right: 1px;
+  background-color: yellow;
+}

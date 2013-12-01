@@ -1,27 +1,132 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<!DOCTYPE html>
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>twxtTEXT</title>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js" type="text/javascript"></script>
-    <script src="js/jstorage.js" type="text/javascript"></script>
-    <script src="js/class.js" type="text/javascript"></script>
-    <script src="js/oneline.js" type="text/javascript"></script>
-    <script src="js/main.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="css/twext.css">
-  </head>
+    <title>Twext</title>
+    <meta charset="UTF-8" />
 
+    <!-- Javascript Apis -->
+    <!-- Jquery -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.hotkeys.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.jsonp.js" type="text/javascript"></script>
+    <!-- Firebase -->
+    <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+    <!-- Class Generator -->
+    <script src="js/lib/classy.js" type="text/javascript"></script>
+    <!-- Text Syllabification -->
+    <script src="http://xc.cx/syb/Hyphenator.js" type="text/javascript"></script>
+    <script src="http://xc.cx/syb/en-us.js" type="text/javascript"></script>
+
+    <!-- Firebase Handler -->
+    <script src="js/backend/firebaseHandler.js" type="text/javascript"></script>
+
+    <!-- Twext main runner -->
+    <script src="js/main.js" type="text/javascript"></script>
+    <!-- Twext main controller -->
+    <script src="js/controller.js" type="text/javascript"></script>
+    <!-- Twext main utils -->
+    <script src="js/utils.js" type="text/javascript"></script>
+
+    <!-- Language menu module -->
+    <script src="js/languageMenu/languages.js" type="text/javascript"></script>
+    <script src="js/languageMenu/languageMenu.js" type="text/javascript"></script>
+
+    <!-- Twext modules -->
+    <!-- twext area -->
+    <script src="js/twext/twextArea.js" type="text/javascript"></script>
+    <!-- gif area -->
+    <script src="js/twext/gifArea.js" type="text/javascript"></script>
+    <!-- toggle module -->
+    <script src="js/twext/toggle/toggleHandler.js" type="text/javascript"></script>
+    <script src="js/twext/toggle/toggle_data.js" type="text/javascript"></script>
+    <script src="js/twext/toggle/translate.js" type="text/javascript"></script>
+    <!-- scooch module -->
+    <script src="js/twext/scooch/scooch_edit_line.js" type="text/javascript"></script>
+    <script src="js/twext/scooch/scooch_edit_lines.js" type="text/javascript"></script>
+
+    <!-- Url list module -->
+    <script src="js/urlList/urlListHandler.js" type="text/javascript"></script>
+
+    <!-- Syllabifier module -->
+    <script src="js/syllabification/syllabifier.js" type="text/javascript"></script>
+
+    <!-- Span Align module -->
+    <script src="js/spanAlign/spanAligner.js" type="text/javascript"></script>
+
+    <!-- Recorder module -->
+    <script src="js/recorder/audioRecorder.js" type="text/javascript"></script>
+    <script src="js/recorder/lib/recorder.js" type="text/javascript"></script>
+    <script src="js/recorder/lib/recorderWorker.js" type="text/javascript"></script>
+
+    <!-- Play modules -->
+    <!-- Player module -->
+    <script src="js/play/player.js" type="text/javascript"></script>
+    <!-- Game module -->
+    <script src="js/play/game/game.js" type="text/javascript"></script>
+
+    <!-- TapTimer module -->
+    <script src="js/tapTimer/tapTimer.js" type="text/javascript"></script>
+
+    <!-- Media classes -->
+    <script src="js/media/video.js" type="text/javascript"></script>
+    <script src="js/media/audio.js" type="text/javascript"></script>
+
+    <!-- Stylesheets -->
+    <!-- Twext stylesheet -->
+    <link rel="stylesheet" href="css/twext.css">
+    <!-- Gif stylesheet -->
+    <link rel="stylesheet" href="css/gif.css">
+    <!-- Play stylesheet -->
+    <link rel="stylesheet" href="css/player.css">
+    <!-- Game stylesheet -->
+    <link rel="stylesheet" href="css/game.css">
+  </head>
   <body>
-    <font id="title" face="liberation mono" color=silver size=-1><b>F2home F4text/twxt F9new</b></font>
-    <div id="textInput" contenteditable="true">
-    </div>
-    <script>
-			document.querySelector("div[contenteditable]").addEventListener("paste", function (e) {
-				e.preventDefault();
-				var text = e.clipboardData.getData("text/plain");
-        var html = convertTextToHtml(text);
-				document.execCommand("insertHTML", false, html);
-			});
-		</script>
+    <audio id="htmlAudio" style="display:none"></audio>  <!-- Audio element used to save recorded audio -->
+
+    <!-- Main container div -->
+    <div id="main" style="display:none">
+      <div id="control-data-bar">         <!-- Control data bar div -->
+        <div id="game-segTime-label"></div>
+        <a id="data-bar-f7" class="controls">F7</a><a id="data-bar-heart" class="data">&hearts;</a>
+        <a id="data-bar-f2" class="controls">F2</a><a id="data-bar-play" class="data">play</a>
+        <a id="data-bar-f4" class="controls">F4</a><a id="data-bar-timing" class="data">text</a>
+        <a id="data-bar-f8" class="controls">F8</a><a id="data-bar-language" class="data">language</a>
+        <div id="translating">translating...</div>
+        <div id="game-score-label"></div><div class="clear"></div>
+      </div>  <!-- End control data bar div -->
+
+      <!-- Language menu div -->
+      <div id="language_menu_container">
+        <select id="language_menu" name="language_menu" multiple></select>
+      </div>
+
+      <!-- Twext input area -->
+      <div id="data-show" contenteditable="true" class="monospaceFont"></div>
+
+      <!-- Video link text input -->
+      <div id="videoInputLinkContainer">
+        <input type="text" id="videoInputLink"/>
+      </div>
+
+      <!-- Video notification message -->
+      <div id="video-msg">loading video...</div>
+
+      <!-- Player container contains video element(gif area and header are shown over video in gif view) -->
+      <div id="playerContainer">
+        <div id="gif-header"></div> <!-- gif header, appears only on gif view -->
+        <div id="gif-data-show" class="monospaceFont"><div id="gif-data-content"></div></div> <!-- gif data area, appears only on gif view -->
+        <div id="videoContainer" class="normal-view"><video id="htmlVideo" width="600" height="80" controls></video></div>
+      </div>
+
+      <!-- Url list control data bar -->
+      <div id="url-list-controls">
+        <a id="url-list-f9" class="controls">F9</a><a id="url-list-label" class="data">off</a>
+      </div>
+      <!-- Url hot list -->
+      <div id="url-hot-list"></div>
+      <!-- Url all list -->
+      <div id="url-all-list"></div>
+    </div>  <!-- End Main container div -->
   </body>
 </html>

@@ -1,0 +1,60 @@
+/* Class of the played segments */
+.playHighlighted { 
+  background-color: greenyellow;
+  text-transform: uppercase;
+}
+
+/* Class of the first segment when start tapTimer */
+.timerHighlighted {
+  background-color: orange;
+  text-transform: uppercase;
+}
+
+/* Class of the segment when tapping */
+.tapHighlighted {
+  background-color: yellow;
+  text-transform: uppercase;
+}
+
+#videoInputLinkContainer {
+  display: none;
+  padding-left: 13px;
+}
+
+#videoInputLink {
+  width: 500px;
+  border-color: silver;
+  border-width: 1px;
+}
+
+#video-msg {
+  display: none;
+  padding-left: 15px;
+  padding-top: 5px;
+  font-size: 12px;
+  font-family: arial;
+}
+
+/* Container of video and gif */
+#playerContainer {
+  display: none;
+  width: 600px;
+  height: 80px;
+  padding-top: 3px;
+}
+
+/* Container of video */
+#videoContainer {
+  /*display: none;*/
+  background-color: black;
+}
+
+/* Normal view of container */
+#videoContainer.normal-view {
+  padding-top: 5px;
+}
+
+/* Gif view of container */
+#videoContainer.gif-view {
+  padding-top: 15px;
+}
