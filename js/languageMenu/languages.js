@@ -35,16 +35,27 @@ var languages = {
   "th": "\u0e44\u0e17\u0e22"  // THAI
 };
 
-var languages_codes = languagesCodes(); // languages codes array
-var languages_names = languagesNames(); // languages names array
+/**
+* Languages that are not supported in Bing
+*/
+var nonBingLanguages = {
+  "myn": "Mayan"
+};
+
+var languages_codes = codes(languages); // languages codes array
+var languages_names = names(languages); // languages names array
+
+var nonBing_languages_codes = codes(nonBingLanguages);  // non Bing languages codes array
+var nonBing_languages_names = names(nonBingLanguages);  // non Bing languages codes array
 
 /**
 * Construct array contains languages codes.
+* @param 'langs' languages object
 * @return languages codes array
 */
-function languagesCodes() {
+function codes(langs) {
   var obj = [];
-  for(var key in languages) {  // loop over languages
+  for(var key in langs) {  // loop over languages
     obj.push(key); // add the language code to the object
   }
   return obj; // return array of languages codes
@@ -52,12 +63,13 @@ function languagesCodes() {
 
 /**
 * Construct array contains languages names.
+* @param 'langs' languages object
 * @return languages names array
 */
-function languagesNames() {
+function names(langs) {
   var obj = [];
-  for(var key in languages) {  // loop over languages
-    obj.push(languages[key]); // add the language name to the object
+  for(var key in langs) {  // loop over languages
+    obj.push(langs[key]); // add the language name to the object
   }
   return obj; // return array of languages names
 }

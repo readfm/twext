@@ -216,6 +216,13 @@ Controller = Class.$extend({
       this.languageMenu.hide(function() { // hide menu
         var selected = controller.languageMenu.getSelected(); // get selected languages from menu
         controller.toggleHandler.setSelectedLanguages(selected); // load selected to toggleHandler
+
+        // if only one selected and it's a non bing language, do not fetch translations, return
+        if(selected.names.length == 1 && $.inArray(selected.names[0], nonBing_languages_names) != -1) {
+          controller.toggleHandler.displayLanguageName(selected.names[0]);
+          return;
+        }
+
         controller.toggleHandler.fillTranslations(); // translate selected languages
         controller.saveLanguagesToBrowser(selected);  // save user selection choice to browser
       });

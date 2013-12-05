@@ -18,6 +18,7 @@ ToggleData = Class.$extend({
     this.sourceText = null;  // source text
     this.timings = null; // timings of the text
     this.url = null; // the url represents the text
+    this.sourceLanguage = null; // language of source text
     //this.currentLanguage = false; // current language
     //this.currentVersion = false;  // current version
   },
@@ -128,7 +129,8 @@ ToggleData = Class.$extend({
   getLanguageName: function(ident) {
     var langObj = this.getLanguage(ident);
     if(langObj) {  // language found
-      return languages[langObj.language]; // return language name
+      if(languages[langObj.language]) return languages[langObj.language]; // return bing language name
+      else if(nonBingLanguages[langObj.language]) return nonBingLanguages[langObj.language]; // return non bing language name
     }
     return false; // language not found, return false
   },

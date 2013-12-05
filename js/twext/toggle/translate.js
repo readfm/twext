@@ -59,17 +59,17 @@ Translation = Class.$extend({
            'callback' function where request return after success
            'errorback' function where request return on error
   */
-  /*detectTextLanguage: function(text, callback, errorback) {
+  detectTextLanguage: function(text, callback, errorback) {
     this.detect_successCallback = callback; // set the success callback method to be called in detect success callback(to return to toggle)
     this.detect_errorCallback = errorback; // set the error callback method to be called in detect error callback(to return to toggle)
     this.detect(text); // translate text
-  },*/
+  },
 
   /**
   * Detect text language using Bing api.
   * @param 'text' source text to be translated
   */
-  /*detect: function(text) {
+  detect: function(text) {
     TRANSLATOR = this;  // Global varibale represents this class, needed for the created script to detect the callback method in this class
     // Parameters needed for detect language request
     var params = {
@@ -84,25 +84,25 @@ Translation = Class.$extend({
     s.src = url;  // set the src url
     document.body.appendChild(s); // add the script to the DOM, the script is execued and the request is sent
     document.body.removeChild(s); // remove the script
-  },*/
+  },
 
   /**
   * Detect callback on success. Bing api calls this method with the response(text language) after request processing.
   * This method calls the success callback in the toggle class, which required the detect request
   * @param 'response' text language
   */
-  /*detectSuccessCallback: function(response) {
+  detectSuccessCallback: function(response) {
     this.detect_successCallback(response);  // return to toggle.data success callback method
-  },*/
+  },
 
   /**
   * Detect callback on error. Bing api calls this method with the error message if error occurs while detection.
   * This method calls the error callback in the toggle class, which required the detect request
   * @param 'msg' error message
   */
-  /*detectErrorCallback: function(msg) {
+  detectErrorCallback: function(msg) {
     this.detect_errorCallback(msg); // return to toggle.data error callback method
-  },*/
+  },
 
   /**
   * Translate html(text in html form) using Bing translate api.

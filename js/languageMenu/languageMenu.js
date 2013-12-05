@@ -22,13 +22,25 @@ LanguageMenu = Class.$extend({
   */
   loadLanguageList: function(langs) {
     var langMenu = this;
-    var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"english":"en", ....}) sorted by keys
+    // load languages
+    var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"en":"english", ....}) sorted by keys
     $.each(selectValues, function(key, value) {  // loop languages
       langMenu.element
          .append($("<option></option>")
          .attr("value",key) // set the value of the option to language code
          .text(value)); // set the text of the option to language name
     });
+
+    // load non bing languages
+    var nonBingSelectValues = Object.sortAssoc(nonBingLanguages); // get non bing languages object sorted by keys
+    $.each(nonBingSelectValues, function(key, value) {  // loop non bing languages
+      langMenu.element
+         .append($("<option></option>")
+         .attr("value",key) // set the value of the option to language code
+         .text(value)); // set the text of the option to language name
+    });
+
+    // select langs
     this.select(langs);  // select the options included in the langs object
   },
 

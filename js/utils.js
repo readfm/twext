@@ -12,6 +12,17 @@ Array.prototype.clean = function() {
   return this;  // return array after removing empty entries
 };
 
+/**
+* Fill array with given value.
+* @return the result array
+*/
+Array.prototype.fill = function(val) {
+  for(var i = 0; i < this.length; i++) { // loop over array elements
+    this[i] = val;
+  }
+  return this;  // return result array
+};
+
 // Can't prototype Object, all objects in JavaScript are descended from Object.
 /**
 * Sort key/value object elements by values.
@@ -133,7 +144,7 @@ function matchIndices(str, re) {
 * @return random string
 */
 function randomStr() {
-  return (((1+Math.random())*0x100000)|0).toString(36);
+  return (((1+Math.random())*0x1000000)|0).toString(36);
 }
 
 /**

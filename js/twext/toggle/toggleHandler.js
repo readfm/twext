@@ -131,6 +131,7 @@ ToggleHandler = Class.$extend({
           toggle.tapTimer.timings = data.timings; // load saved timings into tapTimer object
         }
         if(data.url) toggle.toggle_data.url = data.url;
+        if(data.sourceLanguage) toggle.toggle_data.sourceLanguage = data.sourceLanguage;
         translations = data.translations;
       }
       toggle.fillTranslations(translations); // load translations into toggle_data object, and translate languages not found in fb
@@ -144,10 +145,13 @@ ToggleHandler = Class.$extend({
   * @param 'translations' translations loaded from fb, null if only selected languages required to be translated
   */
   fillTranslations: function(translations) {
-    var i, langIx = null, verIx = null, toggle = this;
+    var langIx = null, verIx = null;
     var codes = this.selectedLanguages.codes;
 
     this.displayTranslating(); //display translating msg.This is necessary for conditions where fillTranslations called without its parent methods
+
+    // detect source language if not retrived from fb
+    if(!this.toggle_data.sourceLanguage) this.detectTextLanguage(this.toggle_data.sourceText); // get language of the text
 
     // load fb translations into toggle_data object
     if(translations) {  // if there are firebase trasnlations
@@ -163,7 +167,14 @@ ToggleHandler = Class.$extend({
       } // end for
     } // end if
 
-    this.translateLanguages(codes);  // pick unloaded languages from bing
+    // pick unloaded languages from bing if text source language is supported by bing
+    if($.inArray(this.toggle_data.sourceLanguage, nonBing_languages_codes) == -1) this.translateLanguages(codes);
+    else {  // text source language is not supported by bing, add "-" translations lines
+      this.addNonBingLanguages(codes);  // add non bing languages
+
+      this.displayLanguage(this.language, this.version); // display current language (current is the first when text first translated)
+      this.hideTranslating(); // hide translating msg after getting text translations
+    }
   },
 
   /**
@@ -179,14 +190,33 @@ ToggleHandler = Class.$extend({
     var i = index?index:0;
     for(; i<codes.length; i++) {
       langIx = this.toggle_data.findByLanguageCode(codes[i]); // check if language exist
-      if(langIx == -1) {  // language not found, push to toTranslate array
-        this.translate(this.toggle_data.sourceText, codes[i], codes, i, this.translator);
+      if(langIx == -1) {  // language not found, translate from bing if supported
+        if($.inArray(codes[i], nonBing_languages_codes) == -1) this.translate(this.toggle_data.sourceText, codes[i], codes, i);
+        else this.addNonBingLanguages([codes[i]]);  // add this non bing language to toggle_data
         return;
       }
     } // end for
 
     this.displayLanguage(this.language, this.version); // display current language (current is the first when text first translated)
     this.hideTranslating(); // hide translating msg after getting text translations
+  },
+
+  /**
+  * Add non bing languages into toggle_data with empty twexts(- in each line) to prepare user to enter them manually
+  * @param 'codes' languages codes
+  */
+  addNonBingLanguages: function(codes) {
+    var i, twexts, langIx, textKey;
+    var len = this.toggle_data.sourceText.split('\n').length;
+    for(i=0; i<codes.length; i++) {
+      twexts = new Array(len).fill('-').join('\n');
+      langIx = this.toggle_data.addLanguage(codes[i]);  // add language
+      this.toggle_data.addVersion(langIx, "1-0", {value: twexts, nNs: ""});  // add new clean version with empty chunks
+
+      // Save text translation into firebase
+      //textKey = TwextUtils.textToFbKey(this.toggle_data.sourceText);
+      //firebaseHandler.set("data/"+textKey+"/translations/"+codes[i]+"/1-0", {value: twexts, nNs: ""});
+    }
   },
 
   /**
@@ -288,9 +318,10 @@ ToggleHandler = Class.$extend({
 
   /**
   * Display current language name.
+  * @param 'l' language name to be displayed, if not specified then display current language name
   */
-  displayLanguageName: function() {
-    var lang = this.toggle_data.getLanguageName(this.language);  // get current language name
+  displayLanguageName: function(l) {
+    var lang = l?l:this.toggle_data.getLanguageName(this.language);  // get current language name
     if(lang) {  // valid language
       $('#data-bar-language').html(lang); // Display language name (French, English..)
     } else {  // not a valid language
@@ -302,18 +333,17 @@ ToggleHandler = Class.$extend({
   * Translate text to the sepcified language.
   * @param 'textSource' the text to be transalted
            'targetLang' the target language code (en, fr, it, es...)
-           'langCount' count of all languages needed to be loaded in toggle_data (either from fb or bing)
-           'translator' translate object used for sending request to Bing translate api
-           'callback' callback function
+           'langs' languages to be translated
+           'index' current translated language number
   */
-  translate: function(textSource, targetLang, langs, index, translator) {
+  translate: function(textSource, targetLang, langs, index) {
     var toggle = this;
     // Get the access token for translation
     firebaseHandler.get("AccessToken", function(accessToken) {  //callback
       console.log("To translate to "+targetLang);
-      translator.setAccessToken(accessToken);  // set access token in translator
+      toggle.translator.setAccessToken(accessToken);  // set access token in translator
       // Use translator to send request to Bing translate api for text translation
-      translator.translateWithFormat(textSource, targetLang, function(translatedText) { // success callback
+      toggle.translator.translateWithFormat(textSource, targetLang, function(translatedText) { // success callback
         console.log("Translated to "+targetLang);
         if(translatedText) { // If translation data retrieved
           console.log("Text translated to " + targetLang);
@@ -333,12 +363,43 @@ ToggleHandler = Class.$extend({
   },
 
   /**
+  * Detect text language using Bing api.
+  * @param 'text' source text
+  */
+  detectTextLanguage: function(text) {
+    // if only one selected and it's a non bing language, do not detect language from bing
+    if(this.selectedLanguages.names.length == 1 && $.inArray(this.selectedLanguages.names[0], nonBing_languages_names) != -1) {
+      this.toggle_data.sourceLanguage = this.selectedLanguages.codes[0]; // set the text source language
+      // Save into firebase
+      var key = TwextUtils.textToFbKey(text);
+      firebaseHandler.set("data/"+key+"/sourceLanguage", this.selectedLanguages.codes[0]);
+      return;
+    }
+
+    var toggle = this;
+    // Get the access token for bing api detect request
+    firebaseHandler.get("AccessToken", function(accessToken) {  //callback
+      toggle.translator.setAccessToken(accessToken);  // set access token in translator
+      // Use translator to send request to Bing api for text language detection
+      toggle.translator.detectTextLanguage(text, function(response) {  // success callback
+        toggle.toggle_data.sourceLanguage = response; // set the text source language
+        // Save into firebase
+        var key = TwextUtils.textToFbKey(text);
+        firebaseHandler.set("data/"+key+"/sourceLanguage", response);
+      }, function(msg) {  // error callback
+        console.log("Detect Error: " + msg);  // log error message
+      }); // end detect request
+    }); // end firebase request
+  },
+
+  /**
   * Generate random string as a shortcut to represent the text. This is used to retrieve the text later if requested via URL.
   * Save this shortcut/text mapping into firebase.
   * @param 'text' the source text
   */
   generateTextUrl: function(text) {
-    var toggle = this, index = 0, length = 3;
+    var toggle = this, index = 0;
+    var length = $.inArray(this.toggle_data.sourceLanguage, nonBing_languages_codes) != -1 ? 5 : 3;
     if(!this.toggle_data.url) { // text has no saved url
       // create new url to represent the text
       var str = randomStr();  // create random string
