@@ -21,7 +21,8 @@ AudioRecorder = Class.$extend({
     try {
       // webkit shim
       window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext; // audioContext supported in current browser
-      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;//userMedia in current browser
+      // userMedia in current browser
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
       window.URL = window.URL || window.webkitURL || window.mozURL; // windowUrl supported in current browser
 
       this.audio_context = new AudioContext();  // create audio context
@@ -32,9 +33,11 @@ AudioRecorder = Class.$extend({
     }
 
     // Start looking for audio input
-    navigator.getUserMedia({audio: true}, $.proxy(this.startUserMedia, this), function(e) {
-      console.warn('No live audio input: ' + e);  // audio input not set
-    });
+    if(navigator.getUserMedia != undefined) {
+      navigator.getUserMedia({audio: true}, $.proxy(this.startUserMedia, this), function(e) {
+        console.warn('No live audio input: ' + e);  // audio input not set
+      });
+    }
   },
 
   /**
