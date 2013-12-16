@@ -538,7 +538,7 @@ Controller = Class.$extend({
     this.player.reset();
     // clear video link input
     $("#videoInputLink").val("");
-    $("#videoInputLink").hide();
+    $("#videoInputLinkContainer").hide();
     // reset data bar labels
     $('#data-bar-timing').html("text");
     // clear media data
