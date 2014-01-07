@@ -516,14 +516,17 @@ TwextArea = Class.$extend({
     var caret_on_first = caret_coord.lines == pair_index;  // If line where cursor positioned = pair_index(Text line), then cursor on Text line
 
     var currentLine = this.text_lines[caret_coord.lines]; // line at cursor where chunk is moved
-    //If char before and at cursor is not space,then space is pressed within a word,divide it into two words "Make case", renumber following chunks
-    if(caret_coord.offset > 0 && !/\s/.test(currentLine.charAt(caret_coord.offset)) && !/\s/.test(currentLine.charAt(caret_coord.offset-1))) {
-      // Make case, words numbers after cursor are changed, renumber following chunks to correct words numbers in the chunks
-      var wordIx = TwextUtils.wordAtCaret(currentLine, caret_coord.offset); // word at cursor
-      if(wordIx != -1) {
-        this.renumberChunks(caret_on_first, wordNum+1, pair_index); // @TODO in save method, update allChunks object with new chunks
+
+    // If previous char is not space then no push
+    if(caret_coord.offset > 0 && !/\s/.test(currentLine.charAt(caret_coord.offset-1))) {
+      //If char at cursor is not space such as char before,then space is pressed within a word,divide it into two words "Make case", renumber following chunks
+      if(!/\s/.test(currentLine.charAt(caret_coord.offset))) {
+        var wordIx = TwextUtils.wordAtCaret(currentLine, caret_coord.offset); // word at cursor
+        if(wordIx != -1) {
+          this.renumberChunks(caret_on_first, wordNum+1, pair_index);
+        }
       }
-      return; // return, no push chunk in case of one space only
+      return; // no push
     }
 
     // Stop the bubbling of space key press event to parent elements

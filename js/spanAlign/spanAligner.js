@@ -266,7 +266,7 @@ SpanAligner = Class.$extend({
       nWord = twextWords[n];  // and NWord is empty because it represents the cursor position
       NIsLast = true;
     } else {  // invalid operation
-      return;
+      return -1;
     }
     // Put Text/Twext words in span tag
     var textId = SpanUtils.putWordInSpan(textNode, NWordIndex, NWord, "textWord");
@@ -284,7 +284,7 @@ SpanAligner = Class.$extend({
           // If the char to delete is not a space, then ignore
           if(!/\s/.test(html.charAt(spanIndex-1)))  break;
           // Remove a space before cursor, and convert the text back to html
-          twextNode.innerHTML = spaces_to_nbsp(html.substring(0, spanIndex-1) + html.slice(spanIndex));
+          twextNode.innerHTML = spaces_to_nbsp(html.substring(0, spanIndex-1)) + html.slice(spanIndex);
           // Get the positions again after removing the space to recompare
           NPos = parseInt($('#'+textId).position().left);
           nPos = parseInt($('#'+twextId).position().left);

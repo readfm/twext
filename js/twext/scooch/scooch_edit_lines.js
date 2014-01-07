@@ -83,19 +83,19 @@ window.ScoochEditorLines = Class.$extend({
   * Move 'align' cursor to the next reference word.
   * @param 'first' boolean to detect if the current line is Text or Twext, true if current line is Text.
            'current_word' number of the current word to be moved to the next word in the ref line, start index is 1.
-           'current_line' current line number
+           'currentLine' current line number
            'cursor_pos' the position of the cursor
            'chunks' key/value array represents chunks of the current Text/Twext lines pair; key=n, value=N
   */
-  pushCursor: function(first, current_word, current_line, cursor_pos, chunks) {
+  pushCursor: function(first, current_word, currentLine, cursor_pos, chunks) {
     // get next ref word to cursor
     var refLine = first?currentLine+1:currentLine-1;  //If current line is Text, ref line is the following line; else ref line is the preceding line
-    var next_word = this.aligner.nextWordToCursor(this.area, currentLine, refLine, cursorPos)+1; // add 1 to represent n/N chunk number
+    var next_word = this.aligner.nextWordToCursor(this.area, currentLine, refLine, cursor_pos)+1; // add 1 to represent n/N chunk number
 
     if(next_word != 0) {  // If next word is available
       var n = first?next_word:null; // Twext word number 'n' (if current line is Text then n is next word; else n is not needed)
       var N = first?null:next_word; // Text word number 'N' (if current line is Text then N is not needed; else N is next word)
-      var pos = this.aligner.alignCursor(this.area, this.lines[0].lineNumber(), this.lines[1].lineNumber(), N, n, cursor_pos);  // Align cursor
+      var pos = this.aligner.alignCursor(this.area, this.lines[0].lineNumber(), this.lines[1].lineNumber(), N-1, n-1, cursor_pos);  // Align cursor (sub 1 from N/n to represent index)
 
       this.addChunk(first, current_word, next_word, chunks, true); // add new chunk pair for the new typed word
 
@@ -271,16 +271,16 @@ window.ScoochEditorLines = Class.$extend({
   pullCursor: function(first, current_word, currentLine, cursor_pos, chunks) {
     // get the previous reference word index (start index 0)
     var refLine = first?currentLine+1:currentLine-1;  //If current line is Text, ref line is the following line; else ref line is the preceding line
-    var previous_word = this.aligner.previousWordToCursor(this.area, currentLine, refLine, cursorPos)+1;// Add 1 to represent n/N chunk number
+    var previous_word = this.aligner.previousWordToCursor(this.area, currentLine, refLine, cursor_pos)+1;// Add 1 to represent n/N chunk number
 
     if(previous_word != 0) {  // If previous word is available
       var n = first?previous_word:null; // Twext word number 'n' (if current line is Text then n is previous word; else n is not needed)
       var N = first?null:previous_word; // Text word number 'N' (if current line is Text then N is not needed; else N is previous word)
-      var pos = this.aligner.alignCursor(this.area, this.lines[0].lineNumber(), this.lines[1].lineNumber(), N, n, cursor_pos);  // Align cursor
+      var pos = this.aligner.alignCursor(this.area, this.lines[0].lineNumber(), this.lines[1].lineNumber(), N-1, n-1, cursor_pos);  // Align cursor
 
       this.addChunk(first, current_word, previous_word, chunks, true); // add new chunk pair for the new typed word
 
-      this.cursor_offset = pos; // set cursor position to the new position after aligning
+      this.cursor_offset = pos != -1?pos:$.trim(this.lines[currentLine].text()).length; // set cursor position to the new position after aligning
       return chunks;  // return updated chunks array
     } else {  // no previous word available
       this.cursor_offset = cursor_pos;  // keep cursor position in its place

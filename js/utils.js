@@ -307,7 +307,8 @@ SpanUtils = {
       childNode = node.childNodes[i];
       len = childNode.textContent.length;
       index += len;  // find the node where seg exists
-      if(wordIx < index) {  // word in this childNode
+      // check if word inside this node or cursor(empty word)at the end of the line
+      if(wordIx < index || (wordIx == index && i == node.childNodes.length-1 && word.length == 0)) {  // word in this childNode
         wordIx = wordIx - (index - len);  // word index within the childNode not the whole node text
         if(childNode.nodeName == "SPAN") {  // if word already in span, highlighted with different id
           // if word start position is already included in a span (the word or first seg of the word is highlighted), return span id
