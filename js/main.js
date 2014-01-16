@@ -35,10 +35,16 @@ $(document).ready(function() {
       var text = e.clipboardData.getData("text/plain"); // get text to paste
       document.execCommand("insertHTML", false, text);  // append pasted text to element
       var area = controller.twextArea;
-      text = area.area.textContent;  // text after paste
+	  var caret = area.getCaretPos();	// get current cursor pos
+      text = area.value();  // text after paste
       // drop off characters more than the limit
-      if(area.textMode() == "textonly" && text.length > area.limit) area.renderLines(text.substring(0, area.limit).split('\n'));
-      else  area.renderLines(text.split('\n'));
+	  var mode = area.textMode();
+	  if(mode == "twext" || mode == "timing") area.renderPairedLines(text.split('\n'), mode);
+      else if(mode == "textonly") {
+		if(text.length > area.limit) text = text.substring(0, area.limit);
+		area.renderLines(text.split('\n'));
+	  }
+	  area.setCaretPos(caret.lines, caret.offset);	// set cursor back to its position
     });
 
     // Attach window events
