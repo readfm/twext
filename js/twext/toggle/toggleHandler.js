@@ -56,7 +56,7 @@ ToggleHandler = Class.$extend({
     } else if(nl >= lcount) { // if current language was the last language and need to toggle up, switch to first one
       nl = 0; // switch to first language
     }
-    this.displayLanguage(nl);
+    this.displayLanguage(nl, 0, add);
 
     //this.saveTwextData(oldLang);
     /*if($('#data-gif-view').is(':visible')) {
@@ -223,14 +223,16 @@ ToggleHandler = Class.$extend({
   * Display twexts of the given language. If the language to display is not in the selected languages, the switch to the language after it.
   * @param 'lang' the language number to be displayed
            'ver' the language version number to be displayed
+		       'add' used in case of "language to display" is not selected, 1 switch to next language, -1 switch to previous language
   */
-  displayLanguage: function(lang, ver) {
+  displayLanguage: function(lang, ver, add) {
     this.language = lang; // set the current language
     this.version = ver?ver:0;
     // Check if the language to display is in the selected language list, if not then switch to the language after it.
     var langCode = this.toggle_data.getLanguage(lang).language;  // get language code
     if($.inArray(langCode, this.selectedLanguages.codes) == -1) {  // if language not included in selected language list, switch to the one after
-      this.switchLanguage(1, ver); // switch to next language
+      add = add?add:1;
+      this.switchLanguage(add, ver); // switch to next language
     } else {  // language included in selected languages, switch to this language
       this.placeTwext(lang, ver); // display Text/Twext lines
     }
