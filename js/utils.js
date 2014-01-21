@@ -296,6 +296,7 @@ SpanUtils = {
   * Put word in span tag and append it to the dom.
   * Loop on node childNodes to find the childNode contains the word(this is needed in the case of having another span tags).
   * Create span node of the word, put value before word in Text node and insert before span, put value after word in Text node and insert after span
+  * If word already in a span, create empty span with given id and insert it before word. This is a save way to avoid ids conflict.
   * @param: 'node' is the node contains the word.
             'wordIx' is the index of the word.
             'word' the word to be put in span tag
@@ -312,7 +313,11 @@ SpanUtils = {
         wordIx = wordIx - (index - len);  // word index within the childNode not the whole node text
         if(childNode.nodeName == "SPAN") {  // if word already in span, highlighted with different id
           // if word start position is already included in a span (the word or first seg of the word is highlighted), return span id
-          if(childNode.textContent == word || wordIx == 0) return childNode.id;
+          if(childNode.textContent == word || wordIx == 0) {
+            var spanNode = $('<span id="' + id + '"></span>');  // Create empty span node before current one with the given id
+            spanNode.insertBefore(childNode); // insert span before word
+            return id;
+          }
         }
 
         //if part of the word only included in the childNode,use this part as the whole word; this occur when there is a highlighted seg of the word
