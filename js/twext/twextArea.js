@@ -8,7 +8,7 @@ TwextArea = Class.$extend({
 	__init__: function() {
     this.area = $('#data-show')[0]; // contenteditable div element
     this.limit = 320; // The maximum number of characters allowed to be entered in the area
-    //array of all languages chunks, allChunks[lang][ver] is array, index is Text line(0,2,4..),value is key/val obj (key is n, val is N)
+    //array of all languages chunks, chunks[lang][ver] is array, index is Text line(0,2,4..),value is key/val obj (key is n, val is N)
     this.chunks = [];
     this.language = 0;  // current language
     this.version = 0; // current version
@@ -98,6 +98,7 @@ TwextArea = Class.$extend({
     var i, lineChunks = [], chunksArr = [], nNs = {};
     for(var j=0;j<chunks.length;j++) {  // loop on Text lines chunks
       if(chunks[j] && chunks[j].length > 0) {
+        nNs = {};
         lineChunks = chunks[j].split(' ');  // chunks of Text line
         for(i=0; i<lineChunks.length; i++) {  // loop on chunks pairs of lines
           t = lineChunks[i].split(':');
@@ -105,7 +106,7 @@ TwextArea = Class.$extend({
           N = t[1]; // get big sized word number
           nNs[n] = N; // add pair, key = n, value = N
         }
-        chunksArr[j*2] = nNs;  // set nNs array of Text line
+        chunksArr[j*2] = $.extend({}, nNs);  // set nNs array of Text line
       } else {
         chunksArr[j*2] = {};
       }
@@ -537,7 +538,8 @@ TwextArea = Class.$extend({
     // push chunk to next word
     if(!this.chunks[this.language]) this.chunks[this.language] = [];
     if(!this.chunks[this.language][this.version]) this.chunks[this.language][this.version] = [];
-    var chunks = scoochLines.pushChunk(caret_on_first, caret_coord.offset, this.chunks[this.language][this.version][pair_index]);
+    var chunksCopy = $.extend({}, this.chunks[this.language][this.version][pair_index]);  // copy of current line chunks
+    var chunks = scoochLines.pushChunk(caret_on_first, caret_coord.offset, chunksCopy);
     if(chunks) {
       this.chunks[this.language][this.version][pair_index] = chunks;
     }
@@ -589,7 +591,8 @@ TwextArea = Class.$extend({
     // pull chunk to previous word
     if(!this.chunks[this.language]) this.chunks[this.language] = [];
     if(!this.chunks[this.language][this.version]) this.chunks[this.language][this.version] = [];
-    var chunks = lines.pullChunk(caret_on_first, caret_coord.offset, this.chunks[this.language][this.version][pair_index]);
+    var chunksCopy = $.extend({}, this.chunks[this.language][this.version][pair_index]);  // copy of current line chunks
+    var chunks = lines.pullChunk(caret_on_first, caret_coord.offset, chunksCopy);
     if(chunks) {
       this.chunks[this.language][this.version][pair_index] = chunks;
     }
