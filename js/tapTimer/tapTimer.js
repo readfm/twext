@@ -162,7 +162,7 @@ TapTimer = Class.$extend({
     }
 
     // tap timing is the current time of video/audio, if no media then it's the seconds between the two taps plus previous segment timing
-    var newTiming = floatToStr(round(this.player.media?this.player.media.currentTime():(preSegTiming + seconds)));
+    var newTiming = floatToStr(round((this.player.media && this.player.media instanceof Video)?this.player.media.currentTime():(preSegTiming + seconds)));
     this.player.setTiming(null, newTiming); // update timing of current segment
 
     var timingsLine = this.player.getCurrentTimingLine(); // updated timing line
