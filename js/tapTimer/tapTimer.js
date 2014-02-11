@@ -183,7 +183,7 @@ TapTimer = Class.$extend({
 
     e.preventDefault();
     var timer = this; // instance of taptimer to be used in callback
-    this.tapping = false; // stop tapping
+    this.isTapping = false; // stop tapping
     this.twextArea.enable();  // enable typing
     this.audioRecorder.stop(function() {
       timer.player.restart(); // restart playing
