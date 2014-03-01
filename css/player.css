@@ -16,12 +16,12 @@
   text-transform: uppercase;
 }
 
-#videoInputLinkContainer {
+#mediaInputLinkContainer {
   display: none;
   padding-left: 13px;
 }
 
-#videoInputLink {
+#mediaInputLink {
   width: 500px;
   border-color: silver;
   border-width: 1px;

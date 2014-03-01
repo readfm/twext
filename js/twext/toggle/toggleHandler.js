@@ -260,7 +260,7 @@ ToggleHandler = Class.$extend({
         player.setDisplayMode("twext");
       }
 
-      $('#videoInputLinkContainer').hide(); // hide video input
+      $('#mediaInputLinkContainer').hide(); // hide video input
     }
   },
 

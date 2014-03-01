@@ -85,8 +85,11 @@ Controller = Class.$extend({
 
         // Load video if exists
         if(data.video) {
-          $("#videoInputLink").val(data.video);  // write video link into the text input
+          $("#mediaInputLink").val(data.video);  // write video link into the text input
           controller.loadVideo(); // load video
+        } else if(data.audio) {
+          $("#mediaInputLink").val(data.audio);  // write audio link into the text input
+          controller.loadAudio(data.audio); // load recorded audio
         }
 
         // Add this url/text to the hot list
@@ -170,12 +173,12 @@ Controller = Class.$extend({
       this.player.updateSegsPos();  // mode change, update segs positions
       this.player.setDisplayMode("textonly");
 
-      $('#videoInputLinkContainer').hide(); // hide video input
+      $('#mediaInputLinkContainer').hide(); // hide video input
       if(this.gifArea.isVisible()) this.updateGifAreaContent();
     } else {  // timings not dispalyed, show timings
       this.toggleHandler.placeTimings(text, function() {
         controller.setTimingState(true); // set state to timing on
-        if(controller.twextArea.isVisible()) $('#videoInputLinkContainer').show(); // show video input
+        if(controller.twextArea.isVisible()) $('#mediaInputLinkContainer').show(); // show video input
         // update player
         controller.player.updateSegsPos();  // mode change, update segs positions
         controller.player.setDisplayMode("timing");
@@ -235,7 +238,7 @@ Controller = Class.$extend({
   */
   loadVideo: function(e) {
     var textUrl = window.location.hash?window.location.hash.slice(1):null;  // get text url representation
-    var link = $("#videoInputLink").val();
+    var link = $("#mediaInputLink").val();
     //this.video.clear(); // clear old video data
     if(link) {
       this.showVideoMsg("Loading video...");  // display Loading message for video
@@ -257,6 +260,13 @@ Controller = Class.$extend({
       this.saveVideo(null);  // save empty video in fireabse
     }
     //player.resetSegments();
+  },
+
+  /**
+  * Load audio with the url typed in the text input.
+  */
+  loadAudio: function(id) {
+    this.audio.load(id);
   },
 
   /**
@@ -369,7 +379,7 @@ Controller = Class.$extend({
 
     if(this.twextArea.isVisible()) {  // in normal view, switch to gif
       $('#control-data-bar').hide();  // hide control data bar
-      $('#videoInputLinkContainer').hide();  // hide videoUrl input
+      $('#mediaInputLinkContainer').hide();  // hide videoUrl input
       this.twextArea.hide();  // hide twextArea
       this.gifArea.show();  // show gif area
 
@@ -377,7 +387,7 @@ Controller = Class.$extend({
       this.updateGifAreaContent();
     } else {  // in gif view switch to normal
       $('#control-data-bar').show();  // show control data bara
-      if(this.twextArea.textMode() == "timing") $('#videoInputLinkContainer').show();
+      if(this.twextArea.textMode() == "timing") $('#mediaInputLinkContainer').show();
       this.twextArea.show();  // show twext area
       this.gifArea.hide();  // hide gif area
       this.twextArea.realign(); // realign chunks
@@ -537,8 +547,8 @@ Controller = Class.$extend({
     // reset player
     this.player.reset();
     // clear video link input
-    $("#videoInputLink").val("");
-    $("#videoInputLinkContainer").hide();
+    $("#mediaInputLink").val("");
+    $("#mediaInputLinkContainer").hide();
     // reset data bar labels
     $('#data-bar-timing').html("text");
     // clear media data
@@ -618,7 +628,7 @@ Controller = Class.$extend({
   handleDocumentKeydown: function(e) {
     if(e.keyCode == this.player.tapTimer.keys['a']) this.player.tapTimer.start(e);  // start timer for tapping
     else if($.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1 && e.keyCode != this.player.tapTimer.keys['a']) this.player.tapTimer.tap(e);  // tap segment
-    else if((e.keyCode == keys['enter'] && e.target.id != "videoInputLink") || e.keyCode == keys[';']) this.player.tapTimer.stop(e);
+    else if((e.keyCode == keys['enter'] && e.target.id != "mediaInputLink") || e.keyCode == keys[';']) this.player.tapTimer.stop(e);
     else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1) this.player.game.play(); // play game
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['+']) this.gifTextSizeUp(e); // increase font size
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['-']) this.gifTextSizeDown(e); // decrease font size

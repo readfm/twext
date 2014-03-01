@@ -24,8 +24,8 @@ Video = Class.$extend({
   requestPath: function(id, callback) {
     vidId = id + ".mp4";  // video name on server
     $.post(
-      'php/video/checkVideo.php',
-      {videoId: vidId},
+      'php/checkFile.php',
+      {filename: "videos/"+vidId},
       function(path) {
         callback(path);
       }

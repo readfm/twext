@@ -7,10 +7,52 @@ Audio = Class.$extend({
   */
   __init__: function() {
     this.audio = $('#htmlAudio')[0]; // video DOM element
+    this.id = null;
     this.startTime = -1; // play start time
     this.endTime = -1; // play end time
     this.seekedTo = -1; // time where audio is seeked
     this.playbackRate = 1;  // audio playback rate, 1 is normal speed
+  },
+
+  /**
+  * Get the audio path on the server.
+  * @param 'id' audio id
+           'callback' return with audio path or null if not found
+  */
+  requestPath: function(id, callback) {
+    audId = id + ".wav";  // audio name on server
+    $.post(
+      'php/checkFile.php',
+      {filename: "audios/"+audId},
+      function(path) {
+        callback(path);
+      }
+    );
+  },
+
+  /**
+  * Load audio with the given id from server into the htmlAudio element.
+  * @param 'id' audio id
+  */
+  load: function(id) {
+    this.id = id;
+    var aud = this;
+    // Get video path on the server
+    this.requestPath(id, function(path) {
+      if(path != -1) {
+        aud.audio.src = "http://" + path;  // set video src
+        // callback when the video and its metadata are fully loaded
+        $(aud.audio).bind('canplaythrough', function(e) {
+          aud.startTime = 0;
+          aud.endTime = aud.duration();  // set audio end time;
+          console.log("Audio loaded");
+          $(aud.audio).unbind('canplaythrough');
+        });
+      } else {
+        //callback(false); // return with not found confirmation
+        console.log("No recordings attached to this text");
+      }
+    });
   },
 
   /**

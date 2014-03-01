@@ -86,7 +86,7 @@ $(document).ready(function() {
     $(document).bind("click", $.proxy(controller.hideLangMenu, controller)); // hide language menu when click ouside
 
     // Load video on typing the url
-    $('#videoInputLink').bind("change", $.proxy(controller.loadVideo, controller));
+    $('#mediaInputLink').bind("change", $.proxy(controller.loadVideo, controller));
   }
 
   // initialize data objects and bind events
