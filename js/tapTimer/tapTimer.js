@@ -37,27 +37,36 @@ TapTimer = Class.$extend({
   * @retutn timing lines string
   */
   getTimings: function(text, hText, callback) {
-    var i, timingLines = [];
+    var i, timingLines = [], ref;
     var timer = this;
 
     var isNewText = this.sourceText == null || this.sourceText != text; // check if it's a new text
     if(isNewText) {  // new text
       // Create timing slots for this new text
       this.sourceText = text; // set source text
-      var fbTextKey = TwextUtils.textToFbKey(text);
-      firebaseHandler.get("data/"+fbTextKey+"/timings", function(data) {
-        if(data) {  // timings exist
-          timer.timings = data;
-          callback(data);
-        } else {  // timings not exsist, create fake timings
-          var fakeTimings = timer.createFakeTimings(hText);
-          timer.timings = fakeTimings;  // cache timings string
-          callback(fakeTimings);
+      var url = window.location.hash?window.location.hash.slice(1):null;
+      if(url) {
+        var media = controller.getMedia();
+        if(media instanceof Audio) ref = "urlMapping/"+url+"/audios/"+media.key+"/timings";
+        else ref = "urlMapping/"+url+"/timings";
+        firebaseHandler.get(ref, function(data) {
+          if(data) {  // timings exist
+            timer.timings = data;
+            callback(data);
+          } else {  // timings not exsist, create fake timings
+            var fakeTimings = timer.createFakeTimings(hText);
+            timer.timings = fakeTimings;  // cache timings string
+            callback(fakeTimings);
 
-          // Save fakeTimings into firebase
-          firebaseHandler.set("data/"+fbTextKey+"/timings", fakeTimings);
-        }
-      });
+            // Save fakeTimings into firebase
+            firebaseHandler.set(ref, fakeTimings);
+          }
+        });
+      } else {  // new text with no url, create fake timings
+        var fakeTimings = this.createFakeTimings(hText);
+        this.timings = fakeTimings;  // cache timings string
+        callback(fakeTimings);
+      }
     } else {  // old text, return cached timing
       callback(this.timings);
     }
@@ -67,15 +76,21 @@ TapTimer = Class.$extend({
   * Save timings into firebase.
   */
   saveTimings: function(text, timings) {
-    // Save timings into firebase
-    var fbTextKey = TwextUtils.textToFbKey(text);
-    firebaseHandler.set("data/"+fbTextKey+"/timings", timings);
+    var ref;
+    var url = controller.toggleHandler.toggle_data.url?controller.toggleHandler.toggle_data.url:null;
+    if(url) {
+      var media = controller.getMedia();
+      if(media instanceof Audio) {
+        ref = "urlMapping/"+url+"/audios/"+media.key+"/timings";
+      } else {
+        ref = "urlMapping/"+url+"/timings";
+      }
+      firebaseHandler.set(ref, timings);
+    }   
 
     // update class data
     this.sourceText = text;
     this.timings = timings;
-
-    //return this.timings;  // return saved timings
   },
 
   /**
@@ -185,12 +200,19 @@ TapTimer = Class.$extend({
     var timer = this; // instance of taptimer to be used in callback
     this.isTapping = false; // stop tapping
     this.twextArea.enable();  // enable typing
-    this.audioRecorder.stop(function() {
+    if(this.player.media instanceof Video) {
       timer.player.restart(); // restart playing
-    });
-
-    // Save timings
-    this.saveTimings(this.sourceText, this.timings);
+      // Save timings
+      timer.saveTimings(timer.sourceText, timer.timings);
+    } else {
+      this.audioRecorder.stop(function(recorded) {
+        timer.player.restart(); // restart playing
+        if(!recorded) { // save timings only if no audio recorded, because in case of a recording, the timings are saved with saving audio id.
+          // Save timings
+          timer.saveTimings(timer.sourceText, timer.timings);
+        }
+      });
+    }
   },
 
   /**

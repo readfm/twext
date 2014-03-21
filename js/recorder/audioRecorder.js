@@ -87,10 +87,12 @@ AudioRecorder = Class.$extend({
       var audioObj = audioRecorder.audio;
       audioObj.audio.src = window.URL.createObjectURL(s);  // set audio src
       $(audioObj.audio).bind("canplaythrough", function() {
-        audioRecorder.uploadRecording(s);  // upload recorded audio to server
         audioObj.startTime = 0; // set audio start time
         audioObj.endTime = audioObj.duration();  // set audio end time
-        callback(); // return
+        controller.showMsg("Saving audio...");
+        // upload recorded audio to server
+        audioRecorder.uploadRecording(s);
+        callback(true); // return
         $(audioObj.audio).unbind("canplaythrough");
       });
     });
@@ -112,10 +114,7 @@ AudioRecorder = Class.$extend({
     }).done(function(id) {
       if(id) {
         id = id.split('.')[0];  // remove .wav to save only audio id in firebase
-        var url = controller.toggleHandler.toggle_data?controller.toggleHandler.toggle_data.url:null; // can be obtained also from hash
-        if(url) firebaseHandler.set("urlMapping/"+url+"/audio", id);
-        $('#mediaInputLink').val(id);
-        //@@ todo, audio should be loaded and displayed
+        controller.saveAudio(id); // save audio data
       } else {
         console.log("Error uploading recording to server");
       }

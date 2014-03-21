@@ -70,6 +70,7 @@
     <!-- Media classes -->
     <script src="js/media/video.js" type="text/javascript"></script>
     <script src="js/media/audio.js" type="text/javascript"></script>
+    <script src="js/media/audioListHandler.js" type="text/javascript"></script>
 
     <!-- Stylesheets -->
     <!-- Twext stylesheet -->
@@ -82,7 +83,9 @@
     <link rel="stylesheet" href="css/game.css">
   </head>
   <body>
-    <audio id="htmlAudio" style="display:none"></audio>  <!-- Audio element used to save recorded audio -->
+    <div id="audioContainer" style="display:none">
+      <audio id="htmlAudio" style="display:none"></audio>  <!-- Audio element used to save recorded audio -->
+    </div>
 
     <!-- Main container div -->
     <div id="main" style="display:none">
@@ -109,8 +112,8 @@
         <input type="text" id="mediaInputLink"/>
       </div>
 
-      <!-- Video notification message -->
-      <div id="video-msg">loading video...</div>
+      <!-- Media notification message -->
+      <div id="media-msg">loading video...</div>
 
       <!-- Player container contains video element(gif area and header are shown over video in gif view) -->
       <div id="playerContainer">
@@ -118,6 +121,9 @@
         <div id="gif-data-show" class="monospaceFont"><div id="gif-data-content"></div></div> <!-- gif data area, appears only on gif view -->
         <div id="videoContainer" class="normal-view"><video id="htmlVideo" width="600" height="80" controls></video></div>
       </div>
+
+      <!-- Audio recordings list -->
+      <div id="audio-list"></div>
 
       <!-- Url list control data bar -->
       <div id="url-list-controls">

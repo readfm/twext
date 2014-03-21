@@ -39,6 +39,7 @@ Player = Class.$extend({
 
     // Start text playing
     this.playing = true;  // start playing
+    this.setDisplayMode(this.twextArea.textMode());
     this.twextArea.disable();  // disable typing on the area while playing
     this.setMedia();  // set media object to either video or audio
     this.playMedia(); // play video/audio
@@ -191,7 +192,10 @@ Player = Class.$extend({
 
     // If paused at the last seg, then start from first seg when play again
     var lastSeg = this.getLastSeg();
-    if(this.currentSeg && this.currentSeg.line == lastSeg.line && this.currentSeg.seg == lastSeg.seg) this.currentSeg = this.nextSeg = null;
+    if(this.currentSeg && this.currentSeg.line == lastSeg.line && this.currentSeg.seg == lastSeg.seg) {
+      this.currentSeg = this.nextSeg = null;
+      if(this.media) this.media.setSeekedTo(-1);  // to start from the start time
+    }
   },
 
   /**

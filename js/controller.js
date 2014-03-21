@@ -17,6 +17,7 @@ Controller = Class.$extend({
     this.gifArea = new GifArea(this.twextArea); // create GifArea object to represent the gif area element
     this.toggleHandler = new ToggleHandler(langs, this.twextArea, this.syllabifier, this.tapTimer); // create ToggleHandler object that handles toggle features
     this.urlListHandler = new UrlListHandler(); // create UrlListController object that handles list features
+    this.audioListHandler = new AudioListHandler(); // create AudiosListHandler object that handles audio list feature
     this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer); // create Player object that handles playing features
   },
 
@@ -83,13 +84,18 @@ Controller = Class.$extend({
       if(data) {  // if there is a mapped text with the given url
         controller.toggleHandler.getTranslations(data.text); // get text translations
 
+        if(data.timings) {
+          controller.tapTimer.sourceText = data.text;
+          controller.tapTimer.timings = data.timings;
+        }
+
         // Load video if exists
         if(data.video) {
           $("#mediaInputLink").val(data.video);  // write video link into the text input
           controller.loadVideo(); // load video
-        } else if(data.audio) {
-          $("#mediaInputLink").val(data.audio);  // write audio link into the text input
-          controller.loadAudio(data.audio); // load recorded audio
+        } else if(data.audios) {
+          var lastAudioKey = controller.audioListHandler.loadList(data.audios);  // load audios to list
+          controller.loadAudio(lastAudioKey); // load recorded audio
         }
 
         // Add this url/text to the hot list
@@ -141,6 +147,7 @@ Controller = Class.$extend({
   * Get and display twexts(translations) if twexts are not already displayed. If twexts already exist, toggle languages of the existing twexts.
   */
   fetchTranslations: function(e) {
+    this.audioListHandler.hide();
     this.saveData();
     this.toggleHandler.checkTranslations();
   },
@@ -171,17 +178,21 @@ Controller = Class.$extend({
 
       // update player
       this.player.updateSegsPos();  // mode change, update segs positions
-      this.player.setDisplayMode("textonly");
+      //this.player.setDisplayMode("textonly");
 
       $('#mediaInputLinkContainer').hide(); // hide video input
+      this.audioListHandler.hide();  // hide audio list
       if(this.gifArea.isVisible()) this.updateGifAreaContent();
     } else {  // timings not dispalyed, show timings
       this.toggleHandler.placeTimings(text, function() {
         controller.setTimingState(true); // set state to timing on
-        if(controller.twextArea.isVisible()) $('#mediaInputLinkContainer').show(); // show video input
+        if(controller.twextArea.isVisible()) {
+          $('#mediaInputLinkContainer').show(); // show video input
+          controller.audioListHandler.show();  // show audio list
+        }
         // update player
         controller.player.updateSegsPos();  // mode change, update segs positions
-        controller.player.setDisplayMode("timing");
+        //controller.player.setDisplayMode("timing");
       }); // display timing slots
     }
   },
@@ -241,16 +252,17 @@ Controller = Class.$extend({
     var link = $("#mediaInputLink").val();
     //this.video.clear(); // clear old video data
     if(link) {
-      this.showVideoMsg("Loading video...");  // display Loading message for video
+      this.showMsg("Loading video...");  // display Loading message for video
       var params = this.videoParams(link); // get video parameters from input link
       this.video.load(params['id'], params['loopFrom'], params['loopTo'], function(loaded) {  // callback after loading video
         if(loaded) {  // video loaded
-          controller.hideVideoMsg();  // hide video message
+          controller.hideMsg();  // hide video message
           controller.video.show();  // show video
           controller.saveVideo(link); // save video to firebase
+          controller.audioListHandler.hide(); // hide audio list if exist
           //if(!loadOnly) player.restartPlay();
         } else {
-          controller.showVideoMsg("Video not found"); // display not found message
+          controller.showMsg("Video not found"); // display not found message
           controller.video.clear(); // clear video data
           controller.saveVideo(null); // save empty video in firebase
         }
@@ -258,15 +270,77 @@ Controller = Class.$extend({
     } else {  // delete video url from firebase
       this.video.clear(); // clear video data
       this.saveVideo(null);  // save empty video in fireabse
+      controller.audioListHandler.show(); // show audio list if video cleared
     }
     //player.resetSegments();
   },
 
   /**
+  * Load/Delete audio.
+  */
+  loadDeleteAudio: function(e, key) {
+    if(e.shiftKey && e.ctrlKey) {
+      this.deleteAudio(key, e.target);
+    } else {
+      this.loadAudio(key);
+    }
+  },
+
+  /**
   * Load audio with the url typed in the text input.
   */
-  loadAudio: function(id) {
-    this.audio.load(id);
+  loadAudio: function(key) {
+    var audio = this.audioListHandler.getAudio(key);
+    if(audio) {
+      this.showMsg("Loading vocals...");  // display Loading message for audio
+      this.audio.load(audio.id, function(loaded) {
+        if(loaded) {
+          $("#mediaInputLink").val(audio.id);  // write audio link into the text input
+          controller.tapTimer.timings = audio.timings;  // set audio timings
+          controller.hideMsg();
+          controller.audio.key = key;
+          var playing = controller.player.isPlaying();  // current play status
+          controller.player.reset();  // reset player
+          // update displayed timings if current mode is timings
+          if(controller.twextArea.textMode() == 'timing') {
+            var text = controller.twextArea.text();
+            text = controller.twextArea.clearText(text);
+            controller.toggleHandler.placeTimings(text, function() {
+              if(playing) controller.player.play(text);
+            });
+          }
+        } else {
+          controller.showMsg("Audio not found");
+        }
+      });  // load audio
+    }
+  },
+
+  /**
+  * Delete audio from list and firebase.
+  */
+  deleteAudio: function(key, target) {
+    var audio = this.audioListHandler.getAudio(key);
+    var audioId = audio.id;
+    // check if required to delete audio is the one loaded
+    if(key == this.audio.key) { // current loaded audio is the one to delete, clear data
+      this.audio.clear();
+      $("#mediaInputLink").val("");
+    }
+    // delete audio from list
+    this.audioListHandler.deleteAudio(key, target);
+    // delete audio from firebase
+    var url = window.location.hash?window.location.hash.slice(1):null;
+    if(url) firebaseHandler.set("urlMapping/"+url+"/audios/"+key, null);
+    // delete audio from server
+    audioId = audioId + ".wav";  // audio name on server
+    $.post(
+      'php/deleteFile.php',
+      {filename: "audios/"+audioId},
+      function(deleted) {
+        if(deleted) console.log("Audio file deleted from server");
+      }
+    );
   },
 
   /**
@@ -282,19 +356,38 @@ Controller = Class.$extend({
   },
 
   /**
-  * Show message for video loading.
+  * Save audio data(id and timings) to firebase and add saved audio to audio list.
+  */
+  saveAudio: function(id) {
+    // save audio data to firebase
+    var hash = window.location.hash
+    var url = hash?hash.slice(1):null;
+    this.audio.id = id;
+    var data = {id:this.audio.id, timings: this.tapTimer.timings};
+    if(url) {
+      var name = firebaseHandler.push("urlMapping/"+url+"/audios", data).name();
+      this.audio.key = name;
+      // add audio link to list
+      this.audioListHandler.addToList(name, data);
+      $('#mediaInputLink').val(id);
+    }
+    this.hideMsg();
+  },
+
+  /**
+  * Show message for media loading.
   * @param 'msg' message to be displayed
   */
-  showVideoMsg: function(msg) {
-    $('#video-msg').html(msg);
-    $('#video-msg').show();
+  showMsg: function(msg) {
+    $('#media-msg').html(msg);
+    $('#media-msg').show();
   },
 
   /**
   * Hide video message.
   */
-  hideVideoMsg: function() {
-    $('#video-msg').hide();
+  hideMsg: function() {
+    $('#media-msg').hide();
   },
 
   /**
@@ -549,11 +642,17 @@ Controller = Class.$extend({
     // clear video link input
     $("#mediaInputLink").val("");
     $("#mediaInputLinkContainer").hide();
+
     // reset data bar labels
     $('#data-bar-timing').html("text");
     // clear media data
     var media = this.getMedia();
     if(media) media.clear();
+
+    // clear and hide audio list
+    this.audioListHandler.empty();
+    this.audioListHandler.hide();
+
     // reset url list
     //url_list.reset();
 

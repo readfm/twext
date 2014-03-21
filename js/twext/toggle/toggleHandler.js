@@ -84,6 +84,8 @@ ToggleHandler = Class.$extend({
     if(isNewText) { // text is new
       // @TODO reset player
       this.twextArea.chunks = []; // reset chunks
+      controller.audioListHandler.empty();
+      $("#mediaInputLink").val("");
       this.getTranslations(text); // get translations of text from firebase of google
     } else {  // same text
       if(this.twextArea.textMode() == "twext") {  // some language displayed, toggle to next language
@@ -126,10 +128,10 @@ ToggleHandler = Class.$extend({
     firebaseHandler.get("data/"+fbText, function(data) {
       var translations = null;
       if(data) {
-        if(data.timings) {  // if timing lines retrieved from firebase
+        /*if(data.timings) {  // if timing lines retrieved from firebase
           toggle.tapTimer.sourceText = text; // set source text of tapTimer object
           toggle.tapTimer.timings = data.timings; // load saved timings into tapTimer object
-        }
+        }*/
         if(data.url) toggle.toggle_data.url = data.url;
         if(data.sourceLanguage) toggle.toggle_data.sourceLanguage = data.sourceLanguage;
         translations = data.translations;
