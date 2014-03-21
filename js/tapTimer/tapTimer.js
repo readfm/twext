@@ -22,6 +22,7 @@ TapTimer = Class.$extend({
     this.twextArea = twextArea; // twextArea object
     this.audioRecorder = new AudioRecorder(audio);  // audio recorder used in recording audio in tapping
     this.isTapping = false; // boolean to detect tapping start
+    this.tapDelay = 0.1 // this is added to tap time to increase/decrease tap time (negative value decrease the tap time "tap early", positive value increase tap time "tap late")
 
     // css classes of segments
     this.TIMER_CSS_CLASS = 'timerHighlighted'; // css class of start timer
@@ -177,7 +178,7 @@ TapTimer = Class.$extend({
     }
 
     // tap timing is the current time of video/audio, if no media then it's the seconds between the two taps plus previous segment timing
-    var newTiming = floatToStr(round((this.player.media && this.player.media instanceof Video)?this.player.media.currentTime():(preSegTiming + seconds)));
+    var newTiming = floatToStr(round(((this.player.media && this.player.media instanceof Video)?this.player.media.currentTime():(preSegTiming + seconds))+this.tapDelay));
     this.player.setTiming(null, newTiming); // update timing of current segment
 
     var timingsLine = this.player.getCurrentTimingLine(); // updated timing line
