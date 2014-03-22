@@ -39,7 +39,8 @@ var languages = {
 * Languages that are not supported in Bing
 */
 var nonBingLanguages = {
-  "myn": "Mayan"
+  "myn": "Mayan",
+  "ipa": "IPA"
 };
 
 var languages_codes = codes(languages); // languages codes array
