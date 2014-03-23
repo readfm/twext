@@ -41,8 +41,8 @@ AudioListHandler = Class.$extend({
   */
   addToList: function(key, data) {
     // add to audio list
-    var ref = "javascript:controller.loadAudio('" + key + "');";
-    var aEl = '<a href="' + ref + '">' + data.id + "</a>";  // create link element
+    var ref = "controller.loadDeleteAudio(event,'" + key + "');";
+    var aEl = '<a onclick="'+ ref + '">' + data.id + "</a>";  // create link element
     if(this.listEl[0].childNodes.length != 0) aEl = aEl + "<br>";
     this.listEl.prepend(aEl);
     this.audios[key] = data;
