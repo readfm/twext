@@ -22,7 +22,7 @@ TapTimer = Class.$extend({
     this.twextArea = twextArea; // twextArea object
     this.audioRecorder = new AudioRecorder(audio);  // audio recorder used in recording audio in tapping
     this.isTapping = false; // boolean to detect tapping start
-    this.tapDelay = 0.1; // this is added to tap time to increase/decrease tap time (negative value decrease the tap time "tap early", positive value increase tap time "tap late")
+    this.tapDelay = 0.1;  // +/- add to / subtract from each timing value
 
     // css classes of segments
     this.TIMER_CSS_CLASS = 'timerHighlighted'; // css class of start timer
@@ -169,7 +169,7 @@ TapTimer = Class.$extend({
       this.player.unhighlightSeg(currentSeg, this.TIMER_CSS_CLASS);  // unhighlight seg
       this.player.highlightSeg(currentSeg, this.TAP_CSS_CLASS); // highlight seg with tap class
     } else {
-      preSegTiming = parseFloat(this.player.getTiming(currentSeg)); // get timing of currently highlighted seg before moving to next seg
+      preSegTiming = parseFloat(this.player.getTiming(currentSeg) - this.tapDelay); // get timing of current seg before moving to next seg
       this.player.unhighlightSeg(currentSeg, this.TAP_CSS_CLASS);  // unhighlight current seg
       // move to next seg
       this.player.setCurrentSeg();
