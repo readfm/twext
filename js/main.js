@@ -2,12 +2,16 @@
 * Global objects.
 */
 var controller, firebaseHandler;
-var twextArea, player, syllabifier; // accessed by other modules
 var keys = {
-  'enter': 13,
-  ';': 186,
+  //'enter': 13,
+  //';': 186,
+  //'space': 32,
   '+': 187,
-  '-': 189
+  '-': 189,
+  'f4': 115,
+  'f2': 113,
+  'f8': 119,
+  'f9': 120
 };
 
 /**
@@ -55,15 +59,15 @@ $(document).ready(function() {
 
     // Attch document events
     $(document).bind("keydown","f8", $.proxy(controller.fetchTranslations, controller));  // F8 key down event, Get translations of area text
-    $(document).bind("keydown","alt+F8", $.proxy(controller.toggleLangDown, controller)); // Alt+F8 keys down event, Switch to previous language
+    //$(document).bind("keydown","alt+F8", $.proxy(controller.toggleLangDown, controller)); // Alt+F8 keys down event, Switch to previous language
     $(document).bind("keydown","f4", $.proxy(controller.textOnlyTimingToggle, controller));  // F4 key down event, Turn timings on/off
     $(document).bind("keydown", "f9", $.proxy(controller.switchStateUrlList, controller)); // F9 keydown event, Show/Hide url list
-    $(document).bind("keydown", "f7", $.proxy(controller.showHideLangMenu, controller)); // F7 keydown event, Show/Hide language menu
+    //$(document).bind("keydown", "f7", $.proxy(controller.showHideLangMenu, controller)); // F7 keydown event, Show/Hide language menu
     $(document).bind("keydown", "f2", $.proxy(controller.playPauseText, controller));  // F2 keydown event, play/pause text with media
     $(document).bind("keydown", "ctrl+space", $.proxy(controller.playPauseText, controller)); //ctrl+space keydown event, Play/Pause text with media
     $(document).bind("keydown", "space", $.proxy(controller.pauseText, controller)); // Alt+F2 keydown event, pause text
-    $(document).bind("keydown", "h", $.proxy(controller.playFast, controller)); // h keydown event, play in fast rate
-    $(document).bind("keydown", "g", $.proxy(controller.playSlow, controller)); // g keydown event, play in slow rate
+    //$(document).bind("keydown", "h", $.proxy(controller.playFast, controller)); // h keydown event, play in fast rate
+    //$(document).bind("keydown", "g", $.proxy(controller.playSlow, controller)); // g keydown event, play in slow rate
     $(document).bind("keydown", "alt+F2", $.proxy(controller.normalOrGifView, controller)); // Alt+F2 keydown event, switch to/from gif/normal view
     $(document).bind("keydown", "alt+F7", $.proxy(controller.switchFontType, controller)); //Alt+F7 keydown event,switch font monospace/proportional
     $(document).bind("keydown", $.proxy(controller.handleDocumentKeydown, controller)); // On document keydown
@@ -75,15 +79,15 @@ $(document).ready(function() {
     $('#data-show').bind("keydown", $.proxy(controller.handleAreaKeydown, controller)); // on area keydown event
     $('#data-show').bind("keyup", $.proxy(controller.handleAreaKeyup, controller));  // on area keyup event
 
-    $('#data-bar-f8, #data-bar-language').bind("click", $.proxy(controller.fetchTranslations, controller));  // Get translations of area text
-    $('#data-bar-f7, #data-bar-heart').bind("click", $.proxy(controller.showHideLangMenu, controller)); // show/hide language menu
+    //$('#data-bar-f8, #data-bar-language').bind("click", $.proxy(controller.fetchTranslations, controller));  // Get translations of area text
+    //$('#data-bar-f7, #data-bar-heart').bind("click", $.proxy(controller.showHideLangMenu, controller)); // show/hide language menu
     $('#data-bar-f4, #data-bar-timing').bind("click", $.proxy(controller.textOnlyTimingToggle, controller));  // switch on/off timings
     $('#url-list-f9, #url-list-label').bind("click", $.proxy(controller.switchStateUrlList, controller));  // show/hide url list
     $('#data-bar-f2, #data-bar-play').bind("click", $.proxy(controller.playPauseText, controller)); // play/pause text with media
 
     // Bind hide language menu event
-    $(document).bind("keydown", "esc", $.proxy(controller.hideLangMenu, controller)); // esc keydown event, Hide language menu
-    $(document).bind("click", $.proxy(controller.hideLangMenu, controller)); // hide language menu when click ouside
+    //$(document).bind("keydown", "esc", $.proxy(controller.hideLangMenu, controller)); // esc keydown event, Hide language menu
+    //$(document).bind("click", $.proxy(controller.hideLangMenu, controller)); // hide language menu when click ouside
 
     // Load video on typing the url
     $('#mediaInputLink').bind("change", $.proxy(controller.loadVideo, controller));

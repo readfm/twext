@@ -15,7 +15,7 @@ Controller = Class.$extend({
     this.twextArea = new TwextArea();  // create TwextArea object to represent the contenteditable element
     this.tapTimer = new TapTimer(this.twextArea, this.audio); // create TapTimer object
     this.gifArea = new GifArea(this.twextArea); // create GifArea object to represent the gif area element
-    this.toggleHandler = new ToggleHandler(langs, this.twextArea, this.syllabifier, this.tapTimer); // create ToggleHandler object that handles toggle features
+    this.toggleHandler = new ToggleHandler(langs, this.twextArea, this.syllabifier, this.tapTimer);//ToggleHandler object handles toggle features
     this.urlListHandler = new UrlListHandler(); // create UrlListController object that handles list features
     this.audioListHandler = new AudioListHandler(); // create AudiosListHandler object that handles audio list feature
     this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer); // create Player object that handles playing features
@@ -82,7 +82,9 @@ Controller = Class.$extend({
   loadURLData: function(url) {
     firebaseHandler.get("urlMapping/"+url, function(data) {
       if(data) {  // if there is a mapped text with the given url
-        controller.toggleHandler.getTranslations(data.text); // get text translations
+        controller.toggleHandler.getData(data.text, url);
+        controller.twextArea.renderLines(data.text.split('\n'));  // display text
+        $("#main").show();  // show page content
 
         if(data.timings) {
           controller.tapTimer.sourceText = data.text;
@@ -116,7 +118,9 @@ Controller = Class.$extend({
     var data = "Twext is twin text,\n"+
                "aligned between the lines,\n"+
                "in any language you like.";
-    this.toggleHandler.getTranslations(data);  // display text translations
+    this.toggleHandler.getData(data);  // display text translations
+    controller.twextArea.renderLines(data.split('\n'));  // display text
+    $("#main").show();  // show page content
   },
 
   /**
@@ -725,10 +729,14 @@ Controller = Class.$extend({
   * On document keydown.
   */
   handleDocumentKeydown: function(e) {
-    if(e.keyCode == this.player.tapTimer.keys['a']) this.player.tapTimer.start(e);  // start timer for tapping
+    if(!e.ctrlKey && !e.altKey && !e.shiftKey && e.keyCode != keys['f2'] && e.keyCode != keys['f4'] && e.keyCode != keys['f9'] && e.keyCode != keys['f8']) {
+      if(!this.tapTimer.isTapping) this.tapTimer.start(e);
+      else this.tapTimer.tap(e);
+    }
+    /*if(e.keyCode == this.player.tapTimer.keys['a']) this.player.tapTimer.start(e);  // start timer for tapping
     else if($.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1 && e.keyCode != this.player.tapTimer.keys['a']) this.player.tapTimer.tap(e);  // tap segment
     else if((e.keyCode == keys['enter'] && e.target.id != "mediaInputLink") || e.keyCode == keys[';']) this.player.tapTimer.stop(e);
-    else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1) this.player.game.play(); // play game
+    else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1) this.player.game.play(); // play game*/
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['+']) this.gifTextSizeUp(e); // increase font size
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['-']) this.gifTextSizeDown(e); // decrease font size
   },

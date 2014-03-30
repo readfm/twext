@@ -27,6 +27,7 @@ TapTimer = Class.$extend({
     // css classes of segments
     this.TIMER_CSS_CLASS = 'timerHighlighted'; // css class of start timer
     this.TAP_CSS_CLASS = 'tapHighlighted';  // css class of tapping seg
+    this.LAST_TAP_CSS_CLASS = 'lastTapHighlighted'; // css class of tapping last seg
   },
 
   /**
@@ -163,7 +164,13 @@ TapTimer = Class.$extend({
     var currentSeg = this.player.currentSeg;  // current highlighted segment
 
     var lastSeg = this.player.getLastSeg(); // get the last seg to compare with current seg
-    if(currentSeg.line == lastSeg.line && currentSeg.seg == lastSeg.seg) return; // last seg already tapped, return
+    if(currentSeg.line == lastSeg.line && currentSeg.seg == lastSeg.seg) {
+      var timer = this;
+      var diff = 1 - seconds;
+      if(diff > 0) setTimeout(function(){timer.stop(e);}, diff * 1000);
+      else this.stop(e);
+      return; // last seg already tapped, return
+    }
 
     if(currentSeg.line == 0 && currentSeg.seg == 0 && $('.'+this.TIMER_CSS_CLASS).length > 0) { // first seg not yet tapped
       this.player.unhighlightSeg(currentSeg, this.TIMER_CSS_CLASS);  // unhighlight seg
@@ -174,7 +181,12 @@ TapTimer = Class.$extend({
       // move to next seg
       this.player.setCurrentSeg();
       this.player.setNextSeg();
-      this.player.highlightSeg(null, this.TAP_CSS_CLASS); // highlight current seg with tapped class
+      lastSeg = this.player.getLastSeg();
+      if(lastSeg.line == this.player.currentSeg.line && lastSeg.seg == this.player.currentSeg.seg) {  // last seg tapped
+        this.player.highlightSeg(null, this.LAST_TAP_CSS_CLASS); // highlight last seg with tapped class
+      } else {
+        this.player.highlightSeg(null, this.TAP_CSS_CLASS); // highlight current seg with tapped class
+      }
     }
 
     // tap timing is the current time of video/audio, if no media then it's the seconds between the two taps plus previous segment timing

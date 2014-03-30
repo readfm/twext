@@ -16,6 +16,12 @@
   text-transform: uppercase;
 }
 
+/* Class of the last segment when tapping */
+.lastTapHighlighted {
+  background-color: #00FFFF;
+  text-transform: uppercase;
+}
+
 #mediaInputLinkContainer {
   display: none;
   padding-left: 13px;

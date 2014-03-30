@@ -86,8 +86,10 @@ ToggleHandler = Class.$extend({
       this.twextArea.chunks = []; // reset chunks
       controller.audioListHandler.empty();
       $("#mediaInputLink").val("");
-      this.getTranslations(text); // get translations of text from firebase of google
-    } else {  // same text
+      controller.audio.clear();
+      this.getData(text);
+      //this.getTranslations(text); // get translations of text from firebase of google
+    } /*else {  // same text
       if(this.twextArea.textMode() == "twext") {  // some language displayed, toggle to next language
         this.toggleLangUp(); // toggle to next language
         //resumePlaying("twext", playing);
@@ -102,8 +104,30 @@ ToggleHandler = Class.$extend({
         //var saved = area.saveData(this.language, this.version, timingCreator.getTimingLines(), oldText, false, timingOn);
         //timingCreator.setTimingLines(saved);  // update old timing lines with the saved ones
       }
-    }
+    }*/
     this.twextArea.setCaretPos(0,0);  // set cursor position at the start of area text
+  },
+
+  /**
+  * Get url of the text if it has one, or generate new one if it doesn't.
+  */
+  getData: function(text, url) {
+    var toggle = this;
+
+    // Create toggle_data object to carry all languages information (languages, versions, translations, chunks)
+    this.toggle_data = new ToggleData();
+    this.toggle_data.sourceText = text; // set source text
+
+    if(url) {
+      this.toggle_data.url = url;
+      this.generateTextUrl(text); // create shortcut for the text to be used in the url to retrieve text
+    } else {
+      var fbText = TwextUtils.textToFbKey(text);
+      firebaseHandler.get("data/"+fbText+"/url", function(data) {
+        if(data) toggle.toggle_data.url = data;
+        toggle.generateTextUrl(text); // create shortcut for the text to be used in the url to retrieve text
+      });
+    }
   },
 
   /**
