@@ -400,7 +400,7 @@ Controller = Class.$extend({
     this.audio.id = id;
     var data = {id:this.audio.id, timings: this.tapTimer.timings};
     if(url) {
-      var name = firebaseHandler.push("urlMapping/"+url+"/audios", data).name();
+      var name = firebaseHandler.push("urlMapping/"+url+"/audios", data);
       this.audio.key = name;
       // add audio link to list
       this.audioListHandler.addToList(name, data);

@@ -146,12 +146,12 @@ UrlListHandler = Class.$extend({
     } else if(Object.size(this.hotList) >= this.hotListLimit) { // delete last url to add the new one
       var len = this.hotListEl[0].childNodes.length;
       var lastEl = this.hotListEl[0].childNodes[len-1];
-      var lastUrl = lastEl.id.split(".")[1];
-      this.deleteFromList(lastUrl);
+      var lastUrl = lastEl.id.split("-")[1];
+      this.deleteFromHotList(lastUrl);
     }
     // add url to hot list
     var name = firebaseHandler.push("dataHistory/hotList", data);  // push generated url to history list
-    var aEl = "<br><a id='hot-" + data.url+ "' onclick='controller.loadDeleteUrl(event);'>" + text + "</a>";
+    var aEl = "<br><a id='hot-" + data.url+ "' onclick='controller.loadDeleteUrl(event);'>" + data.text + "</a>";
     this.hotListEl.prepend(aEl); // add to top of hot list
     this.hotList[data.url] = {name: name, text: data.text}; // add to hotList object
     
