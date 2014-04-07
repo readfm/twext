@@ -76,6 +76,11 @@ ToggleHandler = Class.$extend({
   * If twexts are displayed, toggle languages.
   */
   checkTranslations: function() {
+    // check if new text is displayed in divs
+    if($('.text').length == 0) {  // in case of typing new text
+      this.twextArea.renderLines(this.twextArea.value().split('\n'));
+    }
+
     var text = this.twextArea.text(); // text to be translated
     text = this.twextArea.clearText(text); // clear text from syllabification, align or higlight
 
