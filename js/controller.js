@@ -153,6 +153,7 @@ Controller = Class.$extend({
   fetchTranslations: function(e) {
     this.audioListHandler.hide();
     this.saveData();
+    this.player.setDisplayMode("twext");  // change display mode in twext
     this.toggleHandler.checkTranslations();
   },
 
@@ -181,8 +182,8 @@ Controller = Class.$extend({
       this.setTimingState(false); // set state to timing off
 
       // update player
+      this.player.setDisplayMode("textonly");
       this.player.updateSegsPos();  // mode change, update segs positions
-      //this.player.setDisplayMode("textonly");
 
       $('#mediaInputLinkContainer').hide(); // hide video input
       this.audioListHandler.hide();  // hide audio list
@@ -195,8 +196,8 @@ Controller = Class.$extend({
           controller.audioListHandler.show();  // show audio list
         }
         // update player
+        controller.player.setDisplayMode("timing");
         controller.player.updateSegsPos();  // mode change, update segs positions
-        //controller.player.setDisplayMode("timing");
       }); // display timing slots
     }
   },
