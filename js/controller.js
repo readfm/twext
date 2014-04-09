@@ -761,7 +761,7 @@ Controller = Class.$extend({
   * On document keydown.
   */
   handleDocumentKeydown: function(e) {
-    if(!e.ctrlKey && !e.altKey && !e.shiftKey && e.keyCode != keys['f2'] && e.keyCode != keys['f4'] && e.keyCode != keys['f9'] && e.keyCode != keys['f8']) {
+    if(!e.ctrlKey && !e.altKey && !e.shiftKey && e.keyCode != keys['f2'] && e.keyCode != keys['f4'] && e.keyCode != keys['f5'] && e.keyCode != keys['f6'] && e.keyCode != keys['f9'] && e.keyCode != keys['f8']) {
       if(!this.tapTimer.isTapping) this.tapTimer.start(e);
       else this.tapTimer.tap(e);
     }
