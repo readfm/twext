@@ -193,9 +193,11 @@ ToggleHandler = Class.$extend({
     for(; i<codes.length; i++) {
       langIx = this.toggle_data.findByLanguageCode(codes[i]); // check if language exist
       if(langIx == -1) {  // language not found, translate from bing if supported
-        if($.inArray(codes[i], nonBing_languages_codes) == -1) this.translate(this.toggle_data.sourceText, codes[i], codes, i);
+        if($.inArray(codes[i], nonBing_languages_codes) == -1) {
+          this.translate(this.toggle_data.sourceText, codes[i], codes, i);
+          return;
+        }
         else this.addNonBingLanguages([codes[i]]);  // add this non bing language to toggle_data
-        return;
       }
     } // end for
 
