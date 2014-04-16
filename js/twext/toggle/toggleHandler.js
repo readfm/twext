@@ -164,6 +164,8 @@ ToggleHandler = Class.$extend({
           for(ver in translations[lang]) {
             verIx = this.toggle_data.addVersion(langIx, ver, translations[lang][ver]);
             if(translations[lang][ver].nNs) this.twextArea.loadToAllChunks(langIx, verIx, translations[lang][ver].nNs);//load lang chunks to twextArea
+            // load image if exists
+            if(lang == "img") controller.loadImage(translations[lang][ver].value.split('\n')[0]);
           } // end for
         } // end if
       } // end for
@@ -193,7 +195,7 @@ ToggleHandler = Class.$extend({
     for(; i<codes.length; i++) {
       langIx = this.toggle_data.findByLanguageCode(codes[i]); // check if language exist
       if(langIx == -1) {  // language not found, translate from bing if supported
-        if($.inArray(codes[i], nonBing_languages_codes) == -1) {
+        if($.inArray(codes[i], nonBing_languages_codes) == -1 && codes[i] != "img") {
           this.translate(this.toggle_data.sourceText, codes[i], codes, i);
           return;
         }

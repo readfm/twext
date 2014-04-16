@@ -45,8 +45,15 @@
 
 /* Container of video */
 #videoContainer {
-  /*display: none;*/
+  display: none;
   background-color: black;
+}
+
+/* Image container */
+#imgContainer {
+  display: none;
+  background-color: black;
+  height: 80px;
 }
 
 /* Normal view of container */
@@ -56,5 +63,15 @@
 
 /* Gif view of container */
 #videoContainer.gif-view {
+  padding-top: 15px;
+}
+
+/* Normal view of container */
+#imgContainer.normal-view {
+  padding-top: 0px;
+}
+
+/* Gif view of container */
+#imgContainer.gif-view {
   padding-top: 15px;
 }

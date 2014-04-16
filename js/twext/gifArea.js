@@ -11,7 +11,7 @@ GifArea = Class.$extend({
     this.header = $('#gif-header'); // gif header
     this.container = $('#playerContainer'); // container element
     this.twextArea = twextArea; // twextArea object
-    this.video = null; // video object
+    this.resource = null; // resource object (video or image)
     this.aligner = new SpanAligner(); // spanAigner object
   },
 
@@ -26,13 +26,18 @@ GifArea = Class.$extend({
   * Show gif area.
   */
   show: function() {
-    var media = controller.getMedia();  // get current media object
-    if(!media || !media instanceof Video) return; // if no video, no gif
+    var resource = null;
+    var media = controller.getMedia();
+    var image = controller.image;
+    if(media instanceof Video) resource = media;
+    else if(image.isOn()) resource = image;
+    else return;
 
-    this.video = media; // set video
+    this.resource = resource;
+    this.resource.height(390);  // set resource height
+    this.resource.container[0].className = "gif-view";  // change class of resource container
+
     this.container.height(400); // set gif container height
-    this.video.height(390);  // set video height
-    this.video.videoContainer[0].className = "gif-view";  // change class of video container
     this.area.className = this.twextArea.area.className;  // transfer current font from twext area to gif area
     $(this.area).show();  // show gif area
     this.header.show();  // show gif header
@@ -42,9 +47,10 @@ GifArea = Class.$extend({
   * Hide gif area.
   */
   hide: function() {
-    this.container.height(80);  // set container height back to normal
-    this.video.height(80); // set video height back to normal
-    this.video.videoContainer[0].className = "normal-view"; // change class of video container back to normal
+    this.resource.height(80);  // set resource height
+    this.resource.container[0].className = "normal-view";  // change class of resource container
+
+    this.container.height(80); // set gif container height
     this.twextArea.area.className = this.area.className;  // transfer current font from gif area to twext area
     $(this.area).hide(); // hide gif area
     this.header.hide(); // hide header

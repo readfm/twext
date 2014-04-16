@@ -10,6 +10,7 @@ Controller = Class.$extend({
     // Initialize objects
     this.video = new Video(); // video object
     this.audio = new Audio(); // audio object
+    this.image = new Image(); // image object
     this.languageMenu = new LanguageMenu(langs);  // create language menu object to handle menu features
     this.syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
     this.twextArea = new TwextArea();  // create TwextArea object to represent the contenteditable element
@@ -244,6 +245,28 @@ Controller = Class.$extend({
   },
 
   /**
+  * Load Image with given url.
+  * @param 'url' image url
+  */
+  loadImage: function(url) {
+    var media = this.getMedia();
+    if(media && media instanceof Video) return; // do not show image if there is a video
+    var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/; // url pattern
+    if(!url || !re.test(url)) return;
+
+    this.image.load(url); // load image url to image object
+    this.image.show();  // show image
+
+    // save image to fb
+    //var text = TwextUtils.textToFbKey(this.toggleHandler.toggle_data.sourceText);
+    //this.image.save(text);
+    // update image version in toggle_data
+    //var lang = this.toggleHandler.toggle_data.findByLanguageCode("img");
+    //var data = {value: url, nN: ""};
+    //this.toggleHandler.toggle_data.updateVersion(lang, 0, data);
+  },
+
+  /**
   * Load video with the url typed in the text input.
   * Save the video/text mapping into firebase
   */
@@ -257,6 +280,7 @@ Controller = Class.$extend({
       this.video.load(params['id'], params['loopFrom'], params['loopTo'], function(loaded) {  // callback after loading video
         if(loaded) {  // video loaded
           controller.hideMsg();  // hide video message
+          controller.image.clear();
           controller.video.show();  // show video
           controller.saveVideo(link); // save video to firebase
           controller.audioListHandler.hide(); // hide audio list if exist
@@ -271,6 +295,10 @@ Controller = Class.$extend({
       this.video.clear(); // clear video data
       this.saveVideo(null);  // save empty video in fireabse
       controller.audioListHandler.show(); // show audio list if video cleared
+      // load image if exist
+      var langIx = controller.toggleHandler.toggle_data.findByLanguageCode("img");
+      var img = controller.toggleHandler.toggle_data.getLanguageVersion(langIx, 0);
+      if(img) controller.loadImage(img.data.value.split('\n')[0]);
     }
     //player.resetSegments();
   },
@@ -468,7 +496,8 @@ Controller = Class.$extend({
   * Gif area is an area shows current Text/Twext lines played with zoomed video.
   */
   normalOrGifView: function(e) {
-    if(!(this.getMedia() instanceof Video)) return;
+    var media = this.getMedia();
+    if(!(media && media instanceof Video) && !this.image.isOn()) return;
 
     if(this.twextArea.isVisible()) {  // in normal view, switch to gif
       $('#control-data-bar').hide();  // hide control data bar
@@ -648,6 +677,9 @@ Controller = Class.$extend({
     // clear media data
     var media = this.getMedia();
     if(media) media.clear();
+
+    // clear image
+    this.image.clear();
 
     // clear and hide audio list
     this.audioListHandler.empty();

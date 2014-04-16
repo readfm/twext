@@ -32,7 +32,8 @@ var languages = {
   "el": "\u03b5\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac", // GREEK
   "ru": "pycc\u043A\u0438\u0439 \u044F\u0437\u044B\u043A", // RUSSIAN
   "zh-CN": "\u4e2d\u6587",  // CHINESE
-  "th": "\u0e44\u0e17\u0e22"  // THAI
+  "th": "\u0e44\u0e17\u0e22",  // THAI
+  "img": "Image"  // to add an image resource
 };
 
 /**

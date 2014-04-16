@@ -7,7 +7,7 @@ Video = Class.$extend({
   */
   __init__: function() {
     this.video = $('#htmlVideo')[0]; // video DOM element
-    this.videoContainer = $('#videoContainer');  // video container DOM element
+    this.container = $('#videoContainer');  // video container DOM element
     this.id = null; // video id, videos are saved on server at the path "/draft/textime/videos/" in the form id.mp4
     this.startTime = -1; // play start time
     this.endTime = -1; // play end time
@@ -67,7 +67,7 @@ Video = Class.$extend({
   * Show video.
   */
   show: function() {
-    this.videoContainer.show();
+    this.container.show();
     $('#playerContainer').show();
   },
 
@@ -75,7 +75,7 @@ Video = Class.$extend({
   * Hide video.
   */
   hide: function() {
-    this.videoContainer.hide();
+    this.container.hide();
     $('#playerContainer').hide();
   },
 

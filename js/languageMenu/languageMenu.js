@@ -25,11 +25,17 @@ LanguageMenu = Class.$extend({
     // load languages
     var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"en":"english", ....}) sorted by keys
     $.each(selectValues, function(key, value) {  // loop languages
-      langMenu.element
+      if(key != "img") langMenu.element
          .append($("<option></option>")
          .attr("value",key) // set the value of the option to language code
          .text(value)); // set the text of the option to language name
     });
+
+    // Add Image key to allow user to enter image url as twext. Image is added at the end of bing languages
+    this.element
+     .append($("<option></option>")
+     .attr("value", "img") // set the value of the option to image code
+     .text(selectValues["img"])); // set the text of the option to image name
 
     // load non bing languages
     var nonBingSelectValues = Object.sortAssoc(nonBingLanguages); // get non bing languages object sorted by keys
