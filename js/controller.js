@@ -501,6 +501,7 @@ Controller = Class.$extend({
 
     if(this.twextArea.isVisible()) {  // in normal view, switch to gif
       $('#control-data-bar').hide();  // hide control data bar
+      $('#url-list-controls').hide();  // hide url list control
       $('#mediaInputLinkContainer').hide();  // hide videoUrl input
       this.twextArea.hide();  // hide twextArea
       this.gifArea.show();  // show gif area
@@ -509,6 +510,7 @@ Controller = Class.$extend({
       this.updateGifAreaContent();
     } else {  // in gif view switch to normal
       $('#control-data-bar').show();  // show control data bara
+      $('#url-list-controls').show();  // show url list control
       if(this.twextArea.textMode() == "timing") $('#mediaInputLinkContainer').show();
       this.twextArea.show();  // show twext area
       this.gifArea.hide();  // hide gif area
@@ -626,6 +628,8 @@ Controller = Class.$extend({
 
     // realign chunks on resize
     this.twextArea.realign();
+
+    if(this.gifArea.isVisible()) this.gifArea.resize();
     // realign chunks, if text is in playing, unhighlight current seg before align so that the span doesn't mess with spanAligner
     /*var playing = player.isPlaying() || player.isTapTiming();
     var clazz = player.unhighlightSeg();  // unhighlight current seg

@@ -182,9 +182,17 @@ Video = Class.$extend({
   },
 
   /**
+  * Set Width of the video.
+  */
+  width: function(w) {
+    $(this.video).attr("width", w);
+  },
+
+  /**
   * Set Height of the video.
   */
   height: function(h) {
+    this.container.height(h);
     $(this.video).height(h);
   }
 });

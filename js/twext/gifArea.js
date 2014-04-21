@@ -22,6 +22,13 @@ GifArea = Class.$extend({
     return $(this.area).is(':visible');
   },
 
+  resize: function() {
+    this.resource.width("100%");
+    var p = parseInt($(this.resource.container).css("padding-top"));
+    var h = document.documentElement.clientHeight-p;
+    this.resource.height(h);
+  },
+
   /**
   * Show gif area.
   */
@@ -34,11 +41,11 @@ GifArea = Class.$extend({
     else return;
 
     this.resource = resource;
-    this.resource.height(390);  // set resource height
     this.resource.container[0].className = "gif-view";  // change class of resource container
-
-    this.container.height(400); // set gif container height
     this.area.className = this.twextArea.area.className;  // transfer current font from twext area to gif area
+
+    this.resize();  // update resource width and height
+
     $(this.area).show();  // show gif area
     this.header.show();  // show gif header
   },
@@ -47,10 +54,13 @@ GifArea = Class.$extend({
   * Hide gif area.
   */
   hide: function() {
+    // update resource width and height
+    if(this.resource instanceof Image) this.resource.width(null);
+    else if(this.resource instanceof Video) this.resource.width(600);
     this.resource.height(80);  // set resource height
-    this.resource.container[0].className = "normal-view";  // change class of resource container
-
     this.container.height(80); // set gif container height
+
+    this.resource.container[0].className = "normal-view";  // change class of resource container
     this.twextArea.area.className = this.area.className;  // transfer current font from gif area to twext area
     $(this.area).hide(); // hide gif area
     this.header.hide(); // hide header

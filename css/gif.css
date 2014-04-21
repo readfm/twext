@@ -22,7 +22,7 @@
 #gif-data-show {
   display: none;
   position: absolute;
-  width: 600px;
+  width: 100%;
   height: 30px;
   padding-top: 5px;
   color: #f2f2f2;
@@ -43,6 +43,6 @@
   background-image: -moz-linear-gradient(rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0));
   position: absolute;
   margin-top: 15px;
-  width: 600px;
+  width: 100%;
   height: 20px;
 }

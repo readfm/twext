@@ -1,11 +1,18 @@
 body {
-  padding: 2px;
   background-color: white;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 
 a {
   text-decoration: none;
   cursor: pointer;
+}
+
+#main {
+  display: none;
+  width: 100%;
 }
 
 /* Twext area */
@@ -24,6 +31,7 @@ a {
   font-family: arial;
   font-size: 8px;
   padding-left: 15px;
+  padding-top: 8px;
 }
 
 #audio-list {
@@ -48,6 +56,7 @@ a {
   font-size: 8px;
   padding-left: 15px;
   padding-top: 2px;
+  position: absolute;
 }
 
 /* Url list link style */

@@ -44,6 +44,14 @@ Image = Class.$extend({
   },
 
   /**
+  * Set Width of the image.
+  */
+  width: function(w) {
+    if(w) $(this.image).attr("width", w);
+    else $(this.image).removeAttr("width");
+  },
+
+  /**
   * Set Height of the image.
   */
   height: function(h) {

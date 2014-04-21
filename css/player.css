@@ -38,40 +38,49 @@
 /* Container of video and gif */
 #playerContainer {
   display: none;
-  width: 600px;
+  width: 100%;
   height: 80px;
-  padding-top: 3px;
 }
 
 /* Container of video */
 #videoContainer {
   display: none;
   background-color: black;
+  width: 100%;
 }
 
 /* Image container */
 #imgContainer {
   display: none;
-  background-color: black;
   height: 80px;
 }
 
 /* Normal view of container */
 #videoContainer.normal-view {
   padding-top: 5px;
+  margin-left: 15px;
+  width: 600px;
 }
 
 /* Gif view of container */
 #videoContainer.gif-view {
   padding-top: 15px;
+  padding-left: 0;
+  width: 100%;
 }
 
 /* Normal view of container */
 #imgContainer.normal-view {
   padding-top: 0px;
+  background-color: white;
+}
+
+#imgContainer.normal-view  img{
+  padding-left: 15px;
 }
 
 /* Gif view of container */
 #imgContainer.gif-view {
   padding-top: 15px;
+  background-color: black;
 }
