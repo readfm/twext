@@ -423,6 +423,10 @@ ToggleHandler = Class.$extend({
       firebaseHandler.get("urlMapping/"+this.toggle_data.url, function(data) {
         if(data) {  // url mapping found
           window.history.pushState("", document.title, "#" + toggle.toggle_data.url); // display url
+
+          // add viewed url to hot list
+          var urlListHandler = controller.getUrlListHandler();
+          urlListHandler.saveToHotList({url: toggle.toggle_data.url, text: data.text});
         } else {
           // reset the url cos mapping no more exist
           toggle.toggle_data.url = null;
