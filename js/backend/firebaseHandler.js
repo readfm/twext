@@ -47,7 +47,8 @@ FirebaseHandler = Class.$extend({
   * @return name of saved data
   */
   push: function(ref, data) {
-    return new Firebase(this.firebaseRef+ref).push(data);
+    var addedRef = new Firebase(this.firebaseRef+ref).push(data);
+    return addedRef.name();
   },
 
   /**

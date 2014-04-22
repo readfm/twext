@@ -372,6 +372,37 @@ Controller = Class.$extend({
   },
 
   /**
+  * Load/Delete url.
+  * Either the event is fired from hot or all list, in case of delete, url element must be deleted from them both.
+  */
+  loadDeleteUrl: function(e) {
+    var url = e.target.id.split("-")[1];
+    if(e.shiftKey && e.ctrlKey) {
+      this.deleteUrl(url);
+    } else {
+      window.location.hash = "#"+url; // change hash, fire hashchange event
+    }
+  },
+
+  /**
+  * Delete url data.
+  */
+  deleteUrl: function(url) {
+    var allUrlObj = this.urlListHandler.getAllUrlObj(url);
+    var hotUrlObj = this.urlListHandler.getHotUrlObj(url);
+
+    // Delete url from all and hot lists (history)
+    this.urlListHandler.deleteUrlFromLists(url);
+
+    // delete url mapping
+    firebaseHandler.remove("urlMapping/"+url);
+
+    // delete url text data
+    var text = TwextUtils.textToFbKey(allUrlObj.text);  // all and hot urls have same text
+    firebaseHandler.remove("data/"+text);
+  },
+
+  /**
   * Save video/text mapping into firebase.
   * @param 'url' video link to be saved
   */
@@ -393,7 +424,7 @@ Controller = Class.$extend({
     this.audio.id = id;
     var data = {id:this.audio.id, timings: this.tapTimer.timings};
     if(url) {
-      var name = firebaseHandler.push("urlMapping/"+url+"/audios", data).name();
+      var name = firebaseHandler.push("urlMapping/"+url+"/audios", data);
       this.audio.key = name;
       // add audio link to list
       this.audioListHandler.addToList(name, data);
