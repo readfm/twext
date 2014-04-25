@@ -373,15 +373,14 @@ Controller = Class.$extend({
   },
 
   /**
-  * Load/Delete url.
-  * Either the event is fired from hot or all list, in case of delete, url element must be deleted from them both.
+  * Delete url if shift+ctrl+click.
+  * Either the event is fired from hot or all list, url element must be deleted from them both.
   */
-  loadDeleteUrl: function(e) {
+  checkDeleteUrl: function(e) {
     var url = e.target.id.split("-")[1];
     if(e.shiftKey && e.ctrlKey) {
+      e.preventDefault();
       this.deleteUrl(url);
-    } else {
-      window.location.hash = "#"+url; // change hash, fire hashchange event
     }
   },
 

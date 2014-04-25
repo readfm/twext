@@ -37,12 +37,15 @@ UrlListHandler = Class.$extend({
     var q = ref.endAt().limit(this.allListLimit);  // query to retrieve the last 1000 entries
     firebaseHandler.query(q, function(data) {  // query firebase for data
       //listHandler.allList = Object.toArray(data);  // cache the retrived list
-      var aEl = "", text = "";
+      var aEl = "", text = "", ref = "";
+      var currentRef = window.location.href.split('#')[0];
       for(var key in data) {
+        ref = currentRef + "#" + data[key].url;
         listHandler.allList[data[key].url] = {name: key, text: data[key].text};
         // fill list element
         text = TwextUtils.textToOneline(data[key].text);  // put the text in the form of oneline
-        aEl = "<br><a id='all-" + data[key].url + "' onclick='controller.loadDeleteUrl(event);'>" + text + "</a>"; // create link element
+        // create link element
+        aEl = "<br><a href='" + ref + "' id='all-" + data[key].url + "' onclick='controller.checkDeleteUrl(event);'>" + text + "</a>";
         listHandler.allListEl.prepend(aEl); // append to All list
       }
       //listHandler.fillAllListElement(); // create link for each entry of the list and append to the dom list element
@@ -75,13 +78,14 @@ UrlListHandler = Class.$extend({
     var q = ref.endAt().limit(this.hotListLimit);  // query to retrieve the last 10 entries
     firebaseHandler.query(q, function(data) {  // query firebase for data
       //listHandler.hotList = Object.toArray(data);  // cache the retrived list
-      var aEl = "", text = "";
+      var aEl = "", text = "", ref = "";
+      var currentRef = window.location.href.split('#')[0];
       for(var key in data) {
-        //listHandler.hotList.unshift({url: data[key].url, text: data[key].text, name: key});  // save data in reverse order(as will be displayed)
+        ref = currentRef + "#" + data[key].url;
         listHandler.hotList[data[key].url] = {name: key, text: data[key].text};
         // fill list element
         text = TwextUtils.textToOneline(data[key].text);
-        aEl = "<br><a id='hot-" + data[key].url+ "' onclick='controller.loadDeleteUrl(event);'>" + text + "</a>";
+        aEl = "<br><a href='" + ref + "' id='hot-" + data[key].url+ "' onclick='controller.checkDeleteUrl(event);'>" + text + "</a>";
         listHandler.hotListEl.prepend(aEl); // append to all list
       }
       //listHandler.fillHotListElement(); // create link for each entry of the list and append to the dom list element
@@ -126,8 +130,11 @@ UrlListHandler = Class.$extend({
   saveToAllList: function(data) {
     if(!data) return;
 
+    var currentRef = window.location.href.split('#')[0];
+    var ref = currentRef + "#" + data.url;
     var name = firebaseHandler.push("dataHistory/allList", data);  // push generated url to history list
-    var aEl = "<br><a id='all-" + data.url + "' onclick='controller.loadDeleteUrl(event);'>" + data.text + "</a>"; // create link element
+    // create link element
+    var aEl = "<br><a href='" + ref + "' id='all-" + data.url + "' onclick='controller.checkDeleteUrl(event);'>" + data.text + "</a>";
     this.allListEl.prepend(aEl); // append to all list
     this.allList[data.url] = {name: name, text: data.text};  // Update allList object
   },
@@ -149,8 +156,10 @@ UrlListHandler = Class.$extend({
       this.deleteFromHotList(lastUrl);
     }
     // add url to hot list
+    var currentRef = window.location.href.split('#')[0];
+    var ref = currentRef + "#" + data.url;
     var name = firebaseHandler.push("dataHistory/hotList", data);  // push generated url to history list
-    var aEl = "<br><a id='hot-" + data.url+ "' onclick='controller.loadDeleteUrl(event);'>" + data.text + "</a>";
+    var aEl = "<br><a href='" + ref + "' id='hot-" + data.url+ "' onclick='controller.checkDeleteUrl(event);'>" + data.text + "</a>";
     this.hotListEl.prepend(aEl); // add to top of hot list
     this.hotList[data.url] = {name: name, text: data.text}; // add to hotList object
 
