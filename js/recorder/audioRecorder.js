@@ -89,35 +89,10 @@ AudioRecorder = Class.$extend({
       $(audioObj.audio).bind("canplaythrough", function() {
         audioObj.startTime = 0; // set audio start time
         audioObj.endTime = audioObj.duration();  // set audio end time
-        controller.showMsg("Saving audio...");
-        // upload recorded audio to server
-        audioRecorder.uploadRecording(s);
-        callback(true); // return
+        callback(); // return
         $(audioObj.audio).unbind("canplaythrough");
       });
     });
     this.recorder.clear();  // clear audio data
-  },
-
-  /**
-  * Upload recorded blob audio file to server.
-  */
-  uploadRecording: function(blob) {
-    var formData = new FormData();
-    formData.append('blob', blob);
-    $.ajax({
-      type: 'POST',
-      url: 'php/uploadBlob.php',
-      data: formData,
-      processData: false,
-      contentType: false
-    }).done(function(id) {
-      if(id) {
-        id = id.split('.')[0];  // remove .wav to save only audio id in firebase
-        controller.saveAudio(id); // save audio data
-      } else {
-        console.log("Error uploading recording to server");
-      }
-    });
   }
 });

@@ -8,15 +8,6 @@ TapTimer = Class.$extend({
   __init__: function(twextArea, audio) {
     this.timings = null;  // cached timing lines string
     this.sourceText = null; // source text
-    this.keys = { // keys used for tapping
-      'a': 65,  // start timer
-      's': 83,
-      'd': 68,
-      'f': 70,
-      'j': 74,
-      'k': 75,
-      'l': 76
-    };
     this.tapDate = null;  // The date of the last tap, used to calculate number of seconds between previous and current taps
     this.player = null; // player object
     this.twextArea = twextArea; // twextArea object
@@ -46,53 +37,12 @@ TapTimer = Class.$extend({
     if(isNewText) {  // new text
       // Create timing slots for this new text
       this.sourceText = text; // set source text
-      var url = window.location.hash?window.location.hash.slice(1):null;
-      if(url) {
-        var media = controller.getMedia();
-        if(media instanceof Audio) ref = "urlMapping/"+url+"/audios/"+media.key+"/timings";
-        else ref = "urlMapping/"+url+"/timings";
-        firebaseHandler.get(ref, function(data) {
-          if(data) {  // timings exist
-            timer.timings = data;
-            callback(data);
-          } else {  // timings not exsist, create fake timings
-            var fakeTimings = timer.createFakeTimings(hText);
-            timer.timings = fakeTimings;  // cache timings string
-            callback(fakeTimings);
-
-            // Save fakeTimings into firebase
-            firebaseHandler.set(ref, fakeTimings);
-          }
-        });
-      } else {  // new text with no url, create fake timings
-        var fakeTimings = this.createFakeTimings(hText);
-        this.timings = fakeTimings;  // cache timings string
-        callback(fakeTimings);
-      }
+      var fakeTimings = this.createFakeTimings(hText);
+      this.timings = fakeTimings;  // cache timings string
+      callback(fakeTimings);
     } else {  // old text, return cached timing
       callback(this.timings);
     }
-  },
-
-  /**
-  * Save timings into firebase.
-  */
-  saveTimings: function(text, timings) {
-    var ref;
-    var url = controller.toggleHandler.toggle_data.url?controller.toggleHandler.toggle_data.url:null;
-    if(url) {
-      var media = controller.getMedia();
-      if(media instanceof Audio) {
-        ref = "urlMapping/"+url+"/audios/"+media.key+"/timings";
-      } else {
-        ref = "urlMapping/"+url+"/timings";
-      }
-      firebaseHandler.set(ref, timings);
-    }   
-
-    // update class data
-    this.sourceText = text;
-    this.timings = timings;
   },
 
   /**
@@ -141,13 +91,7 @@ TapTimer = Class.$extend({
     this.player.currentSeg = {line: 0, seg: 0}; // set player current seg to the first seg to start tapping
     this.player.setNextSeg();  // set next seg
     this.player.highlightSeg(this.player.currentSeg, this.TIMER_CSS_CLASS); // highlight segment with start timer class
-    // If there is a video, tap with video, if not then start recording an audio
-    if(this.player.media instanceof Video) {
-      this.player.media.setSeekedTo(-1);  // reset seek to start video from start
-      this.player.media.play(); // play video
-    } else {
-      this.audioRecorder.start(); // start recording audio if mic is on
-    }
+    this.audioRecorder.start(); // start recording audio if mic is on
   },
 
   /**
@@ -164,7 +108,7 @@ TapTimer = Class.$extend({
     var currentSeg = this.player.currentSeg;  // current highlighted segment
 
     var lastSeg = this.player.getLastSeg(); // get the last seg to compare with current seg
-    if(currentSeg.line == lastSeg.line && currentSeg.seg == lastSeg.seg) {
+    if(currentSeg.line == lastSeg.line && currentSeg.seg == lastSeg.seg) {  // if current seg is the last one
       var timer = this;
       var diff = 1 - seconds;
       if(diff > 0) setTimeout(function(){timer.stop(e);}, diff * 1000);
@@ -190,7 +134,7 @@ TapTimer = Class.$extend({
     }
 
     // tap timing is the current time of video/audio, if no media then it's the seconds between the two taps plus previous segment timing
-    var newTiming = floatToStr(round(((this.player.media && this.player.media instanceof Video)?this.player.media.currentTime():(preSegTiming + seconds))+this.tapDelay));
+    var newTiming = floatToStr(round(preSegTiming + seconds + this.tapDelay));
     this.player.setTiming(null, newTiming); // update timing of current segment
 
     var timingsLine = this.player.getCurrentTimingLine(); // updated timing line
@@ -213,19 +157,9 @@ TapTimer = Class.$extend({
     var timer = this; // instance of taptimer to be used in callback
     this.isTapping = false; // stop tapping
     this.twextArea.enable();  // enable typing
-    if(this.player.media instanceof Video) {
+    this.audioRecorder.stop(function() {
       timer.player.restart(); // restart playing
-      // Save timings
-      timer.saveTimings(timer.sourceText, timer.timings);
-    } else {
-      this.audioRecorder.stop(function(recorded) {
-        timer.player.restart(); // restart playing
-        if(!recorded) { // save timings only if no audio recorded, because in case of a recording, the timings are saved with saving audio id.
-          // Save timings
-          timer.saveTimings(timer.sourceText, timer.timings);
-        }
-      });
-    }
+    });
   },
 
   /**

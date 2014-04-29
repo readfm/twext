@@ -11,7 +11,6 @@ Player = Class.$extend({
     this.twextArea = area;  // twext area
     this.syllabifier = syllabifier; // syllabifier object
     this.tapTimer = tapTimer; // TapTimer object, send this to be accessed by the taptimer
-    this.game = new Game(this); // Game object, send this to be accessed by the game
     this.media = null;  // video or audio
     this.currentSeg = null; // key/value obj contains line and seg number of current seg
     this.nextSeg = null;  // key/value obj contains line and seg number of next seg
@@ -31,8 +30,8 @@ Player = Class.$extend({
   play: function(text) {
     var isNewText = this.sourceText == null || this.sourceText != text; // check if text is new
     if(isNewText) { // new text
-      //this.resetSegments();
-      //twextRecorder.clearAudio();
+      controller.audio.clear(); // clear audio if exist
+      this.reset(); // reset player
       this.getSegmentsData(text); // create array of segments and timings per each Text line, this method will recall playText
       return; // return to be recalled after getting segments/timings data
     }
@@ -43,18 +42,11 @@ Player = Class.$extend({
     this.twextArea.disable();  // disable typing on the area while playing
     this.setMedia();  // set media object to either video or audio
     this.playMedia(); // play video/audio
-    /*if(videoPlayer.videoSet()) {console.log("----PLAY");
-      videoPlayer.playVideo(true);
-      //videoPlayer.loop();
-    } else twextRecorder.playAudio();*/
 
     var player = this;
     if(!this.currentSeg) {  // first run, highlight first segment after its timing period
       var currentTiming = parseFloat(this.segmentsData[0].timings[0]);  // current seg timing (first seg timing)
       var currSegTimeout = currentTiming;
-      if(this.media && this.media instanceof Video) {
-        currSegTimeout = round(currentTiming - this.media.startTime)/this.media.playbackRate;
-      }
       this.segTimeout = setTimeout(function(){player.playText();}, currSegTimeout*1000);  // highlight seg when its time is reached
     } else {
       this.playText();  // resume playing
@@ -68,65 +60,20 @@ Player = Class.$extend({
   * Animate text segments with media(audio/video if exists) according to timings.
   */
   playText: function() {
-    var playClass = "playHighlighted";  // class of played segment when game is off
-    // if game is on, if current seg is missed(not tapped) then count it with the missed segs in game
-    if(this.game.isOn()) {
-      // check if last played seg is missed, if no current seg(resetted in loop), then last played seg is last seg
-      this.game.countIfMissedSeg(this.currentSeg?this.currentSeg:this.getLastSeg());
-      if(this.game.missedSegs >= 3) { // three missed segs, show score and reset game
-        this.game.showScore();  // show score
-        this.unhighlightSeg(this.game.lastTapped); // unhighlight last tapped seg
-        this.game.reset();  // reset game
-      } else {
-        playClass = "gamePlayHighlighted";  // class of played segment when game is on
-      }
-    }
-
-    // unhighlight old seg only if it's played seg not tapped (in game)
-    var segSpan = this.currentSeg?$('#'+this.currentSeg.line+""+this.currentSeg.seg):null;
-    if(segSpan && (segSpan.attr("class") == "playHighlighted" || segSpan.attr("class") == "gamePlayHighlighted")) this.unhighlightSeg();
+    // unhighlight old seg
+    this.unhighlightSeg();
 
     this.setCurrentSeg(); // set new current segment
     this.setNextSeg();  // set new next segment
 
-    var currentSegSpan = $('#'+this.currentSeg.line+""+this.currentSeg.seg);  // current seg span, only found if game is on
-    if(currentSegSpan.attr("class") != "cue") { // if current seg is cue, don't highlight
-      // If currentSeg is highlighted (tapped in game), unhighlight
-      if(currentSegSpan.length > 0) this.unhighlightSeg();
-      // If game is on and lastTapped is Master, then turn it to Good
-      if(this.game.isOn()) {
-        if($('#'+this.game.lastTapped.line+""+this.game.lastTapped.seg).attr("class") == "master") {
-          $('#'+this.game.lastTapped.line+""+this.game.lastTapped.seg).removeClass("master");
-          $('#'+this.game.lastTapped.line+""+this.game.lastTapped.seg).addClass("good");
-          this.game.segState = "good"; // change state to good
-        } // end if
-      } // end if
-
-      // highlight the new current segment
-      this.highlightSeg(null, playClass);
-    }
-
-    // update gif area if visible
-    if(!this.twextArea.isVisible()) {
-      if(this.currentSeg.seg == 0) {  // first seg in line, update text/twext lines and realign
-        controller.updateGifAreaContent();
-      } else {
-        controller.updateGifAreaTextLine(); // update text line
-      }
-    }
-
-    // Display current seg timing
-    var currentTiming = floatToStr(this.segmentsData[this.currentSeg.line].timings[this.currentSeg.seg]); // current timing
-    this.game.showSegTimeLabel(currentTiming, "timeFade");
+    // highlight the new current segment
+    this.highlightSeg();
 
     // set the timout for the segment for how long current seg is highlighted
     var player = this;  // instance of this used in setTimeout
     var timeout = this.calculateCurrentSegTimeout(); // get seg timeout for current seg
     if(timeout == -1) return;
 
-    if(this.media && this.media instanceof Video) {
-      timeout = timeout/this.media.playbackRate;  // consider playbackRate of the video
-    }
     this.segTimeout = setTimeout(function(){player.playText();}, timeout*1000);
   },
 
@@ -148,15 +95,10 @@ Player = Class.$extend({
       var lastSeg = this.getLastSeg();  // last segment
       var lastSegTiming = parseFloat(this.segmentsData[lastSeg.line].timings[lastSeg.seg]);  // last seg timing
       playPeriod = lastSegTiming - currentSegTiming + this.endTiming;  // period of all segments playing + last segment highlight period
-    } else if(this.media instanceof Video) {
-      playPeriod = (this.media.endTime - this.media.seekedTo)/this.media.playbackRate;  // video loop period
     } else if(this.media instanceof Audio) {
       playPeriod = this.media.seekedTo != -1?this.media.duration()-this.media.seekedTo:this.media.duration(); // audio duration
     }
     this.loopTimeout = setTimeout(function(){player.restart();}, playPeriod*1000); // repeat
-
-    // reset tapped segs in game if on
-    if(this.game.isOn()) this.game.tappedSegs = [];
   },
 
   /**
@@ -165,10 +107,7 @@ Player = Class.$extend({
   restart: function() {
     this.pause();
     if(this.media) this.media.setSeekedTo(-1);  // to start from the start time
-    //this.unhighlightSeg();  // unhighlight current seg if exists
     this.currentSeg = this.nextSeg = null;  // reset first and next segments
-    //clearTimeout(this.segTimeout); // clear seg timeout
-    //clearTimeout(this.loopTimeout); // clear loopTimout
     this.play(this.sourceText);  // play
   },
 
@@ -180,7 +119,6 @@ Player = Class.$extend({
     this.twextArea.enable(); // enable typing on the area
 
     this.unhighlightSeg();  // unhighlight current seg
-    if(this.game.isOn()) this.unhighlightSeg(this.game.lastTapped); // unhighlight last tapped seg if game is on
 
     if(this.media) {
       this.media.pause();  // pause video/audio
@@ -292,7 +230,7 @@ Player = Class.$extend({
   getTextNode: function(seg) {
     var segment = seg?seg:this.currentSeg;
     if(this.displayMode == "textonly")  return segment.line;  // only text lines displayed
-    else if(this.displayMode == "twext" || this.displayMode == "timing")  return segment.line*2;  // paired lines displayed
+    else if(this.displayMode == "timing")  return segment.line*2;  // paired lines displayed
     return -1;  // invalid mode
   },
 

@@ -2,19 +2,6 @@
 * Global objects.
 */
 var controller, firebaseHandler;
-var keys = {
-  //'enter': 13,
-  //';': 186,
-  //'space': 32,
-  '+': 187,
-  '-': 189,
-  'f4': 115,
-  'f5': 116,
-  'f6': 117,
-  'f2': 113,
-  'f8': 119,
-  'f9': 120
-};
 
 /**
 * Initialize data on document load.
@@ -41,58 +28,37 @@ $(document).ready(function() {
       var text = e.clipboardData.getData("text/plain"); // get text to paste
       document.execCommand("insertHTML", false, text);  // append pasted text to element
       var area = controller.twextArea;
-	  var caret = area.getCaretPos();	// get current cursor pos
+      var caret = area.getCaretPos();	// get current cursor pos
       text = area.value();  // text after paste
       // drop off characters more than the limit
-	  var mode = area.textMode();
-	  if(mode == "twext" || mode == "timing") area.renderPairedLines(text.split('\n'), mode);
+      var mode = area.textMode();
+      if(mode == "timing") area.renderPairedLines(text.split('\n'), mode);
       else if(mode == "textonly") {
-		if(text.length > area.limit) text = text.substring(0, area.limit);
-		area.renderLines(text.split('\n'));
-	  }
-	  area.setCaretPos(caret.lines, caret.offset);	// set cursor back to its position
+      if(text.length > area.limit) text = text.substring(0, area.limit);
+        area.renderLines(text.split('\n'));
+      }
+      area.setCaretPos(caret.lines, caret.offset);	// set cursor back to its position
     });
 
     // Attach window events
     $(window).bind("resize", $.proxy(controller.handleWindowResize, controller)); // window resize event
     $(window).bind("load", $.proxy(controller.handleWindowLoad, controller)); // window load event
-    $(window).bind("beforeunload", $.proxy(controller.handleWindowBeforeUnload, controller)); // window refresh/close event
-    $(window).bind("hashchange", $.proxy(controller.handleWindowHashChange, controller)); // window hash change event
 
     // Attch document events
-    $(document).bind("keydown","f8", $.proxy(controller.fetchTranslations, controller));  // F8 key down event, Get translations of area text
-    //$(document).bind("keydown","alt+F8", $.proxy(controller.toggleLangDown, controller)); // Alt+F8 keys down event, Switch to previous language
     $(document).bind("keydown","f4", $.proxy(controller.textOnlyTimingToggle, controller));  // F4 key down event, Turn timings on/off
-    $(document).bind("keydown", "f9", $.proxy(controller.switchStateUrlList, controller)); // F9 keydown event, Show/Hide url list
-    //$(document).bind("keydown", "f7", $.proxy(controller.showHideLangMenu, controller)); // F7 keydown event, Show/Hide language menu
     $(document).bind("keydown", "f2", $.proxy(controller.playPauseText, controller));  // F2 keydown event, play/pause text with media
     $(document).bind("keydown", "ctrl+space", $.proxy(controller.playPauseText, controller)); //ctrl+space keydown event, Play/Pause text with media
     $(document).bind("keydown", "space", $.proxy(controller.pauseText, controller)); // Alt+F2 keydown event, pause text
-    //$(document).bind("keydown", "h", $.proxy(controller.playFast, controller)); // h keydown event, play in fast rate
-    //$(document).bind("keydown", "g", $.proxy(controller.playSlow, controller)); // g keydown event, play in slow rate
-    $(document).bind("keydown", "alt+F2", $.proxy(controller.normalOrGifView, controller)); // Alt+F2 keydown event, switch to/from gif/normal view
     $(document).bind("keydown", "alt+F7", $.proxy(controller.switchFontType, controller)); //Alt+F7 keydown event,switch font monospace/proportional
     $(document).bind("keydown", $.proxy(controller.handleDocumentKeydown, controller)); // On document keydown
 
     // Attach twext area events
-    //$('#data-show').bind("paste", $.proxy(controller.handlePaste, controller)); // on area paste event
-    $('#data-show').bind("keydown", "space", $.proxy(controller.handleSpaceKeydown, controller)); // on area space keydown event
     $('#data-show').bind("keydown", "backspace", $.proxy(controller.handleBackspaceKeydown, controller)); // on area backspace keydown event
     $('#data-show').bind("keydown", $.proxy(controller.handleAreaKeydown, controller)); // on area keydown event
     $('#data-show').bind("keyup", $.proxy(controller.handleAreaKeyup, controller));  // on area keyup event
 
-    //$('#data-bar-f8, #data-bar-language').bind("click", $.proxy(controller.fetchTranslations, controller));  // Get translations of area text
-    //$('#data-bar-f7, #data-bar-heart').bind("click", $.proxy(controller.showHideLangMenu, controller)); // show/hide language menu
     $('#data-bar-f4, #data-bar-timing').bind("click", $.proxy(controller.textOnlyTimingToggle, controller));  // switch on/off timings
-    $('#url-list-f9, #url-list-label').bind("click", $.proxy(controller.switchStateUrlList, controller));  // show/hide url list
     $('#data-bar-f2, #data-bar-play').bind("click", $.proxy(controller.playPauseText, controller)); // play/pause text with media
-
-    // Bind hide language menu event
-    //$(document).bind("keydown", "esc", $.proxy(controller.hideLangMenu, controller)); // esc keydown event, Hide language menu
-    //$(document).bind("click", $.proxy(controller.hideLangMenu, controller)); // hide language menu when click ouside
-
-    // Load video on typing the url
-    $('#mediaInputLink').bind("change", $.proxy(controller.loadVideo, controller));
   }
 
   // initialize data objects and bind events

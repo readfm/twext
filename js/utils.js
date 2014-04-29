@@ -12,40 +12,7 @@ Array.prototype.clean = function() {
   return this;  // return array after removing empty entries
 };
 
-/**
-* Fill array with given value.
-* @return the result array
-*/
-Array.prototype.fill = function(val) {
-  for(var i = 0; i < this.length; i++) { // loop over array elements
-    this[i] = val;
-  }
-  return this;  // return result array
-};
-
 // Can't prototype Object, all objects in JavaScript are descended from Object.
-/**
-* Sort key/value object elements by values.
-* @param 'obj' the object
-* @return the sorted object
-*/
-Object.sortAssoc = function(obj) {
-  var i, key, values = new Array(), sortedObj = {};
-  // separate the keys into an array
-  for(i in obj) {
-    values.push(obj[i]);
-  }
-  // sort the keys
-  values.sort();
-
-  //build the sorted object
-  for(i=0; i < values.length; i++) {
-    key = Object.find(obj, values[i]); // find key of the value
-    sortedObj[key] = values[i];
-  }
-  return sortedObj;
-}
-
 /**
 * Get the size of a key/value object.
 * @param 'obj' the object
@@ -57,31 +24,6 @@ Object.size = function(obj) {
     if (obj.hasOwnProperty(key)) size++;  // count object elements
   }
   return size;  // return object size
-};
-
-/**
-* Search for a value in the object.
-* @param 'obj' the object
-         'value' value to be searched
-* @return key of the given value, -1 if not found
-*/
-Object.find = function(obj, value) {
-  for(var key in obj) {  // Loop over chunks array
-    if(obj[key] == value) return key; // value found, return key
-  }
-  return -1;  // value not found
-};
-
-/**
-* Get array of values from a key/value object.
-* @param 'obj' the object
-* @return array of object values
-*/
-Object.toArray = function(obj) {
-  var arr = $.map(obj, function(k, v) {
-    return [k];
-  });
-  return arr;
 };
 
 /**
@@ -140,14 +82,6 @@ function matchIndices(str, re) {
 }
 
 /**
-* Create random string of characters and digits.
-* @return random string
-*/
-function randomStr() {
-  return (((1+Math.random())*0x1000000)|0).toString(36);
-}
-
-/**
 * Round number to nearest float num with two floating digits.
 * @param 'num' the float num to be rounded
 * @return the nearest float number with two floating digits
@@ -175,85 +109,9 @@ function floatToStr(num) {
 }
 
 /**
-* Retrieve cookie from the browser.
-* @param 'c_name' the cookie name to be retrieved
-* @return the cookie value
-*/
-function getCookie(c_name) {
-  var c_value = document.cookie;  // get the document cookie
-  var c_start = c_value.indexOf(" " + c_name + "=");  //find cookie with sepcified name "with a space before,if there are other cookies before it"
-  if (c_start == -1) {  // cookie not found
-    c_start = c_value.indexOf(c_name + "=");  // find cookie with sepcified name "without a space before,if it's the first cookie"
-  }
-  if (c_start == -1) {  // cookie not found
-    c_value = null; // value is null
-  } else {  // cookie found
-    c_start = c_value.indexOf("=", c_start) + 1;
-    var c_end = c_value.indexOf(";", c_start);
-    if (c_end == -1) {
-      c_end = c_value.length;
-    }
-    c_value = unescape(c_value.substring(c_start,c_end));
-  }
-  return c_value;
-}
-
-/**
-* Set/Add cookie value in the browser.
-* @param 'c_name' the cookie name to be set
-         'value' cookie value needed to set
-         'exdays' number of days before cookie expire
-*/
-function setCookie(c_name, value, exdays) {
-  var exdate = new Date();
-  exdate.setDate(exdate.getDate() + exdays);
-  var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-  document.cookie = c_name + "=" + c_value;
-}
-
-/**
-* Count the number of spaces between the specified position and the nonspace previous caharacter.
-* @param 'str' the str
-         'pos' position where previous spaces counted
-* @return number of spaces before the pos until reach to non space character
-*/
-function countPreviousSpaces(str, pos) {
-  var spaces = 0;
-  // check the characters before the pos one at a time, break when a nonspace char is found
-  while(pos > spaces && /\s/.test(str.charAt(pos-1-spaces) ) ){
-    spaces++; // if space, increment spaces count
-  }
-  return spaces;  // return spaces
-}
-
-/**
 * Twext based Utils.
 */
 TwextUtils = {
-  /**
-  * Put text in the form of oneline.
-  * Replace newline by two spaces.
-  * @param 'text' the text to be onelined
-  * @return oneline text
-  */
-  textToOneline: function(text) {
-    return text.replace(/\ +/g, ' ').replace(/\n/g, '  ');  // remove extra spaces from text, replace newline by two spaces
-  },
-
-  /**
-  * Convert text to fb text key, were new lines are replaced by two spaces and spaces replaced by -
-  * @param 'text' the text to be converted to fb key
-  * @return oneline text in the form of fb text key
-  */
-  textToFbKey: function(text) {
-    var i, arr = [];
-    var lines = text.split("\n").clean(); // get text lines
-    for(i=0; i<lines.length; i++) {
-      arr.push(strWords(lines[i]).join('-'));
-    }
-    return arr.join('  ');  // two spaces instead of \n
-  },
-
   /**
   * Get the word number where the cursor points at its start or any character of it.
   * @param 'text' text string
@@ -273,18 +131,6 @@ TwextUtils = {
       }
     }
     return -1;  // return -1 if no word found
-  },
-
-  /**
-  * Reformat chunks from the form key/value array to the form of n:N string array; the reformatted array will be sent to spanAligner to align chunks
-  * @param 'chunks' the chunks of the current Text/Twext lines pair.
-  */
-  chunksTonN: function(chunks) {
-    var nN = [];
-    for(var key in chunks) {  // Loop over chunks key/value array
-      nN.push(key+":"+chunks[key]); // Put n,N in the form of n:N string and push it to the array
-    }
-    return nN;  // return array of n:N strings
   }
 };
 
