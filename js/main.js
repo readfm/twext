@@ -4,8 +4,6 @@
 var controller, firebaseHandler;
 var twextArea, player, syllabifier; // accessed by other modules
 var keys = {
-  'enter': 13,
-  ';': 186,
   '+': 187,
   '-': 189
 };

@@ -15,7 +15,8 @@ TapTimer = Class.$extend({
       'f': 70,
       'j': 74,
       'k': 75,
-      'l': 76
+      'l': 76,
+      ';': 186
     };
     this.tapDate = null;  // The date of the last tap, used to calculate number of seconds between previous and current taps
     this.player = null; // player object
@@ -23,6 +24,9 @@ TapTimer = Class.$extend({
     this.audioRecorder = new AudioRecorder(audio);  // audio recorder used in recording audio in tapping
     this.isTapping = false; // boolean to detect tapping start
     this.tapDelay = 0.1;  // +/- add to / subtract from each timing value
+    this.lastSegMinSec = 1; // the minimum seconds after last seg tap before playback
+    this.tapIgnore = 2; // period where retapping not allowed after tapping done
+    this.tapBlocked = false;  // if true, tap is blocked
 
     // css classes of segments
     this.TIMER_CSS_CLASS = 'timerHighlighted'; // css class of start timer
@@ -129,6 +133,7 @@ TapTimer = Class.$extend({
   start: function(e) {
     if(!this.player) this.player = controller.getPlayer();
     if(!this.player.isPlaying()) return;  // tapping only if text playing
+    if(this.tapBlocked) return; // tap not allowed
 
     e.preventDefault();
     this.tapDate = new Date(); // set start date
@@ -163,7 +168,13 @@ TapTimer = Class.$extend({
     var currentSeg = this.player.currentSeg;  // current highlighted segment
 
     var lastSeg = this.player.getLastSeg(); // get the last seg to compare with current seg
-    if(currentSeg.line == lastSeg.line && currentSeg.seg == lastSeg.seg) return; // last seg already tapped, return
+    if(currentSeg.line == lastSeg.line && currentSeg.seg == lastSeg.seg) { // stop tapping and playback after 1sec(lastSegMinSec) from last seg tap
+      var timer = this;
+      var diff = this.lastSegMinSec - seconds;
+      if(diff > 0 && !(this.player.media instanceof Video)) setTimeout(function(){timer.stop(e);}, diff * 1000);
+      else this.stop(e);
+      return;
+    }
 
     if(currentSeg.line == 0 && currentSeg.seg == 0 && $('.'+this.TIMER_CSS_CLASS).length > 0) { // first seg not yet tapped
       this.player.unhighlightSeg(currentSeg, this.TIMER_CSS_CLASS);  // unhighlight seg
@@ -199,6 +210,8 @@ TapTimer = Class.$extend({
 
     e.preventDefault();
     var timer = this; // instance of taptimer to be used in callback
+    this.tapBlocked = true; // block tapping for a certain period of time "tapIgnore"
+    setTimeout(function(){timer.tapBlocked = false;}, timer.tapIgnore*1000);  // release block on tap after a certain period of time "tapIgnore"
     this.isTapping = false; // stop tapping
     this.twextArea.enable();  // enable typing
     if(this.player.media instanceof Video) {

@@ -792,9 +792,10 @@ Controller = Class.$extend({
   * On document keydown.
   */
   handleDocumentKeydown: function(e) {
-    if(e.keyCode == this.player.tapTimer.keys['a']) this.player.tapTimer.start(e);  // start timer for tapping
-    else if($.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1 && e.keyCode != this.player.tapTimer.keys['a']) this.player.tapTimer.tap(e);  // tap segment
-    else if((e.keyCode == keys['enter'] && e.target.id != "mediaInputLink") || e.keyCode == keys[';']) this.player.tapTimer.stop(e);
+    if(!e.ctrlKey && !e.altKey && !e.shiftKey && $.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1) {
+      if(!this.tapTimer.isTapping) this.tapTimer.start(e);
+      else this.tapTimer.tap(e);
+    }
     else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1) this.player.game.play(); // play game
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['+']) this.gifTextSizeUp(e); // increase font size
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['-']) this.gifTextSizeDown(e); // decrease font size
