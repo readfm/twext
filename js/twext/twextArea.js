@@ -18,7 +18,15 @@ TwextArea = Class.$extend({
   */
   adjustLimit: function(charCode) {
     var text = this.value();
-    if(this.textMode() == "textOnly" && isTypingChar(charCode) && text.length >= this.limit) {
+    // cut out any text more than 5 lines
+    var lines = text.split('\n');
+    if(this.textMode() == "textonly" && lines.length == 5 && charCode == 13) {  // press enter for new line
+      event.stopPropagation(); // Stop the bubbling of key press event to parent elements
+      event.preventDefault(); // prevent the key press action from happening.
+      return false; // text is over limit
+    }
+
+    if(this.textMode() == "textonly" && isTypingChar(charCode) && text.length >= this.limit) {
       event.stopPropagation(); // Stop the bubbling of key press event to parent elements
       event.preventDefault(); // prevent the key press action from happening.
       return false; // text is over limit
@@ -110,6 +118,20 @@ TwextArea = Class.$extend({
   */
   enable: function() {
     $(this.area).attr('contenteditable', true);  // enable area editing
+  },
+
+  /**
+  * Show area border.
+  */
+  showBorder: function() {
+    $(this.area).css('border', '2px solid orange');
+  },
+
+  /**
+  * hide area border.
+  */
+  hideBorder: function() {
+    $(this.area).css('border', 'none');
   },
 
   /**

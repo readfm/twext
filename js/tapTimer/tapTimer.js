@@ -5,9 +5,9 @@ TapTimer = Class.$extend({
   /**
   * Initilize class variables (classy.js is used for class creation)
   */
-  __init__: function(twextArea, audio) {
-    this.timings = null;  // cached timing lines string
-    this.sourceText = null; // source text
+  __init__: function(twextArea, audio, sampleText) {
+    this.timings = "0.64 1.03 1.26\n2.17 2.49 2.69 2.84 2.97\n4.35 4.48 4.74 5.07\n5.22 6.22 6.50 6.79";  // cached timing lines string, initially set to timings of sample text/audio
+    this.sourceText = sampleText; // source text
     this.tapDate = null;  // The date of the last tap, used to calculate number of seconds between previous and current taps
     this.player = null; // player object
     this.twextArea = twextArea; // twextArea object

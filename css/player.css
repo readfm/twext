@@ -21,3 +21,12 @@
   background-color: #00FFFF;
   text-transform: uppercase;
 }
+
+#tapHint {
+  display: none;
+  color: white;
+  padding-left: 15px;
+  padding-top: 3px;
+  font-family: 'liberation mono', monospace;
+  font-size: 20px;
+}

@@ -34,7 +34,11 @@ $(document).ready(function() {
       var mode = area.textMode();
       if(mode == "timing") area.renderPairedLines(text.split('\n'), mode);
       else if(mode == "textonly") {
-      if(text.length > area.limit) text = text.substring(0, area.limit);
+        // cut out any text more than 5 lines
+        var lines = text.split('\n');
+        if(lines.length > 5) text = lines.slice(0, 5).join('\n');
+        // adjust limit
+        if(text.length > area.limit) text = text.substring(0, area.limit);
         area.renderLines(text.split('\n'));
       }
       area.setCaretPos(caret.lines, caret.offset);	// set cursor back to its position
@@ -51,6 +55,7 @@ $(document).ready(function() {
     $(document).bind("keydown", "space", $.proxy(controller.pauseText, controller)); // Alt+F2 keydown event, pause text
     $(document).bind("keydown", "alt+F7", $.proxy(controller.switchFontType, controller)); //Alt+F7 keydown event,switch font monospace/proportional
     $(document).bind("keydown", $.proxy(controller.handleDocumentKeydown, controller)); // On document keydown
+    $(document).bind("click", $.proxy(controller.handleDocumentClick, controller));
 
     // Attach twext area events
     $('#data-show').bind("keydown", "backspace", $.proxy(controller.handleBackspaceKeydown, controller)); // on area backspace keydown event

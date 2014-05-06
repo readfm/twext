@@ -7,11 +7,15 @@ Controller = Class.$extend({
   */
   __init__: function() {
     // Initialize objects
+    this.sampleText = "Write any text.\n"+
+                     "Tap while you say it.\n"+
+                     "Last tap plays it.\n"+
+                     "Sync Vocal Text.";
     this.audio = new Audio(); // audio object
     this.syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
     this.twextArea = new TwextArea();  // create TwextArea object to represent the contenteditable element
-    this.tapTimer = new TapTimer(this.twextArea, this.audio); // create TapTimer object
-    this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer); // create Player object that handles playing features
+    this.tapTimer = new TapTimer(this.twextArea, this.audio, this.sampleText); // create TapTimer object
+    this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer, this.sampleText); // create Player object that handles playing features
   },
 
   /**
@@ -35,11 +39,14 @@ Controller = Class.$extend({
   */
   loadSampleData: function() {
     // Initiate some sample data
-    var data = "Twext is twin text,\n"+
-               "aligned between the lines,\n"+
-               "in any language you like.";
-    controller.twextArea.renderLines(data.split('\n'));  // display text
-    $("#main").show();  // show page content
+    this.twextArea.renderLines(this.sampleText.split('\n'));  // display text
+    // play text
+    this.player.getSegmentsData(this.sampleText, function() {
+      $("#main").show();  // show page content
+      controller.audio.startTime = 0;
+      controller.audio.endTime = controller.audio.duration();
+      controller.playPauseText();
+    });
   },
 
   /**
@@ -51,6 +58,18 @@ Controller = Class.$extend({
       $('#data-bar-timing').html("timing");
     } else {  // timing off
       $('#data-bar-timing').html("text");
+    }
+  },
+
+  /**
+  * Display current play state(play/edit).
+  * @param 'state' the current play state; true if play on, false if play off
+  */
+  setPlayState: function(state) {
+    if(state) { // play on
+      $('#data-bar-play').html("play");
+    } else {  // play off
+      $('#data-bar-play').html("edit");
     }
   },
 
@@ -115,14 +134,22 @@ Controller = Class.$extend({
   * Animate text segments according to timings.
   */
   playPauseText: function(e) {
-    e.preventDefault();
+    if(e) e.preventDefault();
 
     // play/pause text
     if(this.player.isPlaying()) { // currently playing
       this.player.pause(); // pause playing
+      this.setPlayState(false); // display current mode as edit
+      this.twextArea.showBorder();
+      $('body').css("background-color", "white");
+      $('#tapHint').hide(); // hide tap hint
     } else { // currently paused playing
       var text = this.twextArea.clearText(this.twextArea.text());
       this.player.play(text); // play/resume playing
+      this.setPlayState(true); // display current mode as play
+      this.twextArea.hideBorder();
+      $('body').css("background-color", "silver");
+      $('#tapHint').show(); // show tap hint
     }
   },
 
@@ -131,9 +158,21 @@ Controller = Class.$extend({
   */
   pauseText: function(e) {
     if(this.player.isPlaying()) { // text is playing
-      e.preventDefault();
+      if(e) e.preventDefault();
       this.player.pause();
+      this.setPlayState(false); // display current mode as edit
+      this.twextArea.showBorder();
+      $('body').css("background-color", "white");
+      $('#tapHint').hide(); // hide tap hint
     }
+  },
+
+  /**
+  * Tap text.
+  */
+  tap: function(e) {
+    if(!this.tapTimer.isTapping) this.tapTimer.start(e);
+    else this.tapTimer.tap(e);
   },
 
   /**
@@ -213,9 +252,9 @@ Controller = Class.$extend({
   /**
   * On data-show input area keydown event.
   */
-  handleAreaKeyDown: function(e) {
+  handleAreaKeydown: function(e) {
     // Adjust area limit, if user type a character without ctrlKey and is over limit then stop the event and return.
-    if(!e.ctrlKey && !this.twextArea.adjustLimit()) return false;
+    if(!e.ctrlKey && !this.twextArea.adjustLimit(e.keyCode)) return false;
   },
 
   /**
@@ -223,8 +262,17 @@ Controller = Class.$extend({
   */
   handleDocumentKeydown: function(e) {
     if(!e.ctrlKey && !e.altKey && !e.shiftKey && (e.keyCode < 112 || e.keyCode > 123)) { // 112 to 123 are FKeys, exclude them from tap keys
-      if(!this.tapTimer.isTapping) this.tapTimer.start(e);
-      else this.tapTimer.tap(e);
+      this.tap(e);
     }
-  }
+  },
+
+  /**
+  * On document click event.
+  */
+  handleDocumentClick: function(e) {
+    var inTapArea = !$.contains($("#main")[0], e.target);  // tap area any where outside main
+    var inTextArea = $.contains($("#data-show")[0], e.target); // inside text area
+    if(inTapArea) this.tap(e);
+    else if(inTextArea && this.player.isPlaying()) this.pauseText();
+  },
 });

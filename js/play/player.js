@@ -7,7 +7,7 @@ Player = Class.$extend({
   /**
   * Initilize class variables (classy.js is used for class creation)
   */
-  __init__: function(area, syllabifier, tapTimer) {
+  __init__: function(area, syllabifier, tapTimer, sampleText) {
     this.twextArea = area;  // twext area
     this.syllabifier = syllabifier; // syllabifier object
     this.tapTimer = tapTimer; // TapTimer object, send this to be accessed by the taptimer
@@ -18,7 +18,7 @@ Player = Class.$extend({
     this.segTimeout = 0; // timout for segment
     this.loopTimeout = 0; // timeout for loop
     this.endTiming = 1; // the number of seconds for the last seg to be highlighted before start over again "Loop"
-    this.sourceText = null; // Text lines currently displayed
+    this.sourceText = sampleText; // Text lines currently displayed
     this.displayMode = null;  // current display mode
     this.playing = false; // flag to detect if text is playing
   },
@@ -28,11 +28,14 @@ Player = Class.$extend({
   * @param 'text' Text rows
   */
   play: function(text) {
+    var p = this;
     var isNewText = this.sourceText == null || this.sourceText != text; // check if text is new
     if(isNewText) { // new text
       controller.audio.clear(); // clear audio if exist
       this.reset(); // reset player
-      this.getSegmentsData(text); // create array of segments and timings per each Text line, this method will recall playText
+      this.getSegmentsData(text, function() { // create array of segments and timings per each Text line
+        p.play(text);
+      });
       return; // return to be recalled after getting segments/timings data
     }
 
@@ -294,7 +297,7 @@ Player = Class.$extend({
   * Create object contains segments and their timing slots.
   * Index of the array represents Text line number; each entry is an array(index is seg number) of key/value objects contains seg value, seg position and timing slot.
   */
-  getSegmentsData: function(text) {
+  getSegmentsData: function(text, callback) {
     var i, j, wSegs, wSegPos, slots, timingCount;
     var segsData = [], segs = [], posArr = [], times = [];
     var player = this;  // player object called on callback
@@ -327,7 +330,8 @@ Player = Class.$extend({
         // positions are got from hyphenated text, so they're not correct if current mode is not timing(hyphenated text not dispalyed)
         if(player.displayMode != "timing")  player.updateSegsPos();// update segs positions if current mode is not timing(text is not syllabified)
         player.sourceText = text; // set source text
-        player.play(text); // recall of play after getting segs and timings
+        callback();  // return to calling function
+        //else player.play(text); // recall of play after getting segs and timings
       });
     });
   },
