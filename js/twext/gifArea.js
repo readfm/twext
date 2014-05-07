@@ -22,10 +22,13 @@ GifArea = Class.$extend({
     return $(this.area).is(':visible');
   },
 
+  /**
+  * Resize resource.
+  */
   resize: function() {
     this.resource.width("100%");
     var p = parseInt($(this.resource.container).css("padding-top"));
-    var h = document.documentElement.clientHeight-p;
+    var h = document.documentElement.clientHeight-p-1;
     this.resource.height(h);
   },
 

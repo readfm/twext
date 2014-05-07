@@ -67,6 +67,7 @@
   padding-top: 15px;
   padding-left: 0;
   width: 100%;
+  overflow: hidden;
 }
 
 /* Normal view of container */
@@ -83,4 +84,5 @@
 #imgContainer.gif-view {
   padding-top: 15px;
   background-color: black;
+  overflow: hidden;
 }
