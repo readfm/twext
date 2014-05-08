@@ -7,7 +7,7 @@ Player = Class.$extend({
   /**
   * Initilize class variables (classy.js is used for class creation)
   */
-  __init__: function(area, syllabifier, tapTimer, sampleText) {
+  __init__: function(area, syllabifier, tapTimer) {
     this.twextArea = area;  // twext area
     this.syllabifier = syllabifier; // syllabifier object
     this.tapTimer = tapTimer; // TapTimer object, send this to be accessed by the taptimer
@@ -157,6 +157,17 @@ Player = Class.$extend({
   setTiming: function(seg, timing) {
     seg = seg?seg:this.currentSeg;
     this.segmentsData[seg.line].timings[seg.seg] = timing;  // set timing
+  },
+
+  /**
+  * Set timings lines in segmentsData object.
+  * @param "timingLines" timings to be set
+  */
+  setTimings: function(timingLines) {
+    var i;
+    for(i=0; i<timingLines.length; i++) {
+      this.segmentsData[i].timings = timingLines[i].split(' ');
+    }
   },
 
   /**

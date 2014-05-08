@@ -73,7 +73,7 @@ AudioRecorder = Class.$extend({
   * Stop recording.
   * @param 'callback' a function to be called after recording stopped.
   */
-  stop: function(callback) {
+  stop: function(callback, ignore) {
     if(!this.recorder)  { // no recording input, return
       callback();
       return;
@@ -81,6 +81,11 @@ AudioRecorder = Class.$extend({
 
     this.recorder.stop(); // stop recording
     console.log('Stopped recording.');
+
+    if(ignore) {  // ignore recorded audio
+      callback();
+      return;
+    }
 
     var audioRecorder = this;
     this.recorder.exportWAV(function(s) { // export recorded audio

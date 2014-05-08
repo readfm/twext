@@ -3,6 +3,10 @@
 */
 var controller, firebaseHandler;
 
+var sampleText = "Play any text.\nTap Tap Tap.\nSync Vocaltext.";
+var sampleTimings = "0.77 1.07 1.25\n2.14 2.39 2.70\n3.46 3.96 4.15 4.37";
+var sampleAudioSrc = "http://xc.cx/draft/textime/audios/L2vPBn1MtP.wav";
+
 /**
 * Initialize data on document load.
 */

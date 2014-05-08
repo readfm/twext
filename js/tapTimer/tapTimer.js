@@ -5,8 +5,9 @@ TapTimer = Class.$extend({
   /**
   * Initilize class variables (classy.js is used for class creation)
   */
-  __init__: function(twextArea, audio, sampleText) {
-    this.timings = "0.64 1.03 1.26\n2.17 2.49 2.69 2.84 2.97\n4.35 4.48 4.74 5.07\n5.22 6.22 6.50 6.79";  // cached timing lines string, initially set to timings of sample text/audio
+  __init__: function(twextArea, audio) {
+    this.timings = sampleTimings;  // cached timing lines string, initially set to timings of sample text/audio
+    this.tappedTimings = "";  // current tapped timings
     this.sourceText = sampleText; // source text
     this.tapDate = null;  // The date of the last tap, used to calculate number of seconds between previous and current taps
     this.player = null; // player object
@@ -117,11 +118,11 @@ TapTimer = Class.$extend({
     }
 
     if(currentSeg.line == 0 && currentSeg.seg == 0 && $('.'+this.TIMER_CSS_CLASS).length > 0) { // first seg not yet tapped
-      this.player.unhighlightSeg(currentSeg, this.TIMER_CSS_CLASS);  // unhighlight seg
+      this.player.unhighlightSeg(currentSeg);  // unhighlight seg
       this.player.highlightSeg(currentSeg, this.TAP_CSS_CLASS); // highlight seg with tap class
     } else {
       preSegTiming = parseFloat(this.player.getTiming(currentSeg) - this.tapDelay); // get timing of current seg before moving to next seg
-      this.player.unhighlightSeg(currentSeg, this.TAP_CSS_CLASS);  // unhighlight current seg
+      this.player.unhighlightSeg(currentSeg);  // unhighlight current seg
       // move to next seg
       this.player.setCurrentSeg();
       this.player.setNextSeg();
@@ -138,7 +139,7 @@ TapTimer = Class.$extend({
     this.player.setTiming(null, newTiming); // update timing of current segment
 
     var timingsLine = this.player.getCurrentTimingLine(); // updated timing line
-    this.updateTimingLine(this.player.currentSeg.line, timingsLine);  // update cached timings
+    this.updateTappedTimingLine(this.player.currentSeg.line, timingsLine);  // update cached timings
     if(this.player.displayMode == "timing") {
       var textLineIx = this.player.getTextNode();
       var timingLineIx = textLineIx+1; //index of timing line
@@ -157,9 +158,31 @@ TapTimer = Class.$extend({
     var timer = this; // instance of taptimer to be used in callback
     this.isTapping = false; // stop tapping
     this.twextArea.enable();  // enable typing
+    this.timings = this.tappedTimings;
     this.audioRecorder.stop(function() {
       timer.player.restart(); // restart playing
     });
+  },
+
+  /**
+  * Discard tapped timings.
+  */
+  discard: function(e) {
+    if(!this.isTapping) return; // no tapping started
+
+    e.preventDefault();
+    var timer = this; // instance of taptimer to be used in callback
+    this.isTapping = false;
+    this.twextArea.enable();
+    this.tappedTimings = "";  // reset tapped timings
+    this.audioRecorder.stop(function() {
+      timer.player.setTimings(timer.timings.split('\n')); // set player timings to old timings before tap
+      if(timer.player.displayMode == "timing") {
+        controller.placeTimings(timer.sourceText, function() {  // display old timings before tap
+          timer.player.restart(); // restart playing
+        });
+      } else timer.player.restart(); // restart playing
+    }, true);
   },
 
   /**
@@ -167,10 +190,10 @@ TapTimer = Class.$extend({
   * @param 'index' index of timing line
            'timingStr' the new timing line
   */
-  updateTimingLine: function(index, timingStr) {
-    var lines = this.timings.split('\n'); // timing lines
+  updateTappedTimingLine: function(index, timingStr) {
+    var lines = this.tappedTimings.split('\n'); // timing lines
     lines[index] = timingStr;
-    this.timings = lines.join('\n');
+    this.tappedTimings = lines.join('\n');
   },
 
   /**

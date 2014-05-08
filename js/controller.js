@@ -7,15 +7,11 @@ Controller = Class.$extend({
   */
   __init__: function() {
     // Initialize objects
-    this.sampleText = "Write any text.\n"+
-                     "Tap while you say it.\n"+
-                     "Last tap plays it.\n"+
-                     "Sync Vocal Text.";
     this.audio = new Audio(); // audio object
     this.syllabifier = new Syllabifier();  // create Syllabifier object that handles text syllabifications.
     this.twextArea = new TwextArea();  // create TwextArea object to represent the contenteditable element
-    this.tapTimer = new TapTimer(this.twextArea, this.audio, this.sampleText); // create TapTimer object
-    this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer, this.sampleText); // create Player object that handles playing features
+    this.tapTimer = new TapTimer(this.twextArea, this.audio); // create TapTimer object
+    this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer); // create Player object that handles playing features
   },
 
   /**
@@ -38,10 +34,12 @@ Controller = Class.$extend({
   * Load some initial sample text into the input area.
   */
   loadSampleData: function() {
-    // Initiate some sample data
-    this.twextArea.renderLines(this.sampleText.split('\n'));  // display text
+    // set src of sample audio
+    this.audio.audio.src = sampleAudioSrc;
+    // render sample text
+    this.twextArea.renderLines(sampleText.split('\n'));  // display text
     // play text
-    this.player.getSegmentsData(this.sampleText, function() {
+    this.player.getSegmentsData(sampleText, function() {
       $("#main").show();  // show page content
       controller.audio.startTime = 0;
       controller.audio.endTime = controller.audio.duration();
@@ -55,7 +53,7 @@ Controller = Class.$extend({
   */
   setTimingState: function(state) {
     if(state) { // timing on
-      $('#data-bar-timing').html("timing");
+      $('#data-bar-timing').html("time");
     } else {  // timing off
       $('#data-bar-timing').html("text");
     }
@@ -136,20 +134,20 @@ Controller = Class.$extend({
   playPauseText: function(e) {
     if(e) e.preventDefault();
 
+    // discard tap and enter edit mode if text is in tapping state
+    if(this.tapTimer.isTapping) {
+      this.discardTap(e);
+      return;
+    }
+
     // play/pause text
     if(this.player.isPlaying()) { // currently playing
       this.player.pause(); // pause playing
-      this.setPlayState(false); // display current mode as edit
-      this.twextArea.showBorder();
-      $('body').css("background-color", "white");
-      $('#tapHint').hide(); // hide tap hint
+      this.toEditMode();
     } else { // currently paused playing
       var text = this.twextArea.clearText(this.twextArea.text());
       this.player.play(text); // play/resume playing
-      this.setPlayState(true); // display current mode as play
-      this.twextArea.hideBorder();
-      $('body').css("background-color", "silver");
-      $('#tapHint').show(); // show tap hint
+      this.toPlayMode();
     }
   },
 
@@ -160,11 +158,28 @@ Controller = Class.$extend({
     if(this.player.isPlaying()) { // text is playing
       if(e) e.preventDefault();
       this.player.pause();
-      this.setPlayState(false); // display current mode as edit
-      this.twextArea.showBorder();
-      $('body').css("background-color", "white");
-      $('#tapHint').hide(); // hide tap hint
+      this.toEditMode();
     }
+  },
+
+  /**
+  * Change ui to edit mode.
+  */
+  toEditMode: function() {
+    this.setPlayState(false); // display current mode as edit
+    this.twextArea.showBorder();
+    $('body').css("background-color", "white");
+    $('#tapHint').hide(); // hide tap hint
+  },
+
+  /**
+  * Change ui to play mode.
+  */
+  toPlayMode: function() {
+    this.setPlayState(true); // display current mode as play
+    this.twextArea.hideBorder();
+    $('body').css("background-color", "silver");
+    $('#tapHint').show(); // show tap hint
   },
 
   /**
@@ -173,6 +188,13 @@ Controller = Class.$extend({
   tap: function(e) {
     if(!this.tapTimer.isTapping) this.tapTimer.start(e);
     else this.tapTimer.tap(e);
+  },
+
+  /**
+  * Discard tap changes
+  */
+  discardTap: function(e) {
+    this.tapTimer.discard(e);
   },
 
   /**
@@ -261,8 +283,9 @@ Controller = Class.$extend({
   * On document keydown.
   */
   handleDocumentKeydown: function(e) {
-    if(!e.ctrlKey && !e.altKey && !e.shiftKey && (e.keyCode < 112 || e.keyCode > 123)) { // 112 to 123 are FKeys, exclude them from tap keys
-      this.tap(e);
+    if(!e.ctrlKey && !e.altKey && !e.shiftKey) {
+      if(e.keyCode == 27) this.discardTap(e);  // esc key press, discard tap
+      else if(e.keyCode < 112 || e.keyCode > 123) this.tap(e);  // tap any key except FKeys
     }
   },
 
@@ -273,6 +296,9 @@ Controller = Class.$extend({
     var inTapArea = !$.contains($("#main")[0], e.target);  // tap area any where outside main
     var inTextArea = $.contains($("#data-show")[0], e.target); // inside text area
     if(inTapArea) this.tap(e);
-    else if(inTextArea && this.player.isPlaying()) this.pauseText();
-  },
+    else if(inTextArea) {
+      if(this.player.isPlaying()) this.pauseText();
+      else if(this.tapTimer.isTapping) this.discardTap(e);
+    }
+  }
 });
