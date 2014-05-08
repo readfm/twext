@@ -15,6 +15,8 @@ TapTimer = Class.$extend({
     this.audioRecorder = new AudioRecorder(audio);  // audio recorder used in recording audio in tapping
     this.isTapping = false; // boolean to detect tapping start
     this.tapDelay = 0.1;  // +/- add to / subtract from each timing value
+    this.tapIgnore = 3; // period where retapping not allowed after tapping done
+    this.tapBlocked = false;  // if true, tap is blocked
 
     // css classes of segments
     this.TIMER_CSS_CLASS = 'timerHighlighted'; // css class of start timer
@@ -81,6 +83,7 @@ TapTimer = Class.$extend({
   start: function(e) {
     if(!this.player) this.player = controller.getPlayer();
     if(!this.player.isPlaying()) return;  // tapping only if text playing
+    if(this.tapBlocked) return; // tap not allowed
 
     e.preventDefault();
     this.tapDate = new Date(); // set start date
@@ -156,6 +159,8 @@ TapTimer = Class.$extend({
 
     e.preventDefault();
     var timer = this; // instance of taptimer to be used in callback
+    this.tapBlocked = true; // block tapping for a certain period of time "tapIgnore"
+    setTimeout(function(){timer.tapBlocked = false;}, timer.tapIgnore*1000);  // release block on tap after a certain period of time "tapIgnore"
     this.isTapping = false; // stop tapping
     this.twextArea.enable();  // enable typing
     this.timings = this.tappedTimings;
