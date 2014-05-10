@@ -29,6 +29,13 @@ Controller = Class.$extend({
   getPlayer: function() {
     return this.player;
   },
+
+  /**
+  * Reload page.
+  */
+  reload: function(e) {
+    location.reload();
+  },
     
   /**
   * Load some initial sample text into the input area.

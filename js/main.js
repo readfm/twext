@@ -3,9 +3,9 @@
 */
 var controller, firebaseHandler;
 
-var sampleText = "Play any text.\nTap Tap Tap.\nSync Vocaltext.";
-var sampleTimings = "0.77 1.07 1.25\n2.14 2.39 2.70\n3.46 3.96 4.15 4.37";
-var sampleAudioSrc = "http://xc.cx/draft/textime/audios/L2vPBn1MtP.wav";
+var sampleText = "Edit this text.\nPlay it.\nTap while you say it.\nSync vocaltext.";
+var sampleTimings = ".81 1.13 1.44 1.77\n2.83 3.04\n4.77 5 5.17 5.31 5.51\n6.67 7.25 7.41 7.85";
+var sampleAudioSrc = "http://th.ai/media/pD37lHxK1Z.wav";
 
 /**
 * Initialize data on document load.
@@ -68,6 +68,7 @@ $(document).ready(function() {
 
     $('#data-bar-f4, #data-bar-timing').bind("click", $.proxy(controller.textOnlyTimingToggle, controller));  // switch on/off timings
     $('#data-bar-f2, #data-bar-play').bind("click", $.proxy(controller.playPauseText, controller)); // play/pause text with media
+    $('#data-bar-f5, #data-bar-reload').bind("click", $.proxy(controller.reload, controller));  // switch on/off timings
   }
 
   // initialize data objects and bind events
