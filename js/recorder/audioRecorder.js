@@ -83,6 +83,7 @@ AudioRecorder = Class.$extend({
     console.log('Stopped recording.');
 
     if(ignore) {  // ignore recorded audio
+      this.recorder.clear();  // clear recorder to delete recorded audio
       callback();
       return;
     }
