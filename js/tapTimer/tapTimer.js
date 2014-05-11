@@ -136,10 +136,10 @@ TapTimer = Class.$extend({
     if(this.tapBlocked) return; // tap not allowed
 
     e.preventDefault();
+    this.player.pause(); // pause player
     this.tapDate = new Date(); // set start date
     this.isTapping = true;  // tapping started
     this.twextArea.disable(); // disable typing
-    this.player.pause(); // pause player
 
     // Highlight first seg
     this.player.currentSeg = {line: 0, seg: 0}; // set player current seg to the first seg to start tapping
