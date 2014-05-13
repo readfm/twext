@@ -29,4 +29,17 @@
   padding-top: 3px;
   font-family: 'liberation mono', monospace;
   font-size: 20px;
+  position: absolute;
+}
+
+#tapArea {
+  width: 100%;
+  overflow: hidden;
+  display: none;
+  background-color: black;
+}
+
+#tapImage {
+  width: 100%;
+  height: 100%;
 }

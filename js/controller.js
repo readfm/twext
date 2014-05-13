@@ -36,6 +36,35 @@ Controller = Class.$extend({
   reload: function(e) {
     location.reload();
   },
+
+  /**
+  * Init drag and drop settings for tapArea.
+  */
+  initDragAndDropArea: function() {
+    var tapArea = $("#tapArea")[0];
+    tapArea.addEventListener('dragenter', controller.drag, false);
+    tapArea.addEventListener('dragexit', controller.drag, false);
+    tapArea.addEventListener('dragover', controller.drag, false);
+    tapArea.addEventListener('drop', controller.drop, false);
+  },
+
+  /**
+  * On drag event.
+  */
+  drag: function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  },
+
+  /**
+  * On drop event.
+  */
+  drop: function(e) {
+    e.stopPropagation();
+    e.preventDefault(); 
+    var imageUrl = e.dataTransfer.getData('text/uri-list');
+    if(imageUrl) $("#tapImage").attr("src", imageUrl);
+  },
     
   /**
   * Load some initial sample text into the input area.
@@ -175,7 +204,8 @@ Controller = Class.$extend({
   toEditMode: function() {
     this.setPlayState(false); // display current mode as edit
     this.twextArea.showBorder();
-    $('body').css("background-color", "white");
+    //$('body').css("background-color", "white");
+    $('#tapArea').hide(); // hide tapArea
     $('#tapHint').hide(); // hide tap hint
   },
 
@@ -185,8 +215,18 @@ Controller = Class.$extend({
   toPlayMode: function() {
     this.setPlayState(true); // display current mode as play
     this.twextArea.hideBorder();
-    $('body').css("background-color", "silver");
+    //$('body').css("background-color", "silver");
+    this.resizeTapArea(); // set height of tap area
+    $('#tapArea').show(); // show tapArea
     $('#tapHint').show(); // show tap hint
+  },
+
+  /**
+  * Resize tap area to fill space below main.
+  */
+  resizeTapArea: function() {
+    var h = document.documentElement.clientHeight - $("#main").height() - 1;  // height of area below "main"
+    $("#tapArea").height(h);  // set height of tap area to fill space below "main"
   },
 
   /**
@@ -224,6 +264,9 @@ Controller = Class.$extend({
 
     // realign chunks on resize
     this.twextArea.realign();
+
+    // resize tap area
+    this.resizeTapArea();
   },
 
   /**
@@ -234,6 +277,9 @@ Controller = Class.$extend({
 
     // load a sample data
     this.loadSampleData();
+
+    // allow drag&drop in tapArea
+    this.initDragAndDropArea();
   },
 
   /**
