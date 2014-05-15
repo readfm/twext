@@ -674,11 +674,15 @@ Controller = Class.$extend({
   handleWindowLoad: function(e) {
     console.log('window load');
 
-    // resize language menu
-    this.languageMenu.resize();
-
-    // load text and translations into textarea
-    this.loadData();
+    // check browser type
+    if(navigator.userAgent.search("Chrome") >= 0) {  // chrome
+      // resize language menu
+      this.languageMenu.resize();
+      // load text and translations into textarea
+      this.loadData();
+    } else {
+      alert("TEST IN CHROME ONLY FOR NOW");
+    }
   },
 
   /**

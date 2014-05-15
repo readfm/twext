@@ -50,7 +50,7 @@ AudioRecorder = Class.$extend({
     console.log("Input "+input);
 
     // Connect input to context destination
-    this.volume = this.audio_context.createGainNode();
+    this.volume = this.audio_context.createGain();
     this.volume.gain.value = this.volumeLevel;
     input.connect(this.volume);
     this.volume.connect(this.audio_context.destination);

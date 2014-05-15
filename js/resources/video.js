@@ -84,13 +84,10 @@ Video = Class.$extend({
   */
   clear: function() {
     clearTimeout(this.playTimeout);
-    //clearTimeout(this.pauseTimeout);
-    this.video.src = null;  // reset src
+    $(this.video).removeAttr("src");  // reset src
     this.startTime = -1; // reset start time
     this.endTime = -1; // reset end time
     this.seekedTo = -1; // time where video is seeked
-    //this.startTime = -1;
-    //this.paused = false;
     this.hide();  // hide video
   },
 

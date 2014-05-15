@@ -140,7 +140,7 @@ Audio = Class.$extend({
   * Clear audio data.
   */
   clear: function() {
-    this.audio.src = null;  // reset src
+    $(this.audio).removeAttr("src");  // reset src
     this.playbackRate = 1;
   },
 });
