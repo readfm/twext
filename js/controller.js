@@ -72,14 +72,17 @@ Controller = Class.$extend({
   loadSampleData: function() {
     // set src of sample audio
     $(this.audio.audio).attr("src", sampleAudioSrc);
-    // render sample text
-    this.twextArea.renderLines(sampleText.split('\n'));  // display text
-    // play text
-    this.player.getSegmentsData(sampleText, function() {
-      $("#main").show();  // show page content
+    $(this.audio.audio).bind("canplaythrough", function() {
       controller.audio.startTime = 0;
       controller.audio.endTime = controller.audio.duration();
-      controller.playPauseText();
+      // render sample text
+      controller.twextArea.renderLines(sampleText.split('\n'));  // display text
+      // play text
+      controller.player.getSegmentsData(sampleText, function() {
+        $("#main").show();  // show page content
+        controller.playPauseText();
+      });
+      $(controller.audio.audio).unbind("canplaythrough");
     });
   },
 
