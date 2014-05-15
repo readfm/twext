@@ -71,7 +71,7 @@ Controller = Class.$extend({
   */
   loadSampleData: function() {
     // set src of sample audio
-    this.audio.audio.src = sampleAudioSrc;
+    $(this.audio.audio).attr("src", sampleAudioSrc);
     // render sample text
     this.twextArea.renderLines(sampleText.split('\n'));  // display text
     // play text
@@ -275,11 +275,15 @@ Controller = Class.$extend({
   handleWindowLoad: function(e) {
     console.log('window load');
 
-    // load a sample data
-    this.loadSampleData();
-
-    // allow drag&drop in tapArea
-    this.initDragAndDropArea();
+    // check browser type
+    if(navigator.userAgent.search("Chrome") >= 0) {  // chrome
+      // load a sample data
+      this.loadSampleData();
+      // allow drag&drop in tapArea
+      this.initDragAndDropArea();
+    } else {
+      alert("TEST IN CHROME ONLY FOR NOW");
+    }
   },
 
   /**
