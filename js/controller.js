@@ -787,9 +787,9 @@ Controller = Class.$extend({
   /**
   * On data-show input area keydown event.
   */
-  handleAreaKeyDown: function(e) {
+  handleAreaKeydown: function(e) {
     // Adjust area limit, if user type a character without ctrlKey and is over limit then stop the event and return.
-    if(!e.ctrlKey && !this.twextArea.adjustLimit()) return false;
+    if(!e.ctrlKey && !this.twextArea.adjustLimit(e.keyCode)) return false;
   },
 
   /**

@@ -12,7 +12,6 @@ TwextArea = Class.$extend({
     this.chunks = [];
     this.language = 0;  // current language
     this.version = 0; // current version
-    //this.chunks = []; // current language/version chunks, index is Text line(0,2,4..), value is key/val obj of n:N of the line(key is n, val is N)
     this.aligner = new SpanAligner(); // Aligner object to align chunks/timings using spans
   },
 
@@ -23,7 +22,7 @@ TwextArea = Class.$extend({
   */
   adjustLimit: function(charCode) {
     var text = this.value();
-    if(this.textMode() == "textOnly" && isTypingChar(charCode) && text.length >= this.limit) {
+    if(this.textMode() == "textonly" && isTypingChar(charCode) && text.length >= this.limit) {
       event.stopPropagation(); // Stop the bubbling of key press event to parent elements
       event.preventDefault(); // prevent the key press action from happening.
       return false; // text is over limit

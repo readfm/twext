@@ -85,6 +85,26 @@ Object.toArray = function(obj) {
 };
 
 /**
+* Check if the given character code represents a typing character key.
+* @param 'code' keyboard key code
+*/
+function isTypingChar(code) {
+  if(code == 13 ||                    // enter
+    code == 32 ||                    // space
+    (code >= 48 && code <= 57) ||    // 0 -> 9
+    code == 59 ||                    // ;:
+    code == 61 ||                    // =+
+    (code >= 65 && code <=90) ||     // a -> z
+    (code >= 96 && code <= 107) ||   // (Num Lock) keys
+    (code >= 109 && code <= 111) ||  // (Num Lock) keys
+    code == 188 ||                   // ,<
+    (code >= 190 && code <= 192) ||  // .> /? `~
+    (code >= 219 && code <= 222))    // [{ \| ]} '"
+      return true; // is a typing character
+  return false; // not a typing character
+}
+
+/**
 * Replace any text spaces by html spaces (nbsp)
 * @param 'string' value where replace is performed
 * @return string with nbsp instead of text spaces
