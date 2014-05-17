@@ -61,9 +61,29 @@ Controller = Class.$extend({
   */
   drop: function(e) {
     e.stopPropagation();
-    e.preventDefault(); 
-    var imageUrl = e.dataTransfer.getData('text/uri-list');
-    if(imageUrl) $("#tapImage").attr("src", imageUrl);
+    e.preventDefault();
+
+    // display droppped image
+    var imageEl = $(e.dataTransfer.getData('text/html')); // get image tag
+    var imageUrl = imageEl?imageEl.attr("src"):null; // get image url
+    var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/gi; // Match url
+    if(imageUrl && re.test(imageUrl)) { // valid server url or data url
+      //controller.player.pause();  // pause play
+      $("#tapImage").attr("src", imageUrl); // load image
+      //controller.player.play(text); // resume play
+    } else {  // not valid url, image maybe local file
+      var f = e.dataTransfer.files[0];  // get image file
+      if(f) { // local image file
+        var fr = new FileReader();
+        controller.player.pause();  // pause play
+        fr.onload = function(ev) {  // file reader done with reading file
+          $('#tapImage').attr('src', ev.target.result);
+          var text = controller.twextArea.clearText(controller.twextArea.text());
+          controller.player.play(text); // resume play
+        };
+        fr.readAsDataURL(f);
+      }
+    }
   },
     
   /**
