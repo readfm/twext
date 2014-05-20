@@ -31,11 +31,17 @@ LanguageMenu = Class.$extend({
          .text(value)); // set the text of the option to language name
     });
 
+    // load resources
     // Add Image key to allow user to enter image url as twext. Image is added at the end of bing languages
     this.element
      .append($("<option></option>")
      .attr("value", "img") // set the value of the option to image code
      .text(selectValues["img"])); // set the text of the option to image name
+    // Add Link key to allow user to enter link url as twext. LINK is added at the end of bing languages
+    this.element
+     .append($("<option></option>")
+     .attr("value", "link") // set the value of the option to image code
+     .text(selectValues["link"])); // set the text of the option to image name
 
     // load non bing languages
     var nonBingSelectValues = Object.sortAssoc(nonBingLanguages); // get non bing languages object sorted by keys
