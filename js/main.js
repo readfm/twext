@@ -84,6 +84,10 @@ $(document).ready(function() {
     //$(document).bind("keydown", "alt+F7", $.proxy(controller.switchFontType, controller)); //Alt+F7 keydown event,switch font monospace/proportional
     $(document).bind("keydown", $.proxy(controller.handleDocumentKeydown, controller)); // On document keydown
 
+    // Bind hide language menu event
+    $(document).bind("keydown", "esc", $.proxy(controller.hideLangMenu, controller)); // esc keydown event, Hide language menu
+    $(document).bind("click", $.proxy(controller.handleDocumentClick, controller)); // hide language menu when click ouside
+
     // Attach twext area events
     //$('#data-show').bind("paste", $.proxy(controller.handlePaste, controller)); // on area paste event
     $('#data-show').bind("keydown", "space", $.proxy(controller.handleSpaceKeydown, controller)); // on area space keydown event
@@ -96,10 +100,6 @@ $(document).ready(function() {
     $('#data-bar-f4, #data-bar-timing').bind("click", $.proxy(controller.textOnlyTimingToggle, controller));  // switch on/off timings
     $('#url-list-f9, #url-list-label').bind("click", $.proxy(controller.switchStateUrlList, controller));  // show/hide url list
     $('#data-bar-f2, #data-bar-play').bind("click", $.proxy(controller.playPauseText, controller)); // play/pause text with media
-
-    // Bind hide language menu event
-    $(document).bind("keydown", "esc", $.proxy(controller.hideLangMenu, controller)); // esc keydown event, Hide language menu
-    $(document).bind("click", $.proxy(controller.hideLangMenu, controller)); // hide language menu when click ouside
 
     // Load video on typing the url
     $('#mediaInputLink').bind("change", $.proxy(controller.loadVideo, controller));

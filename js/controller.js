@@ -148,6 +148,7 @@ Controller = Class.$extend({
   * Get and display twexts(translations) if twexts are not already displayed. If twexts already exist, toggle languages of the existing twexts.
   */
   fetchTranslations: function(e) {
+    this.hideLangMenu();  // hide F7 language menu if opened
     this.audioListHandler.hide();
     this.saveData();
     this.player.setDisplayMode("twext");  // change display mode in twext
@@ -224,9 +225,6 @@ Controller = Class.$extend({
   * Hide language menu.
   */
   hideLangMenu: function(e) {
-    // no hide if clicked on f7 data bar control or on the language menu and its options
-    if(e.type == 'click' && (e.target.id == 'data-bar-f7' || e.target.id == 'data-bar-heart' || e.target.id == 'language_menu_container' || e.target.nodeName == 'OPTION')) return;
-
     // Hide language menu, translate selected languages
     if(this.languageMenu.visible()) {
       this.languageMenu.hide(function() { // hide menu
@@ -814,12 +812,11 @@ Controller = Class.$extend({
   },
 
   /**
-  * On paste event.
+  * On document click.
   */
-  /*handlePaste: function(e) {
-    e.preventDefault();
-    var text = e.clipboardData.getData("text/plain"); // get text to paste
-    if(this.twextArea.textMode() == "textonly" && text.length > this.twextArea.limit)  text = text.substring(0, this.twextArea.limit);// drop off characters more than the limit
-    this.twextArea.renderLines(text); // render lines
-  }*/
+  handleDocumentClick: function(e) {
+    // no hide if clicked on f7 data bar control(there is another separate click action for it) or on the language menu and its options
+    if(e.target.id == 'data-bar-f7' || e.target.id == 'data-bar-heart' || e.target.id == 'language_menu_container' || e.target.nodeName == 'OPTION') return;
+    this.hideLangMenu();
+  }
 });

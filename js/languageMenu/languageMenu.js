@@ -25,7 +25,7 @@ LanguageMenu = Class.$extend({
     // load languages
     var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"en":"english", ....}) sorted by keys
     $.each(selectValues, function(key, value) {  // loop languages
-      if(key != "img") langMenu.element
+      if(key != "img" && key != "link") langMenu.element
          .append($("<option></option>")
          .attr("value",key) // set the value of the option to language code
          .text(value)); // set the text of the option to language name
