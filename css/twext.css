@@ -28,6 +28,7 @@ a {
   white-space: nowrap;
   outline: none;
   border: 2px solid orange;
+  font-size: 1.0em; /* same as text class, if this changed .text should be changed */
 }
 
 #control-data-bar {

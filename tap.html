@@ -1,0 +1,31 @@
+<html><head>
+  <link rel="shortcut icon" href="http://th.ai/thai.ico" type="image/x-icon">
+  <link rel="icon" href="http://th.ai/thai.ico" type="image/x-icon">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+</head><body>
+<table width=100% height=100%><tr><td valign=center align=center>
+<!--
+<table><tr><td>
+-->
+<pre><font size=+3 color=grey><a href=http://th.ai/tap><img src=http://th.ai/mo.png></a>
+<iframe width="100%" height="100%" src="//www.youtube.com/embed/rNVdv6at2iA?rel=0" frameborder="0" allowfullscreen></iframe>
+a) learn to sync vocal text  
+b) sync all vocals with text 
+c) teach th.ai all the words 
+1) in all the human languages
+2) <a id="chromeDownload" href=http://google.com/chrome>google.com/chrome</a>         
+3) <a href=http://th.ai/tap>th.ai/tap</a>                 
+</font>
+</pre>
+<!--
+</td></tr></table>
+-->
+</td></tr></table></body>
+  <script>
+    if(navigator.userAgent.search("Chrome") >= 0) {  // chrome
+      var node = document.createTextNode("make web speak vocal text");
+      $("#chromeDownload").replaceWith(node);
+      var preText = node.previousSibling.textContent;
+      node.previousSibling.textContent = preText.replace("2)", "        2)");
+    }
+  </script></html>

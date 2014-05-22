@@ -55,6 +55,7 @@ $(document).ready(function() {
     // Attch document events
     $(document).bind("keydown","f4", $.proxy(controller.textOnlyTimingToggle, controller));  // F4 key down event, Turn timings on/off
     $(document).bind("keydown", "f2", $.proxy(controller.playPauseText, controller));  // F2 keydown event, play/pause text with media
+    $(document).bind("keydown", "f8", $.proxy(controller.showIntro, controller));  // F8 keydown event, forward to tap.html
     $(document).bind("keydown", "ctrl+space", $.proxy(controller.playPauseText, controller)); //ctrl+space keydown event, Play/Pause text with media
     $(document).bind("keydown", "space", $.proxy(controller.pauseText, controller)); // Alt+F2 keydown event, pause text
     $(document).bind("keydown", "alt+F7", $.proxy(controller.switchFontType, controller)); //Alt+F7 keydown event,switch font monospace/proportional

@@ -280,6 +280,13 @@ Controller = Class.$extend({
   },
 
   /**
+  * Forward user to tap.html
+  */
+  showIntro: function(e) {
+    window.location = "tap.html";
+  },
+
+  /**
   * On window resize event.
   */
   handleWindowResize: function(e) {
@@ -298,15 +305,10 @@ Controller = Class.$extend({
   handleWindowLoad: function(e) {
     console.log('window load');
 
-    // check browser type
-    if(navigator.userAgent.search("Chrome") >= 0) {  // chrome
-      // load a sample data
-      this.loadSampleData();
-      // allow drag&drop in tapArea
-      this.initDragAndDropArea();
-    } else {
-      alert("TEST IN CHROME ONLY FOR NOW");
-    }
+    // load a sample data
+    this.loadSampleData();
+    // allow drag&drop in tapArea
+    this.initDragAndDropArea();
   },
 
   /**
