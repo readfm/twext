@@ -28,7 +28,7 @@ a {
   white-space: nowrap;
   outline: none;
   border: 2px solid orange;
-  font-size: 1.0em; /* same as text class, if this changed .text should be changed */
+  font-size: 1.15em; /* same as text class, if this changed .text should be changed */
 }
 
 #control-data-bar {
@@ -65,7 +65,7 @@ a {
 
 /* Text line class */
 .text{
-  font-size: 1.0em;
+  font-size: 1.15em;
   font-weight: normal;
 	line-height:1.1em;
 }

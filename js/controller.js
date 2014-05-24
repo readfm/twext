@@ -141,12 +141,14 @@ Controller = Class.$extend({
     var mode = this.twextArea.textMode();
     if(mode == "timing") { // timings are displayed, show text only
       this.twextArea.renderLines(text.split('\n'));  // display text only
+      this.resizeTapArea(); // resize image
       this.setTimingState(false); // set state to timing off
       // update player
       this.player.setDisplayMode("textonly");
       this.player.updateSegsPos();  // mode change, update segs positions
     } else {  // timings not displayed, show timings
       this.placeTimings(text, function() {
+        controller.resizeTapArea(); // resize image
         controller.setTimingState(true); // set state to timing on
         // update player
         controller.player.setDisplayMode("timing");
@@ -227,8 +229,7 @@ Controller = Class.$extend({
   toEditMode: function() {
     this.setPlayState(false); // display current mode as edit
     this.twextArea.showBorder();
-    //$('body').css("background-color", "white");
-    $('#tapArea').hide(); // hide tapArea
+    //$('#tapArea').hide(); // hide tapArea
     $('#tapHint').hide(); // hide tap hint
   },
 
@@ -238,7 +239,6 @@ Controller = Class.$extend({
   toPlayMode: function() {
     this.setPlayState(true); // display current mode as play
     this.twextArea.hideBorder();
-    //$('body').css("background-color", "silver");
     this.resizeTapArea(); // set height of tap area
     $('#tapArea').show(); // show tapArea
     $('#tapHint').show(); // show tap hint

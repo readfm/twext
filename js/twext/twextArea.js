@@ -131,7 +131,7 @@ TwextArea = Class.$extend({
   * hide area border.
   */
   hideBorder: function() {
-    $(this.area).css('border', 'none');
+    $(this.area).css('border', '2px solid white');
   },
 
   /**
