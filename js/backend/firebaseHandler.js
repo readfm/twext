@@ -6,7 +6,6 @@ FirebaseHandler = Class.$extend({
   * Initilize class variables (classy.js is used for class creation)
   */
   __init__: function() {
-    this.firebaseRef = "https://readfm.firebaseio.com/";  // firebase reference url
   },
 
   /**
@@ -27,7 +26,7 @@ FirebaseHandler = Class.$extend({
            'callbackValue' callback value needed to be returned with the callback function
   */
   get: function(ref, callback, callbackValue) {
-    new Firebase(this.firebaseRef+ref).once('value', function(dataSnapshot) {  //callback
+    new Firebase(ref).once('value', function(dataSnapshot) {  //callback
       callback(dataSnapshot.val(), callbackValue);  // callback with data retrieved
     });
   },
@@ -37,7 +36,7 @@ FirebaseHandler = Class.$extend({
   * @param 'ref' firebase reference for data to be removed
   */
   remove: function(ref) {
-    new Firebase(this.firebaseRef+ref).remove();
+    new Firebase(ref).remove();
   },
 
   /**
@@ -47,7 +46,7 @@ FirebaseHandler = Class.$extend({
   * @return name of saved data
   */
   push: function(ref, data) {
-    var addedRef = new Firebase(this.firebaseRef+ref).push(data);
+    var addedRef = new Firebase(ref).push(data);
     return addedRef.name();
   },
 
@@ -58,6 +57,6 @@ FirebaseHandler = Class.$extend({
   * @return name of saved data
   */
   set: function(ref, data) {
-    new Firebase(this.firebaseRef+ref).set(data);
+    new Firebase(ref).set(data);
   }
 });

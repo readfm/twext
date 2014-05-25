@@ -23,7 +23,7 @@ AudioListHandler = Class.$extend({
       for(var key in this.audios) {
         if(!this.audios[key].id && url) {
           delete this.audios[key];
-          firebaseHandler.remove("urlMapping/"+url+"/audios/"+key);
+          firebaseHandler.remove(refs.mapping+url+"/audios/"+key);
           continue;
         }
         ref = "controller.loadDeleteAudio(event,'" + key + "');";

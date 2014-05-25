@@ -33,7 +33,7 @@ UrlListHandler = Class.$extend({
   */
   loadAllList: function() {
     var listHandler = this; // copy of 'this' to be used in query callback
-    var ref = new Firebase(firebaseHandler.firebaseRef+"dataHistory/allList");  // firebase ref
+    var ref = new Firebase(refs.history+"allList");  // firebase ref
     var q = ref.endAt().limit(this.allListLimit);  // query to retrieve the last 1000 entries
     firebaseHandler.query(q, function(data) {  // query firebase for data
       //listHandler.allList = Object.toArray(data);  // cache the retrived list
@@ -74,7 +74,7 @@ UrlListHandler = Class.$extend({
   */
   loadHotList: function() {
     var listHandler = this; // copy of 'this' to be used in query callback
-    var ref = new Firebase(firebaseHandler.firebaseRef+"dataHistory/hotList");  // firebase ref
+    var ref = new Firebase(refs.history+"hotList");  // firebase ref
     var q = ref.endAt().limit(this.hotListLimit);  // query to retrieve the last 10 entries
     firebaseHandler.query(q, function(data) {  // query firebase for data
       //listHandler.hotList = Object.toArray(data);  // cache the retrived list
@@ -132,7 +132,7 @@ UrlListHandler = Class.$extend({
 
     var currentRef = window.location.href.split('#')[0];
     var ref = currentRef + "#" + data.url;
-    var name = firebaseHandler.push("dataHistory/allList", data);  // push generated url to history list
+    var name = firebaseHandler.push(refs.history+"allList", data);  // push generated url to history list
     // create link element
     var aEl = "<br><a href='" + ref + "' id='all-" + data.url + "' onclick='controller.checkDeleteUrl(event);'>" + data.text + "</a>";
     this.allListEl.prepend(aEl); // append to all list
@@ -158,7 +158,7 @@ UrlListHandler = Class.$extend({
     // add url to hot list
     var currentRef = window.location.href.split('#')[0];
     var ref = currentRef + "#" + data.url;
-    var name = firebaseHandler.push("dataHistory/hotList", data);  // push generated url to history list
+    var name = firebaseHandler.push(refs.history+"hotList", data);  // push generated url to history list
     var aEl = "<br><a href='" + ref + "' id='hot-" + data.url+ "' onclick='controller.checkDeleteUrl(event);'>" + data.text + "</a>";
     this.hotListEl.prepend(aEl); // add to top of hot list
     this.hotList[data.url] = {name: name, text: data.text}; // add to hotList object
@@ -188,7 +188,7 @@ UrlListHandler = Class.$extend({
       if(brEl) $(brEl).remove();
       hotEl.remove();
       // delete from firebase
-      firebaseHandler.remove("dataHistory/hotList/"+this.hotList[url].name);
+      firebaseHandler.remove(refs.history+"hotList/"+this.hotList[url].name);
       // delete from hot list object
       delete this.hotList[url];
     }
@@ -205,7 +205,7 @@ UrlListHandler = Class.$extend({
       if(brEl) $(brEl).remove();
       allEl.remove();
       // delete from firebase
-      firebaseHandler.remove("dataHistory/allList/"+this.allList[url].name);
+      firebaseHandler.remove(refs.history+"allList/"+this.allList[url].name);
       // delete from all list object
       delete this.allList[url];
     }
@@ -235,60 +235,6 @@ UrlListHandler = Class.$extend({
   getHotUrlObj: function(url) {
     return this.hotList[url];
   },
-
-  /**
-  * Check if data already exists in the hot list.
-  * @param 'data' data to be looked for
-  * @return index of found data, -1 if data not found
-  */
-  /*inHotList: function(data) {
-    for(var i=this.hotList.length-1; i>=0; i--) { //loop over hot list elements,reverse loop because higher probability of finding it in bottom data
-      if(this.hotList[i].url == data.url && this.hotList[i].text == data.text) return i;  // data already in list, return index
-    }
-    return -1;  // data not in hot list
-  },*/
-
-  /**
-  * Delete element with the given ix from hot list, dom and firebase.
-  * @param 'ix' index of element in the list
-           'name' firebase reference name of element
-  */
-  /*deleteElFromHotList: function(ix, name) {
-    // delete url element from the dom
-    var domIx = ix*2 + 1; // index in the dom
-    var brEl = $(this.hotListEl[0].childNodes[domIx-1]); // empty line before the element
-    var urlEl = $(this.hotListEl[0].childNodes[domIx]);  // element to be deleted
-    brEl.remove();  // remove empty line
-    urlEl.remove(); // remove element
-
-    // delete element from firebase
-    if(name) firebaseHandler.remove("dataHistory/hotList/"+name);
-
-    // delete url data from the list
-    this.hotList.splice(ix, 1);
-  },*/
-
-  /**
-  * Add data to hot list, dom and firebase.
-  * @param 'data' data to be added
-  */
-  /*addElToHotList: function(data) {
-    // add to dom
-    var currentRef = window.location.href;  // current url
-    var hashIndex = currentRef.indexOf('#');  // index of '#' if exist
-    currentRef = hashIndex != -1?currentRef.substring(0, hashIndex):currentRef; // current url without # part
-    var ref = currentRef + "#" + data.url;  // new url
-    var aEl = "<br><a href='" + ref + "'>" + data.text + "</a>";  // construct <a> element represents the new url
-    this.hotListEl.prepend(aEl); // append to sub list
-
-    // add to firebase
-    var addedRef = firebaseHandler.push("dataHistory/hotList", data);  // push generated url to history list
-
-    // add to hot list
-    var arr = addedRef.toString().split('/'); // get ref tokens
-    var addedName = arr[arr.length-1];  // get last token
-    this.hotList.unshift({url: data.url, text: data.text, name: addedName});
-  },*/
 
   /**
   * Show/Hide url list according to current state.

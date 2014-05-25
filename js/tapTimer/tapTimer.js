@@ -52,8 +52,8 @@ TapTimer = Class.$extend({
       var url = window.location.hash?window.location.hash.slice(1):null;
       if(url) {
         var media = controller.getMedia();
-        if(media instanceof Audio) ref = "urlMapping/"+url+"/audios/"+media.key+"/timings";
-        else ref = "urlMapping/"+url+"/timings";
+        if(media instanceof Audio) ref = refs.mapping+url+"/audios/"+media.key+"/timings";
+        else ref = refs.mapping+url+"/timings";
         firebaseHandler.get(ref, function(data) {
           if(data) {  // timings exist
             timer.timings = data;
@@ -86,9 +86,9 @@ TapTimer = Class.$extend({
     if(url) {
       var media = controller.getMedia();
       if(media instanceof Audio) {
-        ref = "urlMapping/"+url+"/audios/"+media.key+"/timings";
+        ref = refs.mapping+url+"/audios/"+media.key+"/timings";
       } else {
-        ref = "urlMapping/"+url+"/timings";
+        ref = refs.mapping+url+"/timings";
       }
       firebaseHandler.set(ref, timings);
     }   

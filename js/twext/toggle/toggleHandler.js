@@ -130,7 +130,7 @@ ToggleHandler = Class.$extend({
 
     // Get all firebase saved data(translations, timings, url); getting all languages in one request is faster than getting each language separately
     var fbText = TwextUtils.textToFbKey(text);
-    firebaseHandler.get("data/"+fbText, function(data) {
+    firebaseHandler.get(refs.data+fbText, function(data) {
       var translations = null;
       if(data) {
         /*if(data.timings) {  // if timing lines retrieved from firebase
@@ -352,7 +352,7 @@ ToggleHandler = Class.$extend({
   translate: function(textSource, targetLang, langs, index) {
     var toggle = this;
     // Get the access token for translation
-    firebaseHandler.get("AccessToken", function(accessToken) {  //callback
+    firebaseHandler.get(refs.accessToken, function(accessToken) {  //callback
       console.log("To translate to "+targetLang);
       toggle.translator.setAccessToken(accessToken);  // set access token in translator
       // Use translator to send request to Bing translate api for text translation
@@ -365,7 +365,7 @@ ToggleHandler = Class.$extend({
 
           // Save text translation into firebase
           var textKey = TwextUtils.textToFbKey(textSource);
-          firebaseHandler.set("data/"+textKey+"/translations/"+targetLang+"/1-0", {value: translatedText, nNs: ""});
+          firebaseHandler.set(refs.data+textKey+"/translations/"+targetLang+"/1-0", {value: translatedText, nNs: ""});
 
           toggle.fillTranslations(langs, index);
         } // end if
@@ -385,20 +385,20 @@ ToggleHandler = Class.$extend({
       this.toggle_data.sourceLanguage = this.selectedLanguages.codes[0]; // set the text source language
       // Save into firebase
       var key = TwextUtils.textToFbKey(text);
-      firebaseHandler.set("data/"+key+"/sourceLanguage", this.selectedLanguages.codes[0]);
+      firebaseHandler.set(refs.data+key+"/sourceLanguage", this.selectedLanguages.codes[0]);
       return;
     }
 
     var toggle = this;
     // Get the access token for bing api detect request
-    firebaseHandler.get("AccessToken", function(accessToken) {  //callback
+    firebaseHandler.get(refs.accessToken, function(accessToken) {  //callback
       toggle.translator.setAccessToken(accessToken);  // set access token in translator
       // Use translator to send request to Bing api for text language detection
       toggle.translator.detectTextLanguage(text, function(response) {  // success callback
         toggle.toggle_data.sourceLanguage = response; // set the text source language
         // Save into firebase
         var key = TwextUtils.textToFbKey(text);
-        firebaseHandler.set("data/"+key+"/sourceLanguage", response);
+        firebaseHandler.set(refs.data+key+"/sourceLanguage", response);
       }, function(msg) {  // error callback
         console.log("Detect Error: " + msg);  // log error message
       }); // end detect request
@@ -420,7 +420,7 @@ ToggleHandler = Class.$extend({
       //var shortcut = this.getShortcut(null, index, length);
       this.saveTextUrl(text, str, shortcut, index, length);  // save text shortcut
     } else { // text already has a url
-      firebaseHandler.get("urlMapping/"+this.toggle_data.url, function(data) {
+      firebaseHandler.get(refs.mapping+this.toggle_data.url, function(data) {
         if(data) {  // url mapping found
           window.history.pushState("", document.title, "#" + toggle.toggle_data.url); // display url
 
@@ -432,7 +432,7 @@ ToggleHandler = Class.$extend({
           toggle.toggle_data.url = null;
           toggle.generateTextUrl(text); // generate new url
           var textKey = TwextUtils.textToFbKey(text); // convert text to firebase key entry
-          firebaseHandler.remove("data/"+textKey+"/url"); // remove old url
+          firebaseHandler.remove(refs.data+textKey+"/url"); // remove old url
         }
       });
     }
@@ -446,7 +446,7 @@ ToggleHandler = Class.$extend({
   saveTextUrl: function(text, str, shortcut, index, length) {
     var toggle = this;
     // check if the generated url is not already in use
-    firebaseHandler.get("urlMapping/"+shortcut, function(data) {
+    firebaseHandler.get(refs.mapping+shortcut, function(data) {
       if(!data) { // url not in use
         window.history.pushState("", document.title, "#"+shortcut); // display new url
 
@@ -455,8 +455,8 @@ ToggleHandler = Class.$extend({
 
         // Save generated url to firebase
         var textKey = TwextUtils.textToFbKey(text); // convert text to firebase key entry
-        firebaseHandler.set("urlMapping/"+shortcut+"/text", text); // save url-text mapping
-        firebaseHandler.set("data/"+textKey+"/url", shortcut);  // save text-url mapping
+        firebaseHandler.set(refs.mapping+shortcut+"/text", text); // save url-text mapping
+        firebaseHandler.set(refs.data+textKey+"/url", shortcut);  // save text-url mapping
 
         // add new url to lists (All and Hot)
         var urlListHandler = controller.getUrlListHandler();
@@ -501,7 +501,7 @@ ToggleHandler = Class.$extend({
     var lang = this.toggle_data.getLanguage(this.language).language;
     var ver = this.toggle_data.getLanguageVersion(this.language, this.version).version;
     var data = {nNs: nNsObj, value: twext};
-    firebaseHandler.set("data/"+fbTextKey+"/translations/"+lang+"/"+ver, data);
+    firebaseHandler.set(refs.data+fbTextKey+"/translations/"+lang+"/"+ver, data);
 
     this.toggle_data.updateVersion(this.language, this.version, data);
   },

@@ -64,7 +64,7 @@ Image = Class.$extend({
   * @param 'text' firebase text key
   */
   save: function(text) {
-    firebaseHandler.set("data/"+text+"/translations/img/1-0/value", this.image.src);
+    firebaseHandler.set(refs.data+text+"/translations/img/1-0/value", this.image.src);
   },
 
   /**

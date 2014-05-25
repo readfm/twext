@@ -81,7 +81,7 @@ Controller = Class.$extend({
   * @param 'url' the reference hash url of the text
   */
   loadURLData: function(url) {
-    firebaseHandler.get("urlMapping/"+url, function(data) {
+    firebaseHandler.get(refs.mapping+url, function(data) {
       if(data) {  // if there is a mapped text with the given url
         controller.toggleHandler.getTranslations(data.text); // get text translations
 
@@ -358,7 +358,7 @@ Controller = Class.$extend({
     this.audioListHandler.deleteAudio(key, target);
     // delete audio from firebase
     var url = window.location.hash?window.location.hash.slice(1):null;
-    if(url) firebaseHandler.set("urlMapping/"+url+"/audios/"+key, null);
+    if(url) firebaseHandler.set(refs.mapping+url+"/audios/"+key, null);
     // delete audio from server
     audioId = audioId + ".wav";  // audio name on server
     $.post(
@@ -393,11 +393,11 @@ Controller = Class.$extend({
     this.urlListHandler.deleteUrlFromLists(url);
 
     // delete url mapping
-    firebaseHandler.remove("urlMapping/"+url);
+    firebaseHandler.remove(refs.mapping+url);
 
     // delete url text data
     var text = TwextUtils.textToFbKey(allUrlObj.text);  // all and hot urls have same text
-    firebaseHandler.remove("data/"+text);
+    firebaseHandler.remove(refs.data+text);
   },
 
   /**
@@ -408,7 +408,7 @@ Controller = Class.$extend({
     var shortcut = window.location.hash;  // get text shortcut
     if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
       shortcut = shortcut.slice(1);
-      firebaseHandler.set("urlMapping/"+shortcut+"/video", url);
+      firebaseHandler.set(refs.mapping+shortcut+"/video", url);
     }
   },
 
@@ -422,7 +422,7 @@ Controller = Class.$extend({
     this.audio.id = id;
     var data = {id:this.audio.id, timings: this.tapTimer.timings};
     if(url) {
-      var name = firebaseHandler.push("urlMapping/"+url+"/audios", data);
+      var name = firebaseHandler.push(refs.mapping+url+"/audios", data);
       this.audio.key = name;
       // add audio link to list
       this.audioListHandler.addToList(name, data);
