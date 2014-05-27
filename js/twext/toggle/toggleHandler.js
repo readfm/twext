@@ -412,7 +412,7 @@ ToggleHandler = Class.$extend({
   */
   generateTextUrl: function(text) {
     var toggle = this, index = 0;
-    var length = $.inArray(this.toggle_data.sourceLanguage, nonBing_languages_codes) != -1 ? 5 : 3;
+    var length = $.inArray(this.toggle_data.sourceLanguage, nonBing_languages_codes) != -1 ? 5 : 4; // length of #url
     if(!this.toggle_data.url) { // text has no saved url
       // create new url to represent the text
       var str = randomStr();  // create random string
