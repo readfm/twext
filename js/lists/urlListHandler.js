@@ -232,20 +232,6 @@ UrlListHandler = Class.$extend({
   },
 
   /**
-  * Get data object of the given url from all list.
-  */
-  getAllUrlObj: function(url) {
-    return this.allList[url];
-  },
-
-  /**
-  * Get data object of the given url from hot list.
-  */
-  getHotUrlObj: function(url) {
-    return this.hotList[url];
-  },
-
-  /**
   * Show/Hide url list according to current state.
   * First key press shows first 10 urls.
   * Second key press shows all urls.

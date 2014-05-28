@@ -390,8 +390,7 @@ Controller = Class.$extend({
   * Delete url data.
   */
   deleteUrl: function(url) {
-    var allUrlObj = this.urlListHandler.getAllUrlObj(url);
-    var hotUrlObj = this.urlListHandler.getHotUrlObj(url);
+    var urlObj = this.urlListHandler.getUrlObj(url);
 
     // Delete url from all and hot lists (history)
     this.urlListHandler.deleteUrlFromLists(url);
@@ -400,7 +399,7 @@ Controller = Class.$extend({
     firebaseHandler.remove(refs.mapping+url);
 
     // delete url text data
-    var text = TwextUtils.textToFbKey(allUrlObj.text);  // all and hot urls have same text
+    var text = TwextUtils.textToFbKey(urlObj.text);
     firebaseHandler.remove(refs.data+text);
   },
 
