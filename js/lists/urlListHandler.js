@@ -223,17 +223,12 @@ UrlListHandler = Class.$extend({
   },
 
   /**
-  * Get data object of the given url from all list.
+  * Get data object of the given url from list.
   */
-  getAllUrlObj: function(url) {
-    return this.allList[url];
-  },
-
-  /**
-  * Get data object of the given url from hot list.
-  */
-  getHotUrlObj: function(url) {
-    return this.hotList[url];
+  getUrlObj: function(url) {
+    if(this.state == 1) return this.hotList[url]; // hot list is displayed
+    if(this.state == 2) return this.allList[url]; // all list is displayed
+    return null;
   },
 
   /**
