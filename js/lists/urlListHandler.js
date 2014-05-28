@@ -45,7 +45,7 @@ UrlListHandler = Class.$extend({
         // fill list element
         text = TwextUtils.textToOneline(data[key].text);  // put the text in the form of oneline
         // create link element
-        aEl = "<br><a href='" + ref + "' id='all-" + data[key].url + "' onclick='controller.checkDeleteUrl(event);'>" + text + "</a>";
+        aEl = "<br><a href='" + ref + "' id='all-" + data[key].url + "' onclick='controller.onUrlClick(event);'>" + text + "</a>";
         listHandler.allListEl.prepend(aEl); // append to All list
       }
       //listHandler.fillAllListElement(); // create link for each entry of the list and append to the dom list element
@@ -85,7 +85,7 @@ UrlListHandler = Class.$extend({
         listHandler.hotList[data[key].url] = {name: key, text: data[key].text};
         // fill list element
         text = TwextUtils.textToOneline(data[key].text);
-        aEl = "<br><a href='" + ref + "' id='hot-" + data[key].url+ "' onclick='controller.checkDeleteUrl(event);'>" + text + "</a>";
+        aEl = "<br><a href='" + ref + "' id='hot-" + data[key].url+ "' onclick='controller.onUrlClick(event);'>" + text + "</a>";
         listHandler.hotListEl.prepend(aEl); // append to all list
       }
       //listHandler.fillHotListElement(); // create link for each entry of the list and append to the dom list element
@@ -134,7 +134,7 @@ UrlListHandler = Class.$extend({
     var ref = currentRef + "#" + data.url;
     var name = firebaseHandler.push(refs.history+"allList", data);  // push generated url to history list
     // create link element
-    var aEl = "<br><a href='" + ref + "' id='all-" + data.url + "' onclick='controller.checkDeleteUrl(event);'>" + data.text + "</a>";
+    var aEl = "<br><a href='" + ref + "' id='all-" + data.url + "' onclick='controller.onUrlClick(event);'>" + data.text + "</a>";
     this.allListEl.prepend(aEl); // append to all list
     this.allList[data.url] = {name: name, text: data.text};  // Update allList object
   },
@@ -159,7 +159,7 @@ UrlListHandler = Class.$extend({
     var currentRef = window.location.href.split('#')[0];
     var ref = currentRef + "#" + data.url;
     var name = firebaseHandler.push(refs.history+"hotList", data);  // push generated url to history list
-    var aEl = "<br><a href='" + ref + "' id='hot-" + data.url+ "' onclick='controller.checkDeleteUrl(event);'>" + data.text + "</a>";
+    var aEl = "<br><a href='" + ref + "' id='hot-" + data.url+ "' onclick='controller.onUrlClick(event);'>" + data.text + "</a>";
     this.hotListEl.prepend(aEl); // add to top of hot list
     this.hotList[data.url] = {name: name, text: data.text}; // add to hotList object
 
@@ -220,6 +220,15 @@ UrlListHandler = Class.$extend({
     this.deleteFromAllList(url);
     // delete from hot list
     this.deleteFromHotList(url);
+  },
+
+  /**
+  * Get data object of the given url from list.
+  */
+  getUrlObj: function(url) {
+    if(this.state == 1) return this.hotList[url]; // hot list is displayed
+    if(this.state == 2) return this.allList[url]; // all list is displayed
+    return null;
   },
 
   /**

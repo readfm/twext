@@ -371,14 +371,18 @@ Controller = Class.$extend({
   },
 
   /**
-  * Delete url if shift+ctrl+click.
-  * Either the event is fired from hot or all list, url element must be deleted from them both.
+  * Url on click event.
+  * If alt, copy url to test db.
+  * If shift+ctrl, delete url, either the event is fired from hot or all list, url element must be deleted from them both.
   */
-  checkDeleteUrl: function(e) {
+  onUrlClick: function(e) {
     var url = e.target.id.split("-")[1];
-    if(e.shiftKey && e.ctrlKey) {
+    if(e.shiftKey && e.ctrlKey && !e.altKey) {  // delete url
       e.preventDefault();
       this.deleteUrl(url);
+    } else if(e.altKey && !e.shiftKey && !e.ctrlKey) { // copy url to test db
+      e.preventDefault();
+      this.copyUrlToTest(url);
     }
   },
 
@@ -398,6 +402,41 @@ Controller = Class.$extend({
     // delete url text data
     var text = TwextUtils.textToFbKey(allUrlObj.text);  // all and hot urls have same text
     firebaseHandler.remove(refs.data+text);
+  },
+
+  /**
+  * Copy url to test db.
+  */
+  copyUrlToTest: function(url, testUrl) {
+    if(!url) return;
+
+    testUrl = testUrl?testUrl:url;
+    var urlObj = this.urlListHandler.getUrlObj(url);
+    // check if url already exist in test
+    firebaseHandler.get(refs.test.mapping+testUrl, function(data) {
+      if(data) {  // url in use
+        if(data.text != urlObj.text) { // url and its data not already exist in test db
+          var str = randomStr();  // create random string
+          var shortcut = str.substring(0, 3);  // generate 3 chars url
+          controller.copyUrlToTest(url, shortcut);
+        }
+      } else { // url not in use
+        // copy url-text mapping
+        firebaseHandler.get(refs.mapping+url, function(data) {
+          firebaseHandler.set(refs.test.mapping+testUrl, data);
+        });
+        // copy text data
+        var fbText = TwextUtils.textToFbKey(urlObj.text);
+        firebaseHandler.get(refs.data+fbText, function(data) {
+          data.url = testUrl;
+          firebaseHandler.set(refs.test.data+fbText, data);
+        });
+        // push to history
+        var h = {url: testUrl, text: urlObj.text};
+        firebaseHandler.push(refs.test.history+"allList", h);
+        firebaseHandler.push(refs.test.history+"hotList", h);
+      }
+    });
   },
 
   /**
