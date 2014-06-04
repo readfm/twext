@@ -840,11 +840,11 @@ Controller = Class.$extend({
     else if(e.keyCode == keys['f7'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.showHideLangMenu(e);  // F7 press, language menu
     else if(e.keyCode == keys['f7'] && !e.ctrlKey && e.altKey && !e.shiftKey) this.switchFontType(e); // alt+F7 press, font switch
     else if(e.keyCode == keys['f9'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.switchStateUrlList(e);  // f9 press, url list
-    else if($.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) {  // tap key press
+    else if($.inArray(e.keyCode, Object.values(this.player.tapTimer.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) {  // tap key press
       if(!this.tapTimer.isTapping) this.tapTimer.start(e);  // start tapping
       else this.tapTimer.tap(e);  // tap
     }
-    else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) this.player.game.play(); // play game
+    else if($.inArray(e.keyCode, Object.values(this.player.game.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) this.player.game.play(); // play game
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['+']) this.gifTextSizeUp(e); // increase font size
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['-']) this.gifTextSizeDown(e); // decrease font size
   },

@@ -7,36 +7,37 @@ UrlListHandler = Class.$extend({
   */
   __init__: function() {
     this.allListEl = $('#url-all-list');  // All list element
+    this.partListEl = $('#url-part-list');  // Part list element
     this.hotListEl = $('#url-hot-list');  // Hot list element
     this.labelEl = $('#url-list-label');  // list label that shows the current displayed list (all, hot or off)
 
     this.allList = {}; // object of All texts urls loaded from firebase, key is url, value is object contains: fb key, text
+    this.partList = {}; // object of Part of texts urls loaded from firebase, key is url, value is object contains: fb key, text
     this.hotList = {}; // object of Hot texts urls loaded from firebase, key is url, value is object contains: fb key, text
 
-    this.allListLimit = 1000; // maximum number of urls retrieved from firebase to be displayed as All list
+    this.partListLimit = 1000; // maximum number of urls retrieved from firebase to be displayed as All list
     this.hotListLimit = 10; // maximum number of hot links to be displayed/saved from/into hot list
 
-    this.loadLists(); // load All and Hot lists
-    this.state = 0; // current state of displaying urls; 0=off, 1=show first 10 last updated urls, 2=show all
+    this.loadLists(); // load All, Part and Hot lists
+    this.state = 0; // current state of displaying urls; 0=off, 1=show first 10 last updated urls, 2=show last 1000 created urls, 3=show all urls
   },
 
   /**
-  * Load url-text lists (All and Hot) from firebase.
+  * Load url-text lists (All, Part and Hot) from firebase.
   */
   loadLists: function() {
-    this.loadAllList(); // load All list
     this.loadHotList(); // load Hot list
+    this.loadAllList(); // load All and Part lists
   },
 
   /**
-  * Load url-text 'All' list from firebase to urlAllList object.
+  * Load url-text 'ALl' list from firebase to allList object.
+  * Load 1000 urls to partList object.
   */
   loadAllList: function() {
-    var listHandler = this; // copy of 'this' to be used in query callback
-    var ref = new Firebase(refs.history+"allList");  // firebase ref
-    var q = ref.endAt().limit(this.allListLimit);  // query to retrieve the last 1000 entries
-    firebaseHandler.query(q, function(data) {  // query firebase for data
-      //listHandler.allList = Object.toArray(data);  // cache the retrived list
+    var listHandler = this; // copy of 'this' to be used in callback
+    firebaseHandler.get(refs.history+"allList", function(data) {  // query firebase for data
+      listHandler.loadPartList(data);
       var aEl = "", text = "", ref = "";
       var currentRef = window.location.href.split('#')[0];
       for(var key in data) {
@@ -46,28 +47,30 @@ UrlListHandler = Class.$extend({
         text = TwextUtils.textToOneline(data[key].text);  // put the text in the form of oneline
         // create link element
         aEl = "<br><a href='" + ref + "' id='all-" + data[key].url + "' onclick='controller.onUrlClick(event);'>" + text + "</a>";
-        listHandler.allListEl.prepend(aEl); // append to All list
+        listHandler.allListEl.append(aEl); // append to All list
       }
-      //listHandler.fillAllListElement(); // create link for each entry of the list and append to the dom list element
     });
   },
 
   /**
-  * Create links for all urls and append them to the DOM.
-  * Append all urls to "url-all-list" element.
+  * Load last 1000 urls from all list retrieved from firebase to partList object.
   */
-  /*fillAllListElement: function() {
-    var i, aEl = "", ref = "", text = "";
-    var currentRef = window.location.href;
-    var hashIndex = currentRef.indexOf('#');
-    currentRef = hashIndex != -1?currentRef.substring(0, hashIndex):currentRef;
-    for(i=0;i<this.allList.length; i++) {
-      ref = currentRef + "#" + this.allList[i].url;
-      text = TwextUtils.textToOneline(this.allList[i].text);  // put the text in the form of oneline
-      aEl = "<br><a href='" + ref + "'>" + text + "</a>"; // create link element
-      this.allListEl.append(aEl); // append to All list
-    } // end for
-  },*/
+  loadPartList: function(allList) {
+    var keys = Object.keys(allList);
+    var start = keys.length <= this.partListLimit?0:keys.length-this.partListLimit; // start index
+    var aEl = "", text = "", ref = "", key;
+    var currentRef = window.location.href.split('#')[0];
+    for(var i=start; i<keys.length; i++) {
+      key = keys[i];
+      ref = currentRef + "#" + allList[key].url;
+      this.partList[allList[key].url] = {name: key, text: allList[key].text};
+      // fill list element
+      text = TwextUtils.textToOneline(allList[key].text);  // put the text in the form of oneline
+      // create link element
+      aEl = "<br><a href='" + ref + "' id='part-" + allList[key].url + "' onclick='controller.onUrlClick(event);'>" + text + "</a>";
+      this.partListEl.prepend(aEl); // append to part list
+    }
+  },
 
   /**
   * Load url-text Hot list from firebase to hotList object.
@@ -77,7 +80,6 @@ UrlListHandler = Class.$extend({
     var ref = new Firebase(refs.history+"hotList");  // firebase ref
     var q = ref.endAt().limit(this.hotListLimit);  // query to retrieve the last 10 entries
     firebaseHandler.query(q, function(data) {  // query firebase for data
-      //listHandler.hotList = Object.toArray(data);  // cache the retrived list
       var aEl = "", text = "", ref = "";
       var currentRef = window.location.href.split('#')[0];
       for(var key in data) {
@@ -86,7 +88,7 @@ UrlListHandler = Class.$extend({
         // fill list element
         text = TwextUtils.textToOneline(data[key].text);
         aEl = "<br><a href='" + ref + "' id='hot-" + data[key].url+ "' onclick='controller.onUrlClick(event);'>" + text + "</a>";
-        listHandler.hotListEl.prepend(aEl); // append to all list
+        listHandler.hotListEl.prepend(aEl); // append to hot list
       }
       //listHandler.fillHotListElement(); // create link for each entry of the list and append to the dom list element
       /*url_list.fillHotListElement();
@@ -95,24 +97,6 @@ UrlListHandler = Class.$extend({
       }*/
     });
   },
-
-  /**
-  * Create elements for the last 10 updated urls and append them to the DOM.
-  * Append the latest 10 updated urls to the "url-hot-list"
-  */
-  /*fillHotListElement: function() {
-    var i, aEl = "", ref = "", text = "", domIx = -1;
-    var currentRef = window.location.href;
-    var hashIndex = currentRef.indexOf('#');
-    currentRef = hashIndex != -1?currentRef.substring(0, hashIndex):currentRef;
-    for(i=0; i<this.hotList.length; i++) {
-      ref = currentRef + "#" + this.hotList[i].url;
-      text = TwextUtils.textToOneline(this.hotList[i].text);
-      aEl = "<br><a href='" + ref + "'>" + text + "</a>";
-      this.hotListEl.append(aEl); // append to all list
-      //this.hotList[i].domIx = domIx+2;
-    } // end for
-  },*/
 
   /**
   * Add the given url-text to the top of the lists, and save to firebase.
@@ -124,7 +108,7 @@ UrlListHandler = Class.$extend({
   },
 
   /**
-  * Add the url-text to the top of the all list, and save to firebase.
+  * Add the url-text to the bottom of the all list and top of part list, and save to firebase.
   * @param 'data' key/value object contains the url and text
   */
   saveToAllList: function(data) {
@@ -133,10 +117,20 @@ UrlListHandler = Class.$extend({
     var currentRef = window.location.href.split('#')[0];
     var ref = currentRef + "#" + data.url;
     var name = firebaseHandler.push(refs.history+"allList", data);  // push generated url to history list
-    // create link element
+    // append to all list
     var aEl = "<br><a href='" + ref + "' id='all-" + data.url + "' onclick='controller.onUrlClick(event);'>" + data.text + "</a>";
-    this.allListEl.prepend(aEl); // append to all list
+    this.allListEl.append(aEl); // append to all list
     this.allList[data.url] = {name: name, text: data.text};  // Update allList object
+    // append to part list
+    aEl = "<br><a href='" + ref + "' id='part-" + data.url + "' onclick='controller.onUrlClick(event);'>" + data.text + "</a>";
+    this.partListEl.prepend(aEl); // append to part list
+    this.partList[data.url] = {name: name, text: data.text};  // Update partList object
+    if(Object.size(this.partList) > this.partListLimit) { // delete last url if over limit
+      var len = this.partListEl[0].childNodes.length;
+      var lastEl = this.partListEl[0].childNodes[len-1];
+      var lastUrl = lastEl.id.split("-")[1];
+      this.deleteFromPartList(lastUrl);
+    }
   },
 
   /**
@@ -195,13 +189,13 @@ UrlListHandler = Class.$extend({
   },
 
   /**
-  * Delete url from all list.
+  * Delete url from all and part lists.
   */
   deleteFromAllList: function(url) {
     // delete from all list
     var allEl = $('#all-'+url);
     if(allEl.length > 0) {
-      brEl = allEl[0].previousSibling;
+      var brEl = allEl[0].previousSibling;
       if(brEl) $(brEl).remove();
       allEl.remove();
       // delete from firebase
@@ -209,14 +203,30 @@ UrlListHandler = Class.$extend({
       // delete from all list object
       delete this.allList[url];
     }
+    // delete from part list
+    this.deleteFromPartList(url);
   },
 
   /**
-  * Delete url <a> element from all and hot lists.
+  * Delete url from part list
+  */
+  deleteFromPartList: function(url) {
+    var partEl = $('#part-'+url);
+    if(partEl.length > 0) {
+      var brEl = partEl[0].previousSibling;
+      if(brEl) $(brEl).remove();
+      partEl.remove();
+      // delete from part list object
+      delete this.partList[url];
+    }
+  },
+
+  /**
+  * Delete url <a> element from part and hot lists.
   */
   deleteUrlFromLists: function(url) {
     var brEl = null;
-    // delete from all list
+    // delete from all and part list
     this.deleteFromAllList(url);
     // delete from hot list
     this.deleteFromHotList(url);
@@ -227,28 +237,35 @@ UrlListHandler = Class.$extend({
   */
   getUrlObj: function(url) {
     if(this.state == 1) return this.hotList[url]; // hot list is displayed
-    if(this.state == 2) return this.allList[url]; // all list is displayed
+    if(this.state == 2) return this.partList[url]; // part list is displayed
+    if(this.state == 3) return this.allList[url]; // all list is displayed
     return null;
   },
 
   /**
   * Show/Hide url list according to current state.
   * First key press shows first 10 urls.
-  * Second key press shows all urls.
-  * Third key press hide list, and then repeat process.
+  * Second key press shows 1000 urls.
+  * Third key press shows all urls.
+  * Fourth key press hide list, and then repeat process.
   */
   switchState: function() {
     if(this.state == 0) { // current state is off, move to state 1, show 10 last updated urls
       this.hotListEl.show();  // show hot list
       this.state = 1;  // change state to new
       this.labelEl.html("new"); // change label to new
-    } else if(this.state == 1) {  // current state is first 10 urls, move to state 2, show all urls
+    } else if(this.state == 1) {  // current state is first 10 urls, move to state 2, show 1000 urls
       this.hotListEl.hide();  // hide hot list
+      this.partListEl.show();  // show part list
+      this.state = 2;  // change state to part
+      this.labelEl.html("1000"); // change label to part
+    } else if(this.state == 2) { // current state is part urls, move to state 3, show all urls
+      this.partListEl.hide();  // hide part list
       this.allListEl.show();  // show all list
-      this.state = 2;  // change state to all
-      this.labelEl.html("all"); // change label to all
-    } else if(this.state == 2) {  // current state is all urls, move to state 0, hide list
-      this.allListEl.hide();  // hide all list
+      this.state = 3;  // change state to part
+      this.labelEl.html("all"); // change label to part
+    } else if(this.state == 3) {  // current state is part urls, move to state 0, hide list
+      this.allListEl.hide();  // hide part list
       this.state = 0;  // change state to off
       this.labelEl.html("off"); // change label to off
     }

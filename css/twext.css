@@ -49,7 +49,7 @@ a {
 }
 
 /* Url list style */
-#url-hot-list, #url-all-list  {
+#url-hot-list, #url-part-list, #url-all-list  {
   display: none;
   font-family: arial;
   font-size: 8px;
@@ -60,7 +60,7 @@ a {
 }
 
 /* Url list link style */
-#url-hot-list a, #url-all-list  a , #audio-list a {
+#url-hot-list a, #url-part-list a, #url-all-list  a , #audio-list a {
   color: silver;
 }
 

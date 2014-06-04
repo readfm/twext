@@ -77,7 +77,7 @@ Object.find = function(obj, value) {
 * @param 'obj' the object
 * @return array of object values
 */
-Object.toArray = function(obj) {
+Object.values = function(obj) {
   var arr = $.map(obj, function(k, v) {
     return [k];
   });
