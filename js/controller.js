@@ -762,6 +762,7 @@ Controller = Class.$extend({
 
     // reset url list
     //url_list.reset();
+    this.urlListHandler.deleteSearchUrls(); // reset search of urls
 
     // load text and translations into textarea
     this.loadData();
@@ -772,7 +773,10 @@ Controller = Class.$extend({
   */
   handleSpaceKeydown: function(e) {
     if(this.twextArea.isVisible()) {  // if area is visible
-      this.twextArea.pushChunk(e);  // push chunk on space
+      if(this.twextArea.textMode() == "textonly") {
+        var text = $.trim(this.twextArea.value());
+        this.urlListHandler.searchUrls(text); // search for urls contain any of the words of the text and display them
+      } else this.twextArea.pushChunk(e);  // push chunk on space
     }
   },
 
@@ -780,11 +784,12 @@ Controller = Class.$extend({
   * Handle backspace keydown on data-show input area.
   */
   handleBackspaceKeydown: function(e) {
+    var mode = this.twextArea.textMode();
+    var cursorCoord = this.twextArea.getCaretPos(); // get cursor position
+    var text = this.twextArea.value();  // get area input data
+    var line = text.split('\n')[cursorCoord.lines]; // current line on focus
     // check if it's undo hyphenation trial in timing mode
-    if(this.twextArea.textMode() == "timing") {  // timing mode
-      var cursorCoord = this.twextArea.getCaretPos(); // get cursor position
-      var text = this.twextArea.value();  // get area input data
-      var line = text.split('\n')[cursorCoord.lines]; // current line on focus
+    if(mode == "timing") {  // timing mode
       if(line.charAt(cursorCoord.offset-1) == '-') {  // undo hyphenation
         // Delete - from all occurrences of the word where - deleted
         var txt = this.syllabifier.undoWordHyphenation(text, cursorCoord);
@@ -793,6 +798,16 @@ Controller = Class.$extend({
           this.twextArea.renderPairedLines(txt.split('\n'), 'timing');  // render updated lines
           this.twextArea.setCaretPos(cursorCoord.lines, cursorCoord.offset-1);  // set cursor position after deleting the -
           this.syllabifier.setHyphenatedText(this.twextArea.text());  // set new hyphenated text
+        }
+      }
+    } else if(mode == "textonly") {
+      if(line.charAt(cursorCoord.offset-1) != ' ' && this.urlListHandler.searchKey) {
+        var words = strWords(this.twextArea.value());
+        if(words) {
+          words = words.slice(0, words.length-1);  // delete last word
+          var str = words.join(" ");
+          if(str) this.urlListHandler.searchUrls(str);
+          else this.urlListHandler.deleteSearchUrls();
         }
       }
     } else {  // pull chunk

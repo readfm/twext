@@ -9,16 +9,19 @@ UrlListHandler = Class.$extend({
     this.allListEl = $('#url-all-list');  // All list element
     this.partListEl = $('#url-part-list');  // Part list element
     this.hotListEl = $('#url-hot-list');  // Hot list element
+    this.searchListEl = $('#url-search-list');  // search list element
     this.labelEl = $('#url-list-label');  // list label that shows the current displayed list (all, hot or off)
 
     this.allList = {}; // object of All texts urls loaded from firebase, key is url, value is object contains: fb key, text
     this.partList = {}; // object of Part of texts urls loaded from firebase, key is url, value is object contains: fb key, text
     this.hotList = {}; // object of Hot texts urls loaded from firebase, key is url, value is object contains: fb key, text
+    this.searchList = {}; // object of searched urls.
 
     this.partListLimit = 1000; // maximum number of urls retrieved from firebase to be displayed as All list
     this.hotListLimit = 10; // maximum number of hot links to be displayed/saved from/into hot list
 
     this.loadLists(); // load All, Part and Hot lists
+    this.searchKey = null;  // current search string
     this.state = 0; // current state of displaying urls; 0=off, 1=show first 10 last updated urls, 2=show last 1000 created urls, 3=show all urls
   },
 
@@ -205,6 +208,8 @@ UrlListHandler = Class.$extend({
     }
     // delete from part list
     this.deleteFromPartList(url);
+    // delete from search list
+    this.deleteFromSearchList(url);
   },
 
   /**
@@ -218,6 +223,18 @@ UrlListHandler = Class.$extend({
       partEl.remove();
       // delete from part list object
       delete this.partList[url];
+    }
+  },
+
+  /**
+  * Delete url from search list
+  */
+  deleteFromSearchList: function(url) {
+    var searchEl = $('#search-'+url);
+    if(searchEl.length > 0) {
+      var brEl = searchEl[0].previousSibling;
+      if(brEl) $(brEl).remove();
+      searchEl.remove();
     }
   },
 
@@ -238,8 +255,50 @@ UrlListHandler = Class.$extend({
   getUrlObj: function(url) {
     if(this.state == 1) return this.hotList[url]; // hot list is displayed
     if(this.state == 2) return this.partList[url]; // part list is displayed
-    if(this.state == 3) return this.allList[url]; // all list is displayed
+    if(this.state == 3 || this.state == 0) return this.allList[url]; // all list is displayed
     return null;
+  },
+
+  /**
+  * Search for urls contain the given word.
+  */
+  searchUrls: function(str) {
+    if(this.state != 0 || this.searchKey == str) return; // if not off state or search for same text words, then return
+
+    var text, found = false, aEl, ref, list;
+    var words = strWords(str);
+    if(Object.size(this.searchList) > 0 && this.searchKey == words.slice(0, words.length-1).join(" ")) list = this.searchList;
+    else list = this.allList;
+
+    this.deleteSearchUrls();
+    this.searchKey = str;
+
+    for(var key in list) {
+      text = list[key].text;
+      found = false;
+      for(var i=0; i<words.length; i++) {
+        if(text.indexOf(words[i]) != -1) found = true;
+        else {
+          found = false;
+          break;
+        }
+      }
+      if(found) { // text contain all words
+        ref = "#" + key;
+        aEl = "<br><a href='" + ref + "' id='search-" + key + "' onclick='controller.onUrlClick(event);'>" + text + "</a>";
+        this.searchListEl.prepend(aEl); // add to top of search list
+        this.searchList[key] = list[key];
+      }
+    }
+  },
+
+  /**
+  * Delete search result.
+  */
+  deleteSearchUrls: function() {
+    this.searchListEl.empty();
+    this.searchKey = null;
+    this.searchList = {};
   },
 
   /**
@@ -251,6 +310,7 @@ UrlListHandler = Class.$extend({
   */
   switchState: function() {
     if(this.state == 0) { // current state is off, move to state 1, show 10 last updated urls
+      this.searchListEl.hide();  // hide search list
       this.hotListEl.show();  // show hot list
       this.state = 1;  // change state to new
       this.labelEl.html("new"); // change label to new
@@ -266,6 +326,7 @@ UrlListHandler = Class.$extend({
       this.labelEl.html("all"); // change label to part
     } else if(this.state == 3) {  // current state is part urls, move to state 0, hide list
       this.allListEl.hide();  // hide part list
+      this.searchListEl.show();  // show search list
       this.state = 0;  // change state to off
       this.labelEl.html("off"); // change label to off
     }
