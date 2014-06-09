@@ -287,7 +287,7 @@ ToggleHandler = Class.$extend({
     var smallLines = small.split("\n"); // small lines (twext or timing)
     for(i=0; i<bigLines.length ; i++) {  // loop over source text lines
       lines.push(bigLines[i]); // add Text line
-      lines.push(smallLines[i]); // add Twext line
+      lines.push(smallLines[i]?smallLines[i]:"-"); // add Twext line
     }
     return lines;  // return Text/Twext lines
   },
