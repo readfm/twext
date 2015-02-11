@@ -6,7 +6,7 @@ Image = Class.$extend({
   * Initilize class variables (classy.js is used for class creation)
   */
   __init__: function() {
-    this.image = $('#image')[0]; // image DOM element
+    this.image = $('#image'); // image DOM element
     this.container = $('#imgContainer');  // video container DOM element
   },
 
@@ -15,7 +15,7 @@ Image = Class.$extend({
   * @param 'url' image src url
   */
   load: function(url) {
-    this.image.src = url;
+    this.image.attr('src', url);
   },
 
   /**
@@ -39,7 +39,7 @@ Image = Class.$extend({
   * @return true if image loaded, false if not
   */
   isOn: function() {
-    if(this.image && this.image.src) return true;
+    if(this.image && this.image.attr('src')) return true;
     else return false;
   },
 
@@ -47,8 +47,8 @@ Image = Class.$extend({
   * Set Width of the image.
   */
   width: function(w) {
-    if(w) $(this.image).attr("width", w);
-    else $(this.image).removeAttr("width");
+    if(w) this.image.attr("width", w);
+    else this.image.removeAttr("width");
   },
 
   /**
@@ -56,7 +56,7 @@ Image = Class.$extend({
   */
   height: function(h) {
     this.container.height(h);
-    $(this.image).height(h);
+    this.image.height(h);
   },
 
   /**
@@ -64,14 +64,14 @@ Image = Class.$extend({
   * @param 'text' firebase text key
   */
   save: function(text) {
-    firebaseHandler.set(refs.data+text+"/translations/img/1-0/value", this.image.src);
+    firebaseHandler.set(refs.data+text+"/translations/img/1-0/value", this.image.attr('src'));
   },
 
   /**
   * Clear image data.
   */
   clear: function() {
-    this.image.src = null;  // reset src
-    this.hide();  // hide video
+    this.image.attr('src', null);  // reset src
+    this.hide();  // hide image
   }
 });
