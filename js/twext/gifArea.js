@@ -39,7 +39,7 @@ GifArea = Class.$extend({
     var resource = null;
     var media = controller.getMedia();
     var image = controller.image;
-    if(media instanceof Video) resource = media;
+    if(media instanceof Video && media.isVisible()) resource = media;
     else if(image.isOn()) resource = image;
     else return;
 

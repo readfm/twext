@@ -40,27 +40,31 @@ Video = Class.$extend({
            'callback' callback function
   */
   load: function(id, from, to, callback) {
-    this.id = id;
     this.startTime = from;
     this.endTime = to;
-    var vid = this;
-    // Get video path on the server
-    this.requestPath(id, function(path) {
-      if(path != -1) {
-        vid.video.src = "http://" + path;  // set video src
-        // callback when the video and its metadata are fully loaded
-        $(vid.video).bind('canplaythrough', function(e) {
-          //vidPlayer.hideMsg();
-          //vidPlayer.showVideo();
-          // restart play if required
-          //if(!loadOnly) player.restartPlay();
-          callback(true); // return with loaded confirmation
-          $(vid.video).unbind('canplaythrough');
-        });
-      } else {
-        callback(false); // return with not found confirmation
-      }
-    });
+    if(id == this.id) { // video already loaded before
+      callback(true);
+    } else {
+      this.id = id;
+      var vid = this;
+      // Get video path on the server
+      this.requestPath(id, function(path) {
+        if(path != -1) {
+          vid.video.src = "http://" + path;  // set video src
+          // callback when the video and its metadata are fully loaded
+          $(vid.video).bind('canplaythrough', function(e) {
+            //vidPlayer.hideMsg();
+            //vidPlayer.showVideo();
+            // restart play if required
+            //if(!loadOnly) player.restartPlay();
+            callback(true); // return with loaded confirmation
+            $(vid.video).unbind('canplaythrough');
+          });
+        } else {
+          callback(false); // return with not found confirmation
+        }
+      });
+    }
   },
 
   /**
@@ -191,5 +195,13 @@ Video = Class.$extend({
   height: function(h) {
     this.container.height(h);
     $(this.video).height(h);
+  },
+
+  /**
+  * Check if the video is visible.
+  * @return true if visible, false if not
+  */
+  isVisible: function() {
+    return $(this.container).is(":visible");
   }
 });
