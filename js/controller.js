@@ -95,6 +95,7 @@ Controller = Class.$extend({
     $(this.audio.audio).bind("canplaythrough", function() {
       controller.audio.startTime = 0;
       controller.audio.endTime = controller.audio.duration();
+      sampleText = sampleText.split('\n').clean().join('\n'); // remove empty lines
       // render sample text
       controller.twextArea.renderLines(sampleText.split('\n'));  // display text
       // play text
