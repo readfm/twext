@@ -17,6 +17,10 @@ $(document).ready(function() {
   function init() {
     console.log('Init data');
 
+    // remove empty lines from sample data
+    sampleText = sampleText.split('\n').clean().join('\n');
+    sampleTimings = sampleTimings.split('\n').clean().join('\n');
+
     firebaseHandler = new FirebaseHandler();  // initialize backend comunicator object
     controller = new Controller();  // initialize controller object, all data objects initialized with controller
     attachEvents(); // attach events of elements
