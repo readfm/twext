@@ -37,31 +37,34 @@ Audio = Class.$extend({
   * @param 'id' audio id
   */
   load: function(id, callback) {
-    //this.id = id;
-    var aud = this;
-    // Get video path on the server
-    this.requestPath(id, function(path) {
-      if(path != -1) {
-        // create temp audio element and use it to load requested audio, after the audio completely loaded it would replace current audio
-        var tempAudio = $(aud.audio).clone();
-        tempAudio.attr("src", "http://" + path);
-        //aud.audio.src = "http://" + path;  // set video src
-        // callback when the video and its metadata are fully loaded
-        $(tempAudio).bind('canplaythrough', function(e) {
-          aud.parent.replaceChild(tempAudio[0], aud.audio);
-          aud.refresh();  // make Audio object reference the new replaced audio element
-          aud.id = id;
-          aud.startTime = 0;
-          aud.endTime = aud.duration();  // set audio end time;
-          console.log("Audio loaded");
-          callback(true);
-          $(tempAudio).unbind('canplaythrough');
-        });
-      } else {
-        callback(false); // return with not found confirmation
-        console.log("No recordings attached to this text");
-      }
-    });
+    if(id == this.id) { // audio already loaded
+      callback(true);
+    } else {
+      var aud = this;
+      // Get video path on the server
+      this.requestPath(id, function(path) {
+        if(path != -1) {
+          // create temp audio element and use it to load requested audio, after the audio completely loaded it would replace current audio
+          var tempAudio = $(aud.audio).clone();
+          tempAudio.attr("src", "http://" + path);
+          //aud.audio.src = "http://" + path;  // set video src
+          // callback when the video and its metadata are fully loaded
+          $(tempAudio).bind('canplaythrough', function(e) {
+            aud.parent.replaceChild(tempAudio[0], aud.audio);
+            aud.refresh();  // make Audio object reference the new replaced audio element
+            aud.id = id;
+            aud.startTime = 0;
+            aud.endTime = aud.duration();  // set audio end time;
+            console.log("Audio loaded");
+            callback(true);
+            $(tempAudio).unbind('canplaythrough');
+          });
+        } else {
+          callback(false); // return with not found confirmation
+          console.log("No recordings attached to this text");
+        }
+      });
+    }
   },
 
   /**

@@ -39,7 +39,7 @@
 #playerContainer {
   display: none;
   width: 100%;
-  height: 80px;
+  height: 85px;
 }
 
 /* Container of video */
@@ -64,6 +64,7 @@
   padding-top: 5px;
   margin-left: 15px;
   width: 600px;
+  height: 80px;
 }
 
 /* Gif view of container */
@@ -89,4 +90,32 @@
   padding-top: 15px;
   background-color: black;
   overflow: hidden;
+}
+
+#thumbs {
+  height: 62px;
+  display: none;
+  overflow: hidden;
+  margin-top: 1px;
+  white-space: nowrap;
+  margin-left: -6px;
+}
+
+#thumbs>span.thumb {
+  height: 60px;
+  width: 60px;
+  background-size: auto 100%;
+  background-position: center center;
+  display: inline-block;
+  cursor: pointer;
+  opacity: 0.6;
+  border: solid 1px black;
+}
+
+#thumbs>span.active {
+  opacity: 1;
+}
+
+#thumbs>span:hover {
+  opacity: 0.8;
 }

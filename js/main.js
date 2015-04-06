@@ -5,11 +5,13 @@ var controller, firebaseHandler;
 var twextArea, player, syllabifier; // accessed by other modules
 var keys = {
   'space': 32,
+  "f1": 112,
   "f2": 113,
   "f4": 115,
   "f7": 118,
   "f8": 119,
   "f9": 120,
+  "f10": 121,
   '+': 187,
   '-': 189
 };
@@ -100,9 +102,10 @@ $(document).ready(function() {
     $('#data-bar-f4, #data-bar-timing').bind("click", $.proxy(controller.textOnlyTimingToggle, controller));  // switch on/off timings
     $('#url-list-f9, #url-list-label').bind("click", $.proxy(controller.switchStateUrlList, controller));  // show/hide url list
     $('#data-bar-f2, #data-bar-play').bind("click", $.proxy(controller.playPauseText, controller)); // play/pause text with media
+    $('#data-bar-f10, #data-bar-depict').bind("click", $.proxy(controller.toggleThumbs, controller)); // play/pause text with media
 
     // Load video on typing the url
-    $('#mediaInputLink').bind("change", $.proxy(controller.loadVideo, controller));
+    $('#mediaInputLink').bind("change", $.proxy(controller.loadMedia, controller));
   }
 
   // initialize data objects and bind events
