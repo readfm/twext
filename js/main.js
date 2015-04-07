@@ -102,7 +102,8 @@ $(document).ready(function() {
     $('#data-bar-f4, #data-bar-timing').bind("click", $.proxy(controller.textOnlyTimingToggle, controller));  // switch on/off timings
     $('#url-list-f9, #url-list-label').bind("click", $.proxy(controller.switchStateUrlList, controller));  // show/hide url list
     $('#data-bar-f2, #data-bar-play').bind("click", $.proxy(controller.playPauseText, controller)); // play/pause text with media
-    $('#data-bar-f10, #data-bar-depict').bind("click", $.proxy(controller.toggleThumbs, controller)); // play/pause text with media
+    $('#data-bar-f10, #data-bar-pic').bind("click", $.proxy(controller.toggleThumbs, controller)); // toggle thumbs
+    $('#data-bar-f1, #data-bar-bigview').bind("click", $.proxy(controller.normalOrGifView, controller)); // normal/big view switch
 
     // Load video on typing the url
     $('#mediaInputLink').bind("change", $.proxy(controller.loadMedia, controller));
