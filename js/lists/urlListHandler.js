@@ -10,7 +10,7 @@ UrlListHandler = Class.$extend({
     this.partListEl = $('#url-part-list');  // Part list element
     this.hotListEl = $('#url-hot-list');  // Hot list element
     this.searchListEl = $('#url-search-list');  // search list element
-    this.labelEl = $('#url-list-label');  // list label that shows the current displayed list (all, hot or off)
+    this.labelEl = $('#data-bar-urllist');  // list label that shows the current displayed list (all, hot or off)
 
     this.allList = {}; // object of All texts urls loaded from firebase, key is url, value is object contains: fb key, text
     this.partList = {}; // object of Part of texts urls loaded from firebase, key is url, value is object contains: fb key, text
@@ -313,7 +313,7 @@ UrlListHandler = Class.$extend({
       this.searchListEl.hide();  // hide search list
       this.hotListEl.show();  // show hot list
       this.state = 1;  // change state to new
-      this.labelEl.html("new"); // change label to new
+      this.labelEl.html("recent"); // change label to new
     } else if(this.state == 1) {  // current state is first 10 urls, move to state 2, show 1000 urls
       this.hotListEl.hide();  // hide hot list
       this.partListEl.show();  // show part list
@@ -328,7 +328,7 @@ UrlListHandler = Class.$extend({
       this.allListEl.hide();  // hide part list
       this.searchListEl.show();  // show search list
       this.state = 0;  // change state to off
-      this.labelEl.html("off"); // change label to off
+      this.labelEl.html("list"); // change label to off
     }
   }
 
