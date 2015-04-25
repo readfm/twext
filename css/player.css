@@ -76,7 +76,7 @@
 
 /* Normal view of container */
 #imgContainer.normal-view {
-  padding-top: 0px;
+  padding-top: 2px;
   background-color: white;
 }
 

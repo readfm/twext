@@ -249,20 +249,12 @@ Controller = Class.$extend({
   */
   loadImage: function(url) {
     var media = this.getMedia();
-    if(media && media instanceof Video) return; // do not show image if there is a video
+    if(media && media instanceof Video && media.isVisible()) return; // do not show image if there is a video
     var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/; // url pattern
     if(!url || !re.test(url)) return;
 
     this.image.load(url); // load image url to image object
     this.image.show();  // show image
-
-    // save image to fb
-    //var text = TwextUtils.textToFbKey(this.toggleHandler.toggle_data.sourceText);
-    //this.image.save(text);
-    // update image version in toggle_data
-    //var lang = this.toggleHandler.toggle_data.findByLanguageCode("img");
-    //var data = {value: url, nN: ""};
-    //this.toggleHandler.toggle_data.updateVersion(lang, 0, data);
   },
 
   /**
@@ -272,18 +264,28 @@ Controller = Class.$extend({
   loadVideo: function(e) {
     var textUrl = window.location.hash?window.location.hash.slice(1):null;  // get text url representation
     var link = $("#mediaInputLink").val();
-    //this.video.clear(); // clear old video data
     if(link) {
+      var vid, img = null;
+      var i = link.indexOf('+');
+      if(i != -1) {
+        vid = link.substr(0, i); // video params
+        img = link.slice(i+1); // image url
+      } else {  // no image url attached
+        vid = link;
+      }
       this.showMsg("Loading video...");  // display Loading message for video
-      var params = this.videoParams(link); // get video parameters from input link
+      var params = this.videoParams(vid); // get video parameters from input link
       this.video.load(params['id'], params['loopFrom'], params['loopTo'], function(loaded) {  // callback after loading video
         if(loaded) {  // video loaded
           controller.hideMsg();  // hide video message
           controller.image.clear();
           controller.video.show();  // show video
-          controller.saveVideo(link); // save video to firebase
+          controller.saveVideo(vid); // save video to firebase
           controller.audioListHandler.hide(); // hide audio list if exist
-          //if(!loadOnly) player.restartPlay();
+          if(img) {
+            controller.video.hide();
+            controller.loadImage(img); // load image url to image object
+          }
         } else {
           controller.showMsg("Video not found"); // display not found message
           controller.video.clear(); // clear video data
