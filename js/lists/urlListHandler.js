@@ -8,7 +8,7 @@ UrlListHandler = Class.$extend({
   __init__: function() {
     this.allListEl = $('#url-all-list');  // All list element
     this.hotListEl = $('#url-hot-list');  // Hot list element
-    this.labelEl = $('#url-list-label');  // list label that shows the current displayed list (all, hot or off)
+    this.labelEl = $('#data-bar-urllist');  // list label that shows the current displayed list (all, hot or off)
 
     this.allList = {}; // object of All texts urls loaded from firebase, key is url, value is object contains: fb key, text
     this.hotList = {}; // object of Hot texts urls loaded from firebase, key is url, value is object contains: fb key, text
@@ -241,7 +241,7 @@ UrlListHandler = Class.$extend({
     if(this.state == 0) { // current state is off, move to state 1, show 10 last updated urls
       this.hotListEl.show();  // show hot list
       this.state = 1;  // change state to new
-      this.labelEl.html("new"); // change label to new
+      this.labelEl.html("recent"); // change label to new
     } else if(this.state == 1) {  // current state is first 10 urls, move to state 2, show all urls
       this.hotListEl.hide();  // hide hot list
       this.allListEl.show();  // show all list
@@ -250,7 +250,7 @@ UrlListHandler = Class.$extend({
     } else if(this.state == 2) {  // current state is all urls, move to state 0, hide list
       this.allListEl.hide();  // hide all list
       this.state = 0;  // change state to off
-      this.labelEl.html("off"); // change label to off
+      this.labelEl.html("list"); // change label to off
     }
   }
 

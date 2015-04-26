@@ -576,8 +576,8 @@ Controller = Class.$extend({
     if(!(media && media instanceof Video) && !this.image.isOn()) return;
 
     if(this.twextArea.isVisible()) {  // in normal view, switch to gif
-      $('#control-data-bar').hide();  // hide control data bar
-      $('#url-list-controls').hide();  // hide url list control
+      $('#top-control-data-bar').hide();  // hide control data bar
+      $('#down-control-data-bar').hide();  // hide url list control
       $('#mediaInputLinkContainer').hide();  // hide videoUrl input
       this.thumbsHandler.hideThumbs();  // hide images list
       this.twextArea.hide();  // hide twextArea
@@ -586,8 +586,8 @@ Controller = Class.$extend({
       // Update gif area content
       this.updateGifAreaContent();
     } else {  // in gif view switch to normal
-      $('#control-data-bar').show();  // show control data bara
-      $('#url-list-controls').show();  // show url list control
+      $('#top-control-data-bar').show();  // show control data bara
+      $('#down-control-data-bar').show();  // show url list control
       if(this.twextArea.textMode() == "timing") $('#mediaInputLinkContainer').show();
       this.thumbsHandler.showThumbs();
       this.twextArea.show();  // show twext area
