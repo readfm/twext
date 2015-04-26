@@ -20,6 +20,7 @@ Controller = Class.$extend({
     this.urlListHandler = new UrlListHandler(); // create UrlListController object that handles list features
     this.audioListHandler = new AudioListHandler(); // create AudiosListHandler object that handles audio list feature
     this.player = new Player(this.twextArea, this.syllabifier, this.tapTimer); // create Player object that handles playing features
+    this.thumbsHandler = new ThumbsHandler();
   },
 
   /**
@@ -77,6 +78,29 @@ Controller = Class.$extend({
   },
 
   /**
+  * Toggle video/thumbs, first key press switch from video to image1, second from image1 to image2..etc and back to video.
+  */
+  toggleThumbs: function(e) {
+    var url = null;
+    if(e) e.preventDefault();
+    if(e && e.altKey) url = this.thumbsHandler.getPreviousThumb();
+    else url = this.thumbsHandler.getNextThumb();
+    if (url) { // image
+      this.video.hide();
+      this.image.load(url); // load image url to image object
+      this.image.show();  // show image
+      this.gifArea.setResource(this.image); // update current resource
+    } else { // video
+      this.image.hide();  // hide image
+      this.video.show();
+      this.gifArea.setResource(this.video); // update current resource
+    }
+    // refresh area after resource change
+    if(this.gifArea.isVisible()) this.gifArea.show();
+    else this.gifArea.hide();
+  },
+
+  /**
   * Load Text from firebase that is referenced by the given shortcut.
   * @param 'url' the reference hash url of the text
   */
@@ -93,10 +117,17 @@ Controller = Class.$extend({
         // Load video if exists
         if(data.video) {
           $("#mediaInputLink").val(data.video);  // write video link into the text input
-          controller.loadVideo(); // load video
+          controller.loadVideo(data.video); // load video
         } else if(data.audios) {
           var lastAudioKey = controller.audioListHandler.loadList(data.audios);  // load audios to list
           controller.loadAudio(lastAudioKey); // load recorded audio
+        }
+
+        // Load thumbs
+        if(data.thumbs) {
+          for(var i in data.thumbs) {
+            controller.thumbsHandler.createThumb(data.thumbs[i], i);
+          }
         }
 
         // Add this url/text to the hot list
@@ -248,50 +279,38 @@ Controller = Class.$extend({
   * @param 'url' image url
   */
   loadImage: function(url) {
-    var media = this.getMedia();
-    if(media && media instanceof Video && media.isVisible()) return; // do not show image if there is a video
     var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/; // url pattern
     if(!url || !re.test(url)) return;
+    var thumb = this.thumbsHandler.createThumb(url, null, true);
 
+    var media = this.getMedia();
+    if(media && media instanceof Video && media.isVisible()) return; // do not show image if there is a video
+
+    thumb.click();
     this.image.load(url); // load image url to image object
     this.image.show();  // show image
   },
 
   /**
-  * Load video with the url typed in the text input.
-  * Save the video/text mapping into firebase
+  * Load media with given id.
   */
-  loadVideo: function(e) {
-    var textUrl = window.location.hash?window.location.hash.slice(1):null;  // get text url representation
+  loadMedia: function(e) {
     var link = $("#mediaInputLink").val();
     if(link) {
-      var vid, img = null;
+      var url, img = null;
       var i = link.indexOf('+');
       if(i != -1) {
-        vid = link.substr(0, i); // video params
+        url = link.substr(0, i); // media
         img = link.slice(i+1); // image url
+        // create thumb
+        var k = this.thumbsHandler.saveThumb(img);  // save into fb
+        this.thumbsHandler.createThumb(img, k);
       } else {  // no image url attached
-        vid = link;
+        url = link;
       }
-      this.showMsg("Loading video...");  // display Loading message for video
-      var params = this.videoParams(vid); // get video parameters from input link
-      this.video.load(params['id'], params['loopFrom'], params['loopTo'], function(loaded) {  // callback after loading video
-        if(loaded) {  // video loaded
-          controller.hideMsg();  // hide video message
-          controller.image.clear();
-          controller.video.show();  // show video
-          controller.saveVideo(vid); // save video to firebase
-          controller.audioListHandler.hide(); // hide audio list if exist
-          if(img) {
-            controller.video.hide();
-            controller.loadImage(img); // load image url to image object
-          }
-        } else {
-          controller.showMsg("Video not found"); // display not found message
-          controller.video.clear(); // clear video data
-          controller.saveVideo(null); // save empty video in firebase
-        }
-      });
+      var params = this.mediaParams(url);
+      if(Object.size(params) > 1) this.loadVideo(url, params);
+      else this.loadAudio(url);
     } else {  // delete video url from firebase
       this.video.clear(); // clear video data
       this.saveVideo(null);  // save empty video in fireabse
@@ -301,6 +320,28 @@ Controller = Class.$extend({
       var img = controller.toggleHandler.toggle_data.getLanguageVersion(langIx, 0);
       if(img) controller.loadImage(img.data.value.split('\n')[0]);
     }
+  },
+
+  /**
+  * Load video with the url typed in the text input.
+  * Save the video/text mapping into firebase
+  */
+  loadVideo: function(vid, parameters) {
+    this.showMsg("Loading video...");  // display Loading message for video
+    var params = parameters?parameters:this.mediaParams(vid); // get video parameters from input link
+    this.video.load(params['id'], params['loopFrom'], params['loopTo'], function(loaded) {  // callback after loading video
+      if(loaded) {  // video loaded
+        controller.hideMsg();  // hide video message
+        controller.image.clear();
+        controller.video.show();  // show video
+        controller.saveVideo(vid); // save video to firebase
+        controller.audioListHandler.hide(); // hide audio list if exist
+      } else {
+        controller.showMsg("Video not found"); // display not found message
+        controller.video.clear(); // clear video data
+        controller.saveVideo(null); // save empty video in firebase
+      }
+    });
     //player.resetSegments();
   },
 
@@ -449,18 +490,20 @@ Controller = Class.$extend({
   },
 
   /**
-  * Get video url parameters. Url in the form of "http://youtu.be/i6uVVcqPLk&loop=74.4;85.3"
-  * @param 'url' video url
+  * Get media url parameters. Url in the form of "http://youtu.be/i6uVVcqPLk&loop=74.4;85.3"
+  * @param 'url' media url
   * @return key/value object contains parameters
   */
-  videoParams: function(url) {
+  mediaParams: function(url) {
     var params = {};
     var tmp = url.split('/');
     var paramArr = tmp[tmp.length-1].split('&');
-    var loopParams = paramArr[1].split('=')[1].split(';');
-    params['id'] = paramArr[0]; // video id
-    params['loopFrom'] = loopParams[0]; // loop from
-    params['loopTo'] = loopParams[1]; // loop to
+    params['id'] = paramArr[0]; // video/audio id
+    if(paramArr[1]) {
+      var loopParams = paramArr[1].split('=')[1].split(';');
+      params['loopFrom'] = loopParams[0]; // loop from
+      params['loopTo'] = loopParams[1]; // loop to
+    }
     return params;
   },
 
@@ -526,6 +569,9 @@ Controller = Class.$extend({
   * Gif area is an area shows current Text/Twext lines played with zoomed video.
   */
   normalOrGifView: function(e) {
+     e.preventDefault();
+    e.stopPropagation();
+
     var media = this.getMedia();
     if(!(media && media instanceof Video) && !this.image.isOn()) return;
 
@@ -533,6 +579,7 @@ Controller = Class.$extend({
       $('#control-data-bar').hide();  // hide control data bar
       $('#url-list-controls').hide();  // hide url list control
       $('#mediaInputLinkContainer').hide();  // hide videoUrl input
+      this.thumbsHandler.hideThumbs();  // hide images list
       this.twextArea.hide();  // hide twextArea
       this.gifArea.show();  // show gif area
 
@@ -542,6 +589,7 @@ Controller = Class.$extend({
       $('#control-data-bar').show();  // show control data bara
       $('#url-list-controls').show();  // show url list control
       if(this.twextArea.textMode() == "timing") $('#mediaInputLinkContainer').show();
+      this.thumbsHandler.showThumbs();
       this.twextArea.show();  // show twext area
       this.gifArea.hide();  // hide gif area
       this.twextArea.realign(); // realign chunks
@@ -722,6 +770,7 @@ Controller = Class.$extend({
     // clear and hide audio list
     this.audioListHandler.empty();
     this.audioListHandler.hide();
+    this.thumbsHandler.clear();
 
     // reset url list
     //url_list.reset();
@@ -799,10 +848,11 @@ Controller = Class.$extend({
     else if(e.keyCode == keys['f8'] && !e.ctrlKey && e.altKey && !e.shiftKey) this.toggleLangDown(e); // alt+F8, toggle down
     else if(e.keyCode == keys['f4'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.textOnlyTimingToggle(); // F4 press, timing switch
     else if(((!e.ctrlKey && e.keyCode == keys['f2']) || (e.ctrlKey && e.keyCode == keys['space'])) && !e.altKey && !e.shiftKey) this.playPauseText(e);  // F2 press or ctrl+space, play/pause text
-    else if(e.keyCode == keys['f2'] && !e.ctrlKey && e.altKey && !e.shiftKey) this.normalOrGifView(e);  // alt+F2 press, big/small view switch
+    else if(e.keyCode == keys['f1'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.normalOrGifView(e);  // alt+F2 press, big/small view switch
     else if(e.keyCode == keys['f7'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.showHideLangMenu(e);  // F7 press, language menu
     else if(e.keyCode == keys['f7'] && !e.ctrlKey && e.altKey && !e.shiftKey) this.switchFontType(e); // alt+F7 press, font switch
     else if(e.keyCode == keys['f9'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.switchStateUrlList(e);  // f9 press, url list
+    else if(e.keyCode == keys['f10'] && !e.ctrlKey && !e.shiftKey) this.toggleThumbs(e);
     else if($.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) {  // tap key press
       if(!this.tapTimer.isTapping) this.tapTimer.start(e);  // start tapping
       else this.tapTimer.tap(e);  // tap

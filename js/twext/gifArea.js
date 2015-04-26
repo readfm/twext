@@ -23,6 +23,13 @@ GifArea = Class.$extend({
   },
 
   /**
+  * Set current resource;
+  */
+  setResource: function(res) {
+    this.resource = res;
+  },
+
+  /**
   * Resize resource.
   */
   resize: function() {
@@ -57,11 +64,11 @@ GifArea = Class.$extend({
   * Hide gif area.
   */
   hide: function() {
+    if(!this.resource) return;  // gif area not displayed
     // update resource width and height
     if(this.resource instanceof Image) this.resource.width(null);
     else if(this.resource instanceof Video) this.resource.width(600);
     this.resource.height(80);  // set resource height
-    this.container.height(80); // set gif container height
 
     this.resource.container[0].className = "normal-view";  // change class of resource container
     this.twextArea.area.className = this.area.className;  // transfer current font from gif area to twext area
