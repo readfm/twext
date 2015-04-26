@@ -70,11 +70,8 @@ Controller = Class.$extend({
   */
   loadData: function() {
     var shortcut = window.location.hash;  // get text shortcut
-    if(shortcut && shortcut.slice(1)) { // if there is a hash value in the url
-      this.loadURLData(shortcut.slice(1)); // load text and translations from firebase
-    } else {  // no hash value in the url
-      this.loadSampleData(); // load sample data
-    }
+    var url = (shortcut && shortcut.slice(1))?shortcut.slice(1):"1";
+    this.loadURLData(url); // load text and translations from firebase
   },
 
   /**
