@@ -848,10 +848,10 @@ Controller = Class.$extend({
     else if(e.keyCode == keys['f8'] && !e.ctrlKey && e.altKey && !e.shiftKey) this.toggleLangDown(e); // alt+F8, toggle down
     else if(e.keyCode == keys['f4'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.textOnlyTimingToggle(); // F4 press, timing switch
     else if(((!e.ctrlKey && e.keyCode == keys['f2']) || (e.ctrlKey && e.keyCode == keys['space'])) && !e.altKey && !e.shiftKey) this.playPauseText(e);  // F2 press or ctrl+space, play/pause text
-    else if(e.keyCode == keys['f1'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.normalOrGifView(e);  // alt+F2 press, big/small view switch
+    else if(e.keyCode == keys['f9'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.normalOrGifView(e);  // alt+F2 press, big/small view switch
     else if(e.keyCode == keys['f7'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.showHideLangMenu(e);  // F7 press, language menu
     else if(e.keyCode == keys['f7'] && !e.ctrlKey && e.altKey && !e.shiftKey) this.switchFontType(e); // alt+F7 press, font switch
-    else if(e.keyCode == keys['f9'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.switchStateUrlList(e);  // f9 press, url list
+    else if(e.keyCode == keys['f1'] && !e.ctrlKey && !e.altKey && !e.shiftKey) this.switchStateUrlList(e);  // f9 press, url list
     else if(e.keyCode == keys['f10'] && !e.ctrlKey && !e.shiftKey) this.toggleThumbs(e);
     else if($.inArray(e.keyCode, Object.toArray(this.player.tapTimer.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) {  // tap key press
       if(!this.tapTimer.isTapping) this.tapTimer.start(e);  // start tapping
