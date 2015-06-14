@@ -235,6 +235,7 @@ Controller = Class.$extend({
   * Third key press hide list, and then repeat process.
   */
   switchStateUrlList: function(e) {
+    e.preventDefault();
     this.urlListHandler.switchState();
   },
 
