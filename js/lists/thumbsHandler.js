@@ -96,7 +96,7 @@ ThumbsHandler = Class.$extend({
       controller.image.load(url); // load image url to image object
       controller.image.show();  // show image
     });
-    this.showThumbs();
+    //this.showThumbs();
     return thumb;
   },
 

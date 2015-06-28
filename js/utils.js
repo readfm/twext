@@ -247,6 +247,33 @@ function countPreviousSpaces(str, pos) {
 }
 
 /**
+* Allow drag/drop listener on given element
+*/
+function allowDragDrop(el, callback) {
+  el.addEventListener('dragenter', function(e) {onDrag(e)}, false);
+  el.addEventListener('dragexit', function(e) {onDrag(e)}, false);
+  el.addEventListener('dragover', function(e) {onDrag(e)}, false);
+  el.addEventListener('drop', function(e) {onDrop(e, callback)}, false);
+}
+
+/**
+* On drag event to element
+*/
+function onDrag(e) {
+  e.stopPropagation();
+  e.preventDefault();
+}
+
+/**
+* On drop event into element
+*/
+function onDrop(e, callback) {
+  e.stopPropagation();
+  e.preventDefault();
+  callback(e.dataTransfer);
+}
+
+/**
 * Twext based Utils.
 */
 TwextUtils = {

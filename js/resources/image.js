@@ -8,6 +8,38 @@ Image = Class.$extend({
   __init__: function() {
     this.image = $('#image'); // image DOM element
     this.container = $('#imgContainer');  // video container DOM element
+
+    // allow drag/drop images
+    allowDragDrop(this.container[0], this.onDropImage);
+  },
+
+  /**
+  * On drop image into ImageResource.
+  */
+  onDropImage: function(data) {
+    if(!controller.gifArea.isVisible()) return;
+
+    var k = null;
+    // display dropped image
+    var imageEl = $(data.getData('text/html')); // get image tag
+    var imageUrl = imageEl?imageEl.attr("src"):null; // get image url
+    var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/gi; // Match url
+    if(imageUrl && re.test(imageUrl)) { // valid server url or data url
+      controller.image.load(imageUrl);
+      k = controller.thumbsHandler.saveThumb(imageUrl); //save into fb
+      controller.thumbsHandler.createThumb(imageUrl, k).click();
+    } else {  // not valid url, image maybe local file
+      var f = data.files[0];  // get image file
+      if(f) { // local image file
+        var fr = new FileReader();
+        fr.onload = function(ev) {  // file reader done with reading file
+          controller.image.load(ev.target.result);
+          k = controller.thumbsHandler.saveThumb(ev.target.result); //save into fb
+          controller.thumbsHandler.createThumb(ev.target.result, k).click();
+        };
+        fr.readAsDataURL(f);
+      }
+    }
   },
 
   /**

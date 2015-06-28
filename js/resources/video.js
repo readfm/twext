@@ -14,6 +14,46 @@ Video = Class.$extend({
     this.seekedTo = -1; // time where video is seeked to
     this.playbackRate = 1;  // how fast the video is played, default is normal speed
     this.playTimeout = null;  // timout where the video should stop playing
+
+    // allow drag/drop images
+    allowDragDrop(this.container[0], this.onDropImage);
+  },
+
+  /**
+  * On drop image into videoResource.
+  */
+  onDropImage: function(data) {
+    if(!controller.gifArea.isVisible()) return;
+
+    var k = null;
+    // display dropped image
+    var imageEl = $(data.getData('text/html')); // get image tag
+    var imageUrl = imageEl?imageEl.attr("src"):null; // get image url
+    var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?|^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/gi; // Match url
+    if(imageUrl && re.test(imageUrl)) { // valid server url or data url
+      controller.video.hide();
+      controller.image.load(imageUrl);
+      controller.image.show(); 
+      k = controller.thumbsHandler.saveThumb(imageUrl); //save into fb
+      controller.thumbsHandler.createThumb(imageUrl, k).click();
+      controller.gifArea.setResource(controller.image); // update current resource
+      controller.gifArea.show();
+    } else {  // not valid url, image maybe local file
+      var f = data.files[0];  // get image file
+      if(f) { // local image file
+        var fr = new FileReader();
+        fr.onload = function(ev) {  // file reader done with reading file
+          controller.video.hide();
+          controller.image.load(ev.target.result);
+          controller.image.show();
+          k = controller.thumbsHandler.saveThumb(ev.target.result); //save into fb
+          controller.thumbsHandler.createThumb(ev.target.result, k).click();
+          controller.gifArea.setResource(controller.image); // update current resource
+          controller.gifArea.show();
+        };
+        fr.readAsDataURL(f);
+      }
+    }
   },
 
   /**

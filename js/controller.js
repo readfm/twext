@@ -125,6 +125,7 @@ Controller = Class.$extend({
           for(var i in data.thumbs) {
             controller.thumbsHandler.createThumb(data.thumbs[i], i);
           }
+          controller.thumbsHandler.showThumbs();
         }
 
         // Add this url/text to the hot list
@@ -280,6 +281,7 @@ Controller = Class.$extend({
     var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/; // url pattern
     if(!url || !re.test(url)) return;
     var thumb = this.thumbsHandler.createThumb(url, null, true);
+    this.thumbsHandler.showThumbs();
 
     var media = this.getMedia();
     if(media && media instanceof Video && media.isVisible()) return; // do not show image if there is a video
@@ -303,6 +305,7 @@ Controller = Class.$extend({
         // create thumb
         var k = this.thumbsHandler.saveThumb(img);  // save into fb
         this.thumbsHandler.createThumb(img, k);
+        this.thumbsHandler.showThumbs();
       } else {  // no image url attached
         url = link;
       }
