@@ -25,7 +25,7 @@ LanguageMenu = Class.$extend({
     // load languages
     var selectValues = Object.sortAssoc(languages); // get languages object(eg:{"en":"english", ....}) sorted by keys
     $.each(selectValues, function(key, value) {  // loop languages
-      if(key != "img" && key != "link") langMenu.element
+      if(key != "img" && key != "link") langMenu.element  // @TODO remove img check when data fixed in fb
          .append($("<option></option>")
          .attr("value",key) // set the value of the option to language code
          .text(value)); // set the text of the option to language name
@@ -33,10 +33,10 @@ LanguageMenu = Class.$extend({
 
     // load resources
     // Add Image key to allow user to enter image url as twext. Image is added at the end of bing languages
-    this.element
+    /*this.element
      .append($("<option></option>")
      .attr("value", "img") // set the value of the option to image code
-     .text(selectValues["img"])); // set the text of the option to image name
+     .text(selectValues["img"])); // set the text of the option to image name*/
     // Add Link key to allow user to enter link url as twext. LINK is added at the end of bing languages
     this.element
      .append($("<option></option>")

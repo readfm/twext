@@ -95,9 +95,9 @@ Image = Class.$extend({
   * Save image to firebase
   * @param 'text' firebase text key
   */
-  save: function(text) {
+  /*save: function(text) {
     firebaseHandler.set(refs.data+text+"/translations/img/1-0/value", this.image.attr('src'));
-  },
+  },*/
 
   /**
   * Clear image data.

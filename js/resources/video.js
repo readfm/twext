@@ -101,6 +101,7 @@ Video = Class.$extend({
             $(vid.video).unbind('canplaythrough');
           });
         } else {
+          vid.clear();
           callback(false); // return with not found confirmation
         }
       });
@@ -243,5 +244,18 @@ Video = Class.$extend({
   */
   isVisible: function() {
     return $(this.container).is(":visible");
+  },
+
+  /**
+  * Clear video data.
+  */
+  clear: function() {
+    $(this.video).removeAttr("src");  // reset src
+    this.id = null;
+    this.startTime = -1;
+    this.endTime = -1;
+    this.seekedTo = -1;
+    this.playbackRate = 1;
+    this.playTimeout = null;
   }
 });

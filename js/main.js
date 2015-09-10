@@ -28,7 +28,7 @@ $(document).ready(function() {
 
     firebaseHandler = new FirebaseHandler();  // initialize backend comunicator object
     controller = new Controller();  // initialize controller object, all data objects initialized with controller
-    attachEvents(); // attach events of elements
+    attachEvents(); // attach events of elements    
   }
 
   /**
@@ -53,7 +53,7 @@ $(document).ready(function() {
       area.setCaretPos(caret.lines, caret.offset);	// set cursor back to its position
 
       // load image if url is pasted in first twext line
-      if(mode == "twext") {
+      /*if(mode == "twext") {
         pastedText = $.trim(pastedText);
         var twextLines = area.smallText("twext").split('\n');
         var currentLang = controller.toggleHandler.language;  // current displayed language
@@ -62,7 +62,7 @@ $(document).ready(function() {
           controller.loadImage(pastedText);
           controller.saveData();
         }
-      }
+      }*/
     });
 
     // Attach window events

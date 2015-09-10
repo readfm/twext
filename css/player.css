@@ -93,7 +93,7 @@
 }
 
 #thumbs {
-  height: 62px;
+  /*height: 62px;*/
   display: none;
   overflow: hidden;
   margin-top: 1px;

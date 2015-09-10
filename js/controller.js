@@ -80,8 +80,8 @@ Controller = Class.$extend({
   toggleThumbs: function(e) {
     var url = null;
     if(e) e.preventDefault();
-    if(e && e.altKey) url = this.thumbsHandler.getPreviousThumb();
-    else url = this.thumbsHandler.getNextThumb();
+    if(e && e.altKey) url = this.thumbsHandler.toggleBackward();
+    else url = this.thumbsHandler.toggleForward();
     if (url) { // image
       this.video.hide();
       this.image.load(url); // load image url to image object
@@ -122,10 +122,7 @@ Controller = Class.$extend({
 
         // Load thumbs
         if(data.thumbs) {
-          for(var i in data.thumbs) {
-            controller.thumbsHandler.createThumb(data.thumbs[i], i);
-          }
-          controller.thumbsHandler.showThumbs();
+          controller.thumbsHandler.displayThumbs(data.thumbs);
         }
 
         // Add this url/text to the hot list
@@ -277,7 +274,7 @@ Controller = Class.$extend({
   * Load Image with given url.
   * @param 'url' image url
   */
-  loadImage: function(url) {
+  /*loadImage: function(url) {
     var re = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/; // url pattern
     if(!url || !re.test(url)) return;
     var thumb = this.thumbsHandler.createThumb(url, null, true);
@@ -289,7 +286,7 @@ Controller = Class.$extend({
     thumb.click();
     this.image.load(url); // load image url to image object
     this.image.show();  // show image
-  },
+  },*/
 
   /**
   * Load media with given id.
@@ -303,9 +300,7 @@ Controller = Class.$extend({
         url = link.substr(0, i); // media
         img = link.slice(i+1); // image url
         // create thumb
-        var k = this.thumbsHandler.saveThumb(img);  // save into fb
-        this.thumbsHandler.createThumb(img, k);
-        this.thumbsHandler.showThumbs();
+        this.thumbsHandler.addThumb(img);
       } else {  // no image url attached
         url = link;
       }
@@ -317,9 +312,9 @@ Controller = Class.$extend({
       this.saveVideo(null);  // save empty video in fireabse
       controller.audioListHandler.show(); // show audio list if video cleared
       // load image if exist
-      var langIx = controller.toggleHandler.toggle_data.findByLanguageCode("img");
+      /*var langIx = controller.toggleHandler.toggle_data.findByLanguageCode("img");
       var img = controller.toggleHandler.toggle_data.getLanguageVersion(langIx, 0);
-      if(img) controller.loadImage(img.data.value.split('\n')[0]);
+      if(img) controller.loadImage(img.data.value.split('\n')[0]);*/
     }
   },
 
@@ -333,7 +328,8 @@ Controller = Class.$extend({
     this.video.load(params['id'], params['loopFrom'], params['loopTo'], function(loaded) {  // callback after loading video
       if(loaded) {  // video loaded
         controller.hideMsg();  // hide video message
-        controller.image.clear();
+        controller.image.hide();
+        controller.thumbsHandler.resetToggle();
         controller.video.show();  // show video
         controller.saveVideo(vid); // save video to firebase
         controller.audioListHandler.hide(); // hide audio list if exist

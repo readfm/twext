@@ -274,6 +274,15 @@ function onDrop(e, callback) {
 }
 
 /**
+* Get child index.
+*/
+function childIndex(child) {
+  var i = 0;
+  while((child = child.previousSibling) != null) i++;
+  return i;
+}
+
+/**
 * Twext based Utils.
 */
 TwextUtils = {
