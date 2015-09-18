@@ -41,19 +41,18 @@ ThumbsHandler = Class.$extend({
   * Display list of thumbs repeatedly till fill screen.
   */
   displayThumbs: function(thumbs, w) {
+    this.thumbs = thumbs;
     var cWidth = document.documentElement.clientWidth;  // screen width
     var thumbsWidth = w?w:$('#thumbs>span').length * 62;
     var pixLeft = cWidth - thumbsWidth;
-    var index = 0;
-    for(var i in thumbs) {
+    for(var i=0; i<this.thumbs.length; i++) {
       if(pixLeft <= 2) break;
-      this.createThumb(thumbs[i], i, null, index);
-      index++;
+      this.createThumb(i, this.thumbs[i], null);
       thumbsWidth += 62;
       pixLeft = cWidth - thumbsWidth;
     }
     if(pixLeft > 2) { // repeat thumbs if there is a room for more
-      this.displayThumbs(thumbs, thumbsWidth);
+      this.displayThumbs(this.thumbs, thumbsWidth);
       return;
     }
     this.showThumbs();
@@ -68,28 +67,26 @@ ThumbsHandler = Class.$extend({
   addThumb: function(url) {
     var el = controller.thumbsHandler.element;
     var tLen = controller.thumbsHandler.thumbs.length;
-    var index;
-    var k = controller.thumbsHandler.saveThumb(url); //save into fb
-    controller.thumbsHandler.thumbs.push({key:k, url:url});
+    controller.thumbsHandler.thumbs.push(url);
     if(tLen > 0) {
       var lastNodes = $("#thumbs ."+(tLen-1));
+      var index;
       for(var i=0;i<lastNodes.length; i++) {
         index = childIndex(lastNodes[i]);
-        controller.thumbsHandler.createThumb(url, k, index+1, tLen);
+        controller.thumbsHandler.createThumb(tLen, url, index+1);
         el.children().last().remove();
         lastNodes = $("#thumbs ."+(tLen-1)); // lastNodes array is updated after each insertion of a new thumb, in case that one of them is pushed out of the screen and deleted
       }
     } else { // first thumb to add
-      var t = {};
-      t[k] = url;
-      this.displayThumbs(t);
+      this.displayThumbs(controller.thumbsHandler.thumbs);
     }
+    controller.thumbsHandler.saveThumb(url); //save into fb
   },
 
   /**
   * Create thumb for the given image
   */
-  createThumb: function(url, key, index, realIndex) {
+  createThumb: function(thumbIndex, url, index) {
     if(!url) return;
     var thumb;
     if(index && index > 0) {
@@ -97,10 +94,10 @@ ThumbsHandler = Class.$extend({
     } else {
       thumb = $(document.createElement('span')).attr('href', url).css('background-image', "url("+url+")").appendTo("#thumbs");
     }
-    this.thumbs[realIndex] = {url:url, key:key};
+    //this.thumbs[thumbIndex] = url;
     thumb.addClass("thumb");
-    thumb.addClass(realIndex+"");
-    thumb.data("index", realIndex); // save real index to the element
+    thumb.addClass(thumbIndex+"");
+    thumb.data("index", thumbIndex); // save real index to the element
     var thumbsHandler = this;
     thumb.click(function(e) {
       if(e.ctrlKey && e.shiftKey) {
@@ -128,56 +125,42 @@ ThumbsHandler = Class.$extend({
   * Remove thumb.
   */
   removeThumb: function(thumb) {
-    // check if one thumb displayed
-    if(this.thumbs.length <= 1) {
+    var index = $(thumb).data("index");
+    this.thumbs.splice(index, 1); // remove from thumbs array
+    var textUrl = window.location.hash?window.location.hash.slice(1):null;
+    if(textUrl) firebaseHandler.set(refs.mapping+textUrl+"/thumbs", this.thumbs); // reset the whole array to keep the indices correct
+
+    if(this.thumbs.length == 0) { // no more thumbs to display
       $("#thumbs").empty();
-      this.thumbs = [];
       return;
     }
-
-    var index = $(thumb).data("index");
-    var k = this.thumbs[index].key;
-    var textUrl = window.location.hash?window.location.hash.slice(1):null;
-    if(textUrl && k) firebaseHandler.remove(refs.mapping+textUrl+"/thumbs/"+k); // remove from fb
-    this.thumbs.splice(index, 1);
     // remove nodes
-    //var x, s;
     var nodes = $("#thumbs ."+index);
     for(var i=0; i<nodes.length; i++) {
       if($(nodes[i]).hasClass('active')) this.toggleForward(); // move to next before delete node
-      //update following thumbs indices
-      /*s = $(nodes[i].nextSibling);
-      x = s.length>0?s.data("index"):null;
-      while(x && x > index) {
-        s.removeClass(x+"");
-        x--;
-        s.addClass(x+"");
-        s.data("index", x);
-        s = $(s.nextSibling);  // move forward
-      }*/
       nodes[i].remove();
       // add thumb at the end of list to replace the deleted one
       var ind = $("#thumbs>span").last().data("index");
       if(ind == this.thumbs.length-1) { //last thumb
-        this.createThumb(this.thumbs[0].url, this.thumbs[0].key, this.element.children().length, 0);
+        this.createThumb(0, this.thumbs[0], this.element.children().length);
       } else {
-        this.createThumb(this.thumbs[ind+1].url, this.thumbs[ind+1].key, this.element.children().length, ind+1);
+        this.createThumb(ind+1, this.thumbs[ind+1], this.element.children().length);
       }
     }
     // update indices of thumbs after deleted one
     var nodes = [];
-    for(var j=index; j>this.thumbs.length; j++) {
+    for(var j=index; j<this.thumbs.length; j++) {
       nodes = $("#thumbs ."+(j+1));
       for(var m=0; m<nodes.length; m++) {
-        nodes[m].removeClass(""+(j+1));
-        nodes[m].addClass(""+j);
-        nodes[m].data("index", j);
+        $(nodes[m]).removeClass(""+(j+1));
+        $(nodes[m]).addClass(""+j);
+        $(nodes[m]).data("index", j);
       }
     }
   },
 
   /**
-  * Toggle images forward.//@UPDATE use nextSibling
+  * Toggle images forward.
   */
   toggleForward: function() {
     var current = $('#thumbs > .active')[0];
@@ -231,6 +214,77 @@ ThumbsHandler = Class.$extend({
   },
 
   /**
+  * Move thumb from position to another.@TODO realIx updates
+  */
+  moveThumb: function(from, to) {
+    if(from == to || to >= this.thumbs.length) return;
+    var fromUrl = this.thumbs[from];
+    this.thumbs.move(from, to); // move element to the new position
+    // move dom elements
+    var allFrom = $("#thumbs ."+from);
+    var allTo = $("#thumbs ."+to);
+    var pendingUpdate = false, last;
+    for(var i=0,j=0; ; i++,j++) {
+      if(i >= allFrom.length && j >= allTo.length) break;
+      else if(i < allFrom.length && j >= allTo.length) { // one element left from allFrom needs to be moved to non existing position
+        $(allFrom[i]).remove();
+        pendingUpdate = true; // replace last node by the one following later(after indices updated)
+      } else if(i >= allFrom.length && j < allTo.length) { // one element left from allTo needs to a non existing element to be moved before it
+        ci = childIndex(allTo[j]);
+        this.createThumb(from, fromUrl, ci);
+        last = $("#thumbs>span").last();
+        $(last).remove();
+      } else {
+        if(from < to) { // move to right
+          $(allFrom[i]).insertAfter($(allTo[j])); // move "from" element to new position
+        } else { // from > to, move to left
+          $(allFrom[i]).insertBefore($(allTo[j])); // move "from" element to new position
+        }
+      }
+    } // end for
+
+    // update indices in background
+    // get all nodes to be updated and save in obj, key is the new index
+    // loop on obj and update indices.
+    // nodes cannot be updated at the same loop where they been called, that's because nodes might be updated to index that will be caleld later, in this case nodes already updated will be called again
+    var obj = {}, nodes, node;
+    nodes = $("#thumbs ."+from);
+    obj[to] = nodes;
+    if(from < to) { // move to right
+      for(var i=from+1; i<=to; i++) {
+        nodes = $("#thumbs ."+i);
+        obj[i-1] = nodes;
+      }
+    } else {  // move to left
+      for(var i=from-1; i>=to; i--) {
+        nodes = $("#thumbs ."+i);
+        obj[i+1] = nodes;
+      }
+    }
+    for(var k in obj) {
+      nodes = obj[k];
+      k = parseInt(k);
+      for(var j=0; j<nodes.length; j++) {
+        node = $(nodes[j]);
+        x = node.data("index");
+        node.removeClass(""+x);
+        node.addClass(""+ k);
+        node.data("index", k);
+      }
+    }
+    if(pendingUpdate) {
+      last = $("#thumbs>span").last();
+      var ix = last.data("index");
+      ix = ix<this.thumbs.length-1?ix:-1;
+      this.createThumb(ix+1, this.thumbs[ix+1]);
+    }
+
+    // update fb
+    var textUrl = window.location.hash?window.location.hash.slice(1):null;
+    if(textUrl) firebaseHandler.set(refs.mapping+textUrl+"/thumbs", this.thumbs);
+  },
+
+  /**
   * show thumbs.
   */
   showThumbs: function() {
@@ -249,8 +303,7 @@ ThumbsHandler = Class.$extend({
   */
   saveThumb: function(url) {
     var textUrl = window.location.hash?window.location.hash.slice(1):null;
-    if(textUrl) return firebaseHandler.push(refs.mapping+textUrl+"/thumbs", url);
-    return null;
+    if(textUrl) firebaseHandler.set(refs.mapping+textUrl+"/thumbs/"+(this.thumbs.length-1), url);
   },
 
   clear: function() {

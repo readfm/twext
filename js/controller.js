@@ -98,6 +98,19 @@ Controller = Class.$extend({
   },
 
   /**
+  * Move thumb to change order.
+  */
+  sortThumbs(e) {
+    var thumb = $("#thumbs .active")[0];
+    if(!thumb) return;
+
+    e.preventDefault();
+    var from = $(thumb).data("index");
+    var to = parseInt(String.fromCharCode(e.keyCode)); // index within the list
+    this.thumbsHandler.moveThumb(from, to);
+  },
+
+  /**
   * Load Text from firebase that is referenced by the given shortcut.
   * @param 'url' the reference hash url of the text
   */
@@ -857,6 +870,7 @@ Controller = Class.$extend({
     else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) this.player.game.play(); // play game
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['+']) this.gifTextSizeUp(e); // increase font size
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['-']) this.gifTextSizeDown(e); // decrease font size
+    else if(!isNaN(String.fromCharCode(e.keyCode))) this.sortThumbs(e);
   },
 
   /**

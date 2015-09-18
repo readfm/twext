@@ -23,6 +23,17 @@ Array.prototype.fill = function(val) {
   return this;  // return result array
 };
 
+/**
+* Move element from a position to another.
+*/
+Array.prototype.move = function (from, to) {
+  if (to >= this.length) {
+    return this;
+  }
+  this.splice(to, 0, this.splice(from, 1)[0]);
+  return this;
+};
+
 // Can't prototype Object, all objects in JavaScript are descended from Object.
 /**
 * Sort key/value object elements by values.
