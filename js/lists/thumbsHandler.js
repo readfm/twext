@@ -15,6 +15,53 @@ ThumbsHandler = Class.$extend({
   },
 
   /**
+  * Drag thumbs to horizontal scrolling.
+  */
+  slideThumbs: function(dd) {
+    var ix, newThumbIx;
+    var first = $("#thumbs>span").first();
+    var last = $("#thumbs>span").last();
+    var fpos = first.offset().left;
+    var lpos = last.offset().left;
+    var x = dd.start - dd.deltaX;
+    var tw = first.width();
+    var cWidth = document.documentElement.clientWidth;  // screen width
+    if(dd.offsetX > dd.prevOffset) {  // slide to right
+      if(x < 0) {
+        ix = first.data("index");
+        newThumbIx = ix==0?this.thumbs.length-1:ix-1;
+        this.createThumb(newThumbIx, this.thumbs[newThumbIx], 0);
+        dd.start += tw+2;
+        this.element[0].scrollLeft = tw+2;
+      } else {
+        this.element[0].scrollLeft = x;
+      }
+      if(lpos > cWidth) last.remove();
+    } else { // slide to left
+      var fepos = fpos + tw + 2;
+      var lepos = lpos + tw;
+      if(lepos <= cWidth) {
+        ix = last.data("index");
+        newThumbIx = ix==this.thumbs.length-1?0:ix+1;
+        this.createThumb(newThumbIx, this.thumbs[newThumbIx]);
+        if(fepos >= 0) {
+          dd.start -= 1;
+          this.element[0].scrollLeft += 1;
+        }
+        
+      } else {
+        this.element[0].scrollLeft = x;
+      }
+      if(fepos < 0) {
+        first.remove();
+        dd.start -= tw+2;
+        this.element[0].scrollLeft -= tw+2;
+      }
+    }
+    dd.prevOffset = dd.offsetX;
+  },
+
+  /**
   * On drop event.
   */
   onDropThumb: function(data) {
@@ -47,7 +94,7 @@ ThumbsHandler = Class.$extend({
     var pixLeft = cWidth - thumbsWidth;
     for(var i=0; i<this.thumbs.length; i++) {
       if(pixLeft <= 2) break;
-      this.createThumb(i, this.thumbs[i], null);
+      this.createThumb(i, this.thumbs[i]);
       thumbsWidth += 62;
       pixLeft = cWidth - thumbsWidth;
     }
@@ -89,12 +136,11 @@ ThumbsHandler = Class.$extend({
   createThumb: function(thumbIndex, url, index) {
     if(!url) return;
     var thumb;
-    if(index && index > 0) {
-      thumb = $(document.createElement('span')).attr('href', url).css('background-image', "url("+url+")").insertAfter(this.element.children()[index-1]);
+    if(index != null && index >= 0 && index < this.element.children().length) {
+      thumb = $(document.createElement('span')).attr('href', url).css('background-image', "url("+url+")").insertBefore(this.element.children()[index]);
     } else {
       thumb = $(document.createElement('span')).attr('href', url).css('background-image', "url("+url+")").appendTo("#thumbs");
     }
-    //this.thumbs[thumbIndex] = url;
     thumb.addClass("thumb");
     thumb.addClass(thumbIndex+"");
     thumb.data("index", thumbIndex); // save real index to the element
@@ -117,7 +163,13 @@ ThumbsHandler = Class.$extend({
       controller.image.load(url); // load image url to image object
       controller.image.show();  // show image
     });
-    //this.showThumbs();
+    thumb.drag("start", function( ev, dd ){
+      dd.start = $("#thumbs")[0].scrollLeft;
+      dd.prevOffset = 0;
+    });
+    thumb.drag(function( ev, dd ){
+      controller.thumbsHandler.slideThumbs(dd);
+    },{click:false});
     return thumb;
   },
 
@@ -142,9 +194,9 @@ ThumbsHandler = Class.$extend({
       // add thumb at the end of list to replace the deleted one
       var ind = $("#thumbs>span").last().data("index");
       if(ind == this.thumbs.length-1) { //last thumb
-        this.createThumb(0, this.thumbs[0], this.element.children().length);
+        this.createThumb(0, this.thumbs[0]);
       } else {
-        this.createThumb(ind+1, this.thumbs[ind+1], this.element.children().length);
+        this.createThumb(ind+1, this.thumbs[ind+1]);
       }
     }
     // update indices of thumbs after deleted one
@@ -231,7 +283,7 @@ ThumbsHandler = Class.$extend({
         pendingUpdate = true; // replace last node by the one following later(after indices updated)
       } else if(i >= allFrom.length && j < allTo.length) { // one element left from allTo needs to a non existing element to be moved before it
         ci = childIndex(allTo[j]);
-        this.createThumb(from, fromUrl, ci);
+        this.createThumb(from, fromUrl, ci-1);
         last = $("#thumbs>span").last();
         $(last).remove();
       } else {
