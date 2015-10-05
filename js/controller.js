@@ -100,14 +100,24 @@ Controller = Class.$extend({
   /**
   * Move thumb to change order.
   */
-  sortThumbs(e) {
-    var thumb = $("#thumbs .active")[0];
+  sortThumbs: function(e) {
+    var thumb = $(".active")[0];
     if(!thumb) return;
 
     e.preventDefault();
     var from = $(thumb).data("index");
     var to = parseInt(String.fromCharCode(e.keyCode)); // index within the list
-    this.thumbsHandler.moveThumb(from, to);
+    var id = thumb.parentNode.id;
+    var type = id=="goodThumbs"?0:1;
+    this.thumbsHandler.moveThumb(from, to, type);
+  },
+
+  /**
+  * Move thumb to the other tier.
+  */
+  moveThumbToTier: function(e, fromTier, toTier) {
+    e.preventDefault();
+    this.thumbsHandler.moveToTier(fromTier, toTier);
   },
 
   /**
@@ -135,7 +145,8 @@ Controller = Class.$extend({
 
         // Load thumbs
         if(data.thumbs) {
-          controller.thumbsHandler.displayThumbs(data.thumbs);
+          if(data.thumbs.good) controller.thumbsHandler.displayThumbs(data.thumbs.good, 0);
+          if(data.thumbs.ok) controller.thumbsHandler.displayThumbs(data.thumbs.ok, 1);
         }
 
         // Add this url/text to the hot list
@@ -313,7 +324,7 @@ Controller = Class.$extend({
         url = link.substr(0, i); // media
         img = link.slice(i+1); // image url
         // create thumb
-        this.thumbsHandler.addThumb(img);
+        this.thumbsHandler.addThumb(img, 0);
       } else {  // no image url attached
         url = link;
       }
@@ -870,6 +881,8 @@ Controller = Class.$extend({
     else if($.inArray(e.keyCode, Object.toArray(this.player.game.keys)) != -1 && !e.ctrlKey && !e.altKey && !e.shiftKey) this.player.game.play(); // play game
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['+']) this.gifTextSizeUp(e); // increase font size
     else if(e.ctrlKey && e.altKey && e.keyCode == keys['-']) this.gifTextSizeDown(e); // decrease font size
+    else if(e.keyCode == keys['arrowup']) this.moveThumbToTier(e, 1, 0);
+    else if(e.keyCode == keys['arrowdown']) this.moveThumbToTier(e, 0, 1);
     else if(!isNaN(String.fromCharCode(e.keyCode))) this.sortThumbs(e);
   },
 

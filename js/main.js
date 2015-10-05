@@ -5,6 +5,8 @@ var controller, firebaseHandler;
 var twextArea, player, syllabifier; // accessed by other modules
 var keys = {
   'space': 32,
+  'arrowup': 38,
+  'arrowdown': 40,
   "f1": 112,
   "f2": 113,
   "f4": 115,

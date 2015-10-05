@@ -92,18 +92,34 @@
   overflow: hidden;
 }
 
-#thumbs {
-  /*height: 62px;*/
-  display: none;
+#goodThumbs {
+  height:80px;
+  overflow: hidden;
+  margin-top: 1px;
+  white-space: nowrap;
+  margin-left: -6px;
+  border-bottom: solid 0.8px #CCCCB2;
+}
+
+#okThumbs {
+  height:50px;
   overflow: hidden;
   margin-top: 1px;
   white-space: nowrap;
   margin-left: -6px;
 }
 
-#thumbs>span.thumb {
-  height: 60px;
-  width: 60px;
+#goodThumbs>span {
+  height: 80px;
+  width: 80px;
+}
+
+#okThumbs>span {
+  height: 50px;
+  width: 50px;
+}
+
+span.thumb {
   background-size: auto 100%;
   background-position: center center;
   display: inline-block;
@@ -112,10 +128,10 @@
   border: solid 1px black;
 }
 
-#thumbs>span.active {
+span.active {
   opacity: 1;
 }
 
-#thumbs>span:hover {
+span:hover {
   opacity: 0.8;
 }
