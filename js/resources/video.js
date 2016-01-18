@@ -90,7 +90,7 @@ Video = Class.$extend({
       // Get video path on the server
       this.requestPath(id, function(path) {
         if(path != -1) {
-          vid.video.src = "http://" + path;  // set video src
+          vid.video.src = "https://" + path;  // set video src
           // callback when the video and its metadata are fully loaded
           $(vid.video).bind('canplaythrough', function(e) {
             //vidPlayer.hideMsg();

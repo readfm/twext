@@ -33,6 +33,7 @@ var languages = {
   "ru": "pycc\u043A\u0438\u0439 \u044F\u0437\u044B\u043A", // RUSSIAN
   "zh-CN": "\u4e2d\u6587",  // CHINESE
   "th": "\u0e44\u0e17\u0e22",  // THAI
+  "ja": "\u65e5\u672c\u8a9e", // JAPANESE
   "img": "Image",  // to add an image resource
   "link": "LINK"  // to add link in twext
 };
