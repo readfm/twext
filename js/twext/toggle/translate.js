@@ -10,7 +10,7 @@ Translation = Class.$extend({
   */
   __init__:function () {
     this.accessToken = ""; // set Bing api access token
-    this.baseUrl = "http://api.microsofttranslator.com/";  // Bing api url
+    this.baseUrl = "https://api.microsofttranslator.com/";  // Bing api url
     this.apiVersion = 'V2'; // google api version
     this.apiInterface = 'Ajax.svc'; // The api interface
     this.translate_successCallback;  // callback method to be called when translate is done to return to toggle.data translate success callback

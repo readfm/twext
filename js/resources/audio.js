@@ -46,7 +46,7 @@ Audio = Class.$extend({
         if(path != -1) {
           // create temp audio element and use it to load requested audio, after the audio completely loaded it would replace current audio
           var tempAudio = $(aud.audio).clone();
-          tempAudio.attr("src", "http://" + path);
+          tempAudio.attr("src", "https://" + path);
           //aud.audio.src = "http://" + path;  // set video src
           // callback when the video and its metadata are fully loaded
           $(tempAudio).bind('canplaythrough', function(e) {
