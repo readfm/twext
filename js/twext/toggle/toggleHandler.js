@@ -466,12 +466,12 @@ ToggleHandler = Class.$extend({
           index++;
           shortcut = str.substring(index, length);
           toggle.saveTextUrl(text, str, shortcut, index, length);
-        } else if(length-1 != 0){
+        } /*else if(length-1 != 0){
           index = 0;
           length--;
           shortcut = str.substring(index, length);
           toggle.saveTextUrl(text, str, shortcut, index, length);
-        } else { // 3, 2, 1 shortcut lengths have been tried and already in use, generate new one
+        }*/ else { // all 3 shortcuts of str have been tried and already in use, generate new one
           toggle.generateTextUrl(text);
         }
       }
