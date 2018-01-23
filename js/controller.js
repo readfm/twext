@@ -501,9 +501,15 @@ Controller = Class.$extend({
     var paramArr = tmp[tmp.length-1].split('&');
     params['id'] = paramArr[0]; // video/audio id
     if(paramArr[1]) {
-      var loopParams = paramArr[1].split('=')[1].split(';');
-      params['loopFrom'] = loopParams[0]; // loop from
-      params['loopTo'] = loopParams[1]; // loop to
+      var p = paramArr[1].split('=');
+      var loopParams = p[1].split(';');
+      if(p[0] == 'loop') {
+        params['loopFrom'] = loopParams[0]; // loopFrom
+        params['loopTo'] = loopParams[1]; // loopTo
+      } else if(p[0] == 't') {
+        params['loopFrom'] = loopParams[0]; // loopFrom
+        params['loopTo'] = parseFloat(loopParams[0]) + parseFloat(loopParams[1]); // loopTo = loopFrom+loopDuration
+      }
     }
     return params;
   },
