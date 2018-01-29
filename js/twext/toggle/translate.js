@@ -71,8 +71,21 @@ Translation = Class.$extend({
   */
   detect: function(text) {
     TRANSLATOR = this;  // Global varibale represents this class, needed for the created script to detect the callback method in this class
+    $.ajax({
+      url: 'php/Translator.php',
+      data: {text: text, action: "Detect"},
+      type: 'post',
+      success: function(output) {
+        if(output == -1) {
+          TRANSLATOR.detectErrorCallback("Error! Failed to detect text language.");
+        } else {
+          TRANSLATOR.detectSuccessCallback(output);
+        }
+      }
+    });
+    
     // Parameters needed for detect language request
-    var params = {
+    /*var params = {
       'appId': 'Bearer ' + encodeURIComponent(this.accessToken),  // The access token
       'text': encodeURIComponent(text), // text used to detect source language
       'contentType': encodeURIComponent('text/plain'), // content format
@@ -83,7 +96,7 @@ Translation = Class.$extend({
     var s = document.createElement("script"); // create script
     s.src = url;  // set the src url
     document.body.appendChild(s); // add the script to the DOM, the script is execued and the request is sent
-    document.body.removeChild(s); // remove the script
+    document.body.removeChild(s); // remove the script*/
   },
 
   /**
@@ -126,6 +139,20 @@ Translation = Class.$extend({
   */
   translate: function(text, target) {
     TRANSLATOR = this;  // Global varibale represents this class, needed for the created script to detect the callback method in this class
+    $.ajax({
+      url: 'php/Translator.php',
+      data: {text: text, to: target, action: "Translate"},
+      type: 'post',
+      success: function(output) {
+        if(output == -1) {
+          TRANSLATOR.translateErrorCallback("Error! Failed to translate text.");
+        } else {
+          TRANSLATOR.translateSuccessCallback(output);
+        }
+      }
+    });
+
+    /*TRANSLATOR = this;  // Global varibale represents this class, needed for the created script to detect the callback method in this class
     // Parameters needed for translate request
     var params = {
       'appId': 'Bearer ' + encodeURIComponent(this.accessToken),  // The access token
@@ -139,7 +166,7 @@ Translation = Class.$extend({
     var s = document.createElement("script"); // create script
     s.src = url;  // set the src url
     document.body.appendChild(s); // add the script to the DOM, the script is execued and the request is sent
-    document.body.removeChild(s); // remove the script
+    document.body.removeChild(s); // remove the script*/
   },
 
   /**

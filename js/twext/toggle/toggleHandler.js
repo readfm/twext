@@ -72,7 +72,7 @@ ToggleHandler = Class.$extend({
 
   /**
   * Get and display twexts(translations) if twexts are not already displayed. If twexts already exist, toggle languages of the existing twexts.
-  * If no twexts are displayed, get translations of the area input text(from firebase or google), display them as twexts for each Text line.
+  * If no twexts are displayed, get translations of the area input text(from firebase or Bing), display them as twexts for each Text line.
   * If twexts are displayed, toggle languages.
   */
   checkTranslations: function() {
@@ -91,7 +91,7 @@ ToggleHandler = Class.$extend({
       this.twextArea.chunks = []; // reset chunks
       controller.audioListHandler.empty();
       $("#mediaInputLink").val("");
-      this.getTranslations(text); // get translations of text from firebase of google
+      this.getTranslations(text); // get translations of text from firebase of Bing
     } else {  // same text
       if(this.twextArea.textMode() == "twext") {  // some language displayed, toggle to next language
         this.toggleLangUp(); // toggle to next language
