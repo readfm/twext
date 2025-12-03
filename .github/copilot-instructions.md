@@ -26,7 +26,7 @@ Twext is a web-based text alignment tool that aligns contexts between chunks of 
 │   ├── main.js            # Application initialization
 │   ├── controller.js      # Main controller class
 │   ├── utils.js           # Utility functions
-│   ├── backend/           # Firebase integration
+│   ├── backend/           # Firebase refs and handler
 │   ├── twext/             # Core twext functionality
 │   ├── languageMenu/      # Language selection
 │   ├── lists/             # List handlers (URL, audio, thumbs)
@@ -110,7 +110,7 @@ The application uses function keys extensively:
 
 ### Do Not:
 - **Never modify** the jQuery, Firebase, or third-party library files in `js/lib/`
-- **Never commit** sensitive data or API keys (note: `php/BingAccessToken` should be .gitignored if it contains credentials)
+- **Never commit** sensitive data or API keys
 - **Never break** the global variable structure in `main.js` (controller, firebaseHandler, twextArea, player, syllabifier)
 - **Never remove** keyboard shortcut functionality without understanding the full context
 - **Never change** the class generation pattern using Classy.js
