@@ -16,6 +16,9 @@ const mockData = [
  * Search for text matching the given term
  * @param {string} term - The search term
  * @param {number} limit - Maximum number of results to return (optional)
+ *                         If not provided, undefined, null, or negative, all results are returned.
+ *                         If 0, an empty array is returned.
+ *                         If positive, at most that many results are returned.
  * @returns {Array} Array of matching results
  */
 function searchText(term, limit) {

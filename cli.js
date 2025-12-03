@@ -29,8 +29,8 @@ if (command === 'search') {
   const limitIndex = args.indexOf('--limit');
   if (limitIndex !== -1 && args[limitIndex + 1]) {
     limit = parseInt(args[limitIndex + 1], 10);
-    if (isNaN(limit) || limit <= 0) {
-      console.error('Error: --limit must be a positive number');
+    if (isNaN(limit) || limit < 0) {
+      console.error('Error: --limit must be a non-negative number');
       process.exit(1);
     }
   }
