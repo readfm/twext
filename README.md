@@ -25,3 +25,32 @@ e) for text, toggle twexts
 
 https://superhypertext.me/specs/#5
 
+## CLI Tool
+
+This repository includes a command-line interface for searching text.
+
+### Usage
+
+```bash
+node cli.js search <term> [--limit <number>]
+```
+
+### Examples
+
+Search for all matching results:
+```bash
+node cli.js search 'JavaScript'
+```
+
+Limit results to 5:
+```bash
+node cli.js search 'JavaScript' --limit 5
+```
+
+### Testing
+
+Run the test suite:
+```bash
+npm test
+```
+

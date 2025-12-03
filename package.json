@@ -1,0 +1,23 @@
+{
+  "name": "twext",
+  "version": "1.0.0",
+  "description": "twext aligns contexts between chunks of text",
+  "main": "index.html",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/readfm/twext.git"
+  },
+  "keywords": [
+    "text",
+    "alignment"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/readfm/twext/issues"
+  },
+  "homepage": "https://github.com/readfm/twext#readme"
+}
