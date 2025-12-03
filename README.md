@@ -22,6 +22,3 @@ c) in any language you like
 d) edit, realign easy
 
 e) for text, toggle twexts
-
-https://superhypertext.me/specs/#5
-
